@@ -1,0 +1,7 @@
+config BLD_CROSSLINUX_DEVFS
+     bool
+     default y
+     prompt "Use a static /dev directory, or udev"
+     help
+       Say yes for a static /dev directory with a fixed set of device nodes.
+       Say no to use udev.

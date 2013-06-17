@@ -1,0 +1,410 @@
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script has general startup and functions.
+#
+# CHANGE LOG
+#
+#      2013-06-15  drj  Adapted to crosslinux from the ttylinux build system.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+#                                                                             #
+# F U N C T I O N S                                                           #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Setup some handy configuration parameters.
+# *****************************************************************************
+
+CL_config_setup() {
+
+	TARGET_CPU=${CONFIG_CPU_ARCH}
+	TARGET_TAG="${CONFIG_RELEASE_VERS}-${TARGET_CPU}-${CONFIG_BOARD}"
+
+	CROSSLINUX_BOARDC_DIR="@@CL_LIBDIR@@/boards/${CONFIG_BOARD}"
+	CROSSLINUX_LOADER_DIR="@@CL_LIBDIR@@/loaders/${CONFIG_LOADER}"
+	CROSSLINUX_PKGCFG_DIR="@@CL_LIBDIR@@/pkg-cfg"
+	CROSSLINUX_SCRIPT_DIR="@@CL_LIBDIR@@/scripts"
+
+	TARGET_PROJ_DIR="$(pwd)"
+	TARGET_BUILD_DIR="${TARGET_PROJ_DIR}/build"
+	TARGET_IMG_DIR="${TARGET_PROJ_DIR}/img"
+	TARGET_MNT_DIR="${TARGET_PROJ_DIR}/mnt"
+	TARGET_PKGBIN_DIR="${TARGET_PROJ_DIR}/pkg-bin"
+	TARGET_PKGSRC_DIR="${TARGET_PROJ_DIR}/pkg-src"
+	TARGET_SITE_DIR="${TARGET_PROJ_DIR}/site"
+	TARGET_SYSROOT_DIR="${TARGET_PROJ_DIR}/sysroot"
+	TARGET_VAR_DIR="${TARGET_PROJ_DIR}/var"
+
+	nameTag="${CONFIG_BOARD}-${CONFIG_RELEASE_VERS}"
+	TARGET_IMG_NAME="${TARGET_PROJ_DIR}/img/file_sys-${nameTag}.img"
+	TARGET_IRD_NAME="${TARGET_PROJ_DIR}/img/initrd-${nameTag}"
+	TARGET_TAR_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}.tar.bz2"
+	TARGET_SRC_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}-src.iso"
+	TARGET_ISO_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}.iso"
+	unset nameTag
+
+return 0
+
+}
+
+
+# *****************************************************************************
+# Error Handling Functions
+# *****************************************************************************
+
+CL_btrace() {
+	echo "command => $BASH_COMMAND"
+	echo ""
+	for ((_d=0 ; ${_d}<${#BASH_LINENO[@]} ; _d++)); do
+		echo "BASH_LINENO[${_d}] ${BASH_LINENO[${_d}]}"
+	done
+	echo ""
+	for ((_d=0 ; ${_d}<${#BASH_SOURCE[@]} ; _d++)); do
+		echo "BASH_SOURCE[${_d}] ${BASH_SOURCE[${_d}]}"
+	done
+	echo ""
+	for ((_d=0 ; ${_d}<${#FUNCNAME[@]} ; _d++)); do
+		echo "FUNCNAME[${_d}] ${FUNCNAME[${_d}]}"
+	done
+	return 0
+}
+
+CL_DbgSigExit=0
+CL_catch_sigexit() {
+	#
+	# Trap for this function with 'trap CL_catch_sigexit EXIT'.
+	# This is for final exit from the shell.  Enable this by setting
+	# 'CL_DbgSigExit' to non-zero.
+	#
+	if [[ ${CL_DbgSigExit} -ne 0 ]]; then
+		echo -e "${TEXT_BRED}CL_catch_sigexit${TEXT_NORM}"
+		CL_btrace
+	fi
+	return 0
+}
+
+CL_exitOnSigErr=1
+CL_catch_sigerr() {
+	#
+	# Trap for this function with 'trap CL_catch_sigerr ERR'.
+	# This is for trapping a non-zero return value from a shell function.
+	#
+	# See the advantage of 'CL_catch_sigint' in its comments below.
+	#
+	# It looks like the shell does NOT keep running if this function
+	# returns zero, so control the shell exit.  But notice the variable
+	# that can be set to 0 to inhibit the controlled exit; change its value
+	# as needed.
+	#
+	echo -e "${TEXT_BRED}CL_catch_sigerr${TEXT_NORM}"
+	CL_btrace
+	if [[ ${CL_exitOnSigErr} -ne 0 ]]; then
+		trap - EXIT	# Remove any shell exit handler and exit the
+				# shell.  This means to do any debugging in
+				# this function and avoid the chatter from
+				# another shell exit handler.
+		exit 1
+	return 0
+	fi
+}
+
+CL_exitOnSigInt=1
+CL_raise_sigint="kill -s SIGINT $$"
+CL_catch_sigint() {
+	#
+	# Trap for this function with 'trap CL_catch_sigint SIGINT'.
+	# This is for trapping the 'CL_raise_sigint' command.
+	#
+	# An advantage of using 'CL_raise_sigint' in a function instead of
+	# returning non-zero is the shell back-trace will show the function
+	# making the SIGINT.  The back-trace from a function's non-zero return
+	# value ends in the _calling_ function, so the function that returned
+	# the non-zero will not be in the back-trace.
+	#
+	# It looks like the shell does keep running if this function returns
+	# zero.  But notice the variable that is set to 1 to inhibit shell
+	# continuation; change its value as needed.
+	#
+	echo -e "${TEXT_BRED}CL_catch_sigint${TEXT_NORM}"
+	CL_btrace
+	if [[ ${CL_exitOnSigInt} -ne 0 ]]; then
+		trap - EXIT	# Remove any shell exit handler and exit the
+				# shell.  This means to do any debugging in
+				# this function and avoid the chatter from
+				# another shell exit handler.
+		exit 1
+	fi
+	return 0
+}
+
+
+# *****************************************************************************
+# These are logging functions.  The convention is to prefix each logged line
+# with something easily found with grep.
+# '#; ' prefixes comment lines
+# '#+ ' prefixes lines that are echoed commands (they are echoed before run)
+# *****************************************************************************
+
+# *****************************************************************************
+# Log to stdout.
+# *****************************************************************************
+
+CL_logcom() {
+	#
+	# Make logged comments.
+	#
+	local _ln
+	for _ln in "${@}"; do
+		echo -e "#; ${_ln}"
+	done
+	return 0
+}
+
+CL_logcmd() {
+	#
+	# Make logged commands, first showing them as comments.
+	#
+	local _ln
+	for _ln in "${@}"; do
+		echo -e "#+ ${_ln}"
+		eval ${_ln}
+	done
+	return 0
+}
+
+# *****************************************************************************
+# Log to file named by ${CL_DBGFILE}.
+# *****************************************************************************
+
+CL_dbglogcom() {
+	#
+	# Make logged comments.
+	#
+	[[ -z "${CL_DBGFILE:-}" ]] && return 0 || true
+	[[ -f "${CL_DBGFILE}"   ]] || $(CL_raise_sigint)
+	local _ln
+	for _ln in "${@}"; do
+		echo -e "#; ${_ln}"
+	done >>"${CL_DBGFILE}"
+	return 0
+}
+
+CL_dbglogcmd() {
+	#
+	# Make logged commands, first showing them as comments.
+	#
+	[[ -z "${CL_DBGFILE:-}" ]] && return 0 || true
+	[[ -f "${CL_DBGFILE}"   ]] || $(CL_raise_sigint)
+	local _ln
+	for _ln in "${@}"; do
+		echo -e "#+ ${_ln}"
+		eval ${_ln}
+	done >>"${CL_DBGFILE}"
+	return 0
+}
+
+# *****************************************************************************
+# Log to file descriptor.
+# *****************************************************************************
+
+CL_fdlogcom() {
+	#
+	# Make logged comments.
+	#
+	[[ ${#@} -lt 2     ]] && $(CL_raise_sigint) || true
+	[[ ${1} = *[!0-9]* ]] && $(CL_raise_sigint) || true
+	local _fd=${1}
+	local _ln
+	shift
+	for _ln in "${@}"; do
+		echo -e "#; ${_ln}"
+	done >&${_fd}
+	return 0
+}
+
+CL_fdlogcmd() {
+	#
+	# Make logged commands, first showing them as comments.
+	#
+	[[ ${#@} -lt 2     ]] && $(CL_raise_sigint) || true
+	[[ ${1} = *[!0-9]* ]] && $(CL_raise_sigint) || true
+	local _fd=${1}
+	local _ln
+	for _ln in "${@}"; do
+		echo -e "#+ ${_ln}"
+		eval ${_ln}
+	done >&${_fd}
+	return 0
+}
+
+
+# *****************************************************************************
+# CL_dload_get_file
+# *****************************************************************************
+
+# Usage: dload_get_file <pname> <fname> <url> [url ...]
+#
+#      Sets these global variables:
+#           G_NMISSING .................... number of failed downloads
+#           G_MISSED_PKG[${G_NMISSING}] ... file name of failed download
+#           G_MISSED_URL[${G_NMISSING}] ... urls of failed download
+
+declare -i G_NMISSING   # integer index into the indexed arrays
+declare -a G_MISSED_PKG # indexed array of package names
+declare -a G_MISSED_URL # indexed array of package urls
+
+CL_dload_get_file() {
+
+	local pkgName="$1"  # like glibc-2.9
+	local fileName="$2" # could be like lynx2-8-7.tgz; may not match pkgName
+	local url="$3"
+	local loadedDn="no"
+	local cacheDir="${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
+
+	# Go to the urls.
+	shift
+	shift
+
+	pushd "${cacheDir}" >/dev/null 2>&1
+
+	echo -n "i> Checking ${pkgName} "
+	for ((i=28 ; i > ${#pkgName} ; i--)); do echo -n "."; done
+
+	rm -f "${fileName}.download.log"
+
+	# Maybe the file doesn't get downloaded.
+	#
+	if [[ x"${url}" == x"(cross-tools)" ]]; then
+		echo " (comes from cross-tool chain)"
+		popd >/dev/null 2>&1
+		return 0
+	fi
+	if [[ x"${url}" == x"(local)" ]]; then
+		echo " (local)"
+		popd >/dev/null 2>&1
+		return 0
+	fi
+
+	# If the file already is there then return.
+	#
+	if [[ -f "${fileName}" ]]; then
+		echo " have it"
+		popd >/dev/null 2>&1
+		return 0
+	fi
+	echo -n " downloading ... "
+
+	# Try to download the file from the urls.
+	#
+	_file=""
+	_args="-T 15 -nc --passive-ftp --progress=dot:binary --tries=3"
+	_log="${fileName}.download.log"
+	rm -f "${_log}"
+	for url in "$@"; do
+		rm -f ${fileName}
+		_file="${url}/${fileName}"
+		if ${cl_wget} ${_args} ${_file} >"${_log}" 2>&1; then
+			loadedDn="yes"
+		else
+			rm -f ${fileName}
+		fi
+	done
+	unset _file
+	unset _args
+	unset _log
+
+	if [[ "${loadedDn}" == "yes" ]]; then
+		echo "done"
+		rm -f "${fileName}.download.log"
+		chmod 600 ${fileName}
+	else
+		echo "FAILED"
+		G_MISSED_PKG[${G_NMISSING}]="${fileName}"
+		G_MISSED_URL[${G_NMISSING}]="${url}"
+		G_NMISSING=$((${G_NMISSING} + 1))
+	fi
+
+	popd >/dev/null 2>&1
+
+	return 0
+
+}
+
+
+# *************************************************************************** #
+#                                                                             #
+# _ f u n c t i o n s   B o d y                                               #
+#                                                                             #
+# *************************************************************************** #
+
+if [[ $(id -u) -eq 0 ]]; then
+	echo "E> Do not do this as root" >&2
+	return 1
+fi
+
+TEXT_BRED="\E[1;31m"    # bold+red
+TEXT_BGREEN="\E[1;32m"  # bold+green
+TEXT_BYELLOW="\E[1;33m" # bold+yellow
+TEXT_BBLUE="\E[1;34m"   # bold+blue
+TEXT_BPURPLE="\E[1;35m" # bold+purple
+TEXT_BCYAN="\E[1;36m"   # bold+cyan
+TEXT_BOLD="\E[1;37m"    # bold+white
+TEXT_RED="\E[0;31m"     # red
+TEXT_GREEN="\E[0;32m"   # green
+TEXT_YELLOW="\E[0;33m"  # yellow
+TEXT_BLUE="\E[0;34m"    # blue
+TEXT_PURPLE="\E[0;35m"  # purple
+TEXT_CYAN="\E[0;36m"    # cyan
+TEXT_NORM="\E[0;39m"    # normal
+
+K_TB=$'\t'
+K_NL=$'\n'
+K_SP=$' '
+
+K_BANG='!'
+K_NCPU=$(${cl_grep} "^processor" /proc/cpuinfo | wc -l)
+
+export IFS="${K_SP}${K_TB}${K_NL}"
+export LC_ALL=POSIX
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+set -o errexit  ; # Exit immediately if a command exits with a non-zero status.
+set -o nounset  ; # Treat unset variables as an error when substituting.
+set -o pipefail ; # Return the last non-zero command status from a pipeline.
+set -o errtrace ; # Make shell functions inherit the ERR trap.
+
+umask 022
+
+trap CL_catch_sigexit EXIT   # on final exit from shell
+trap CL_catch_sigerr  ERR    # on non-zero function return value [no continue]
+trap CL_catch_sigint  SIGINT # self-detected [continues if CL_exitOnSigInt=0]
+
+
+# end of file

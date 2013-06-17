@@ -1,0 +1,128 @@
+#!@@CL_BASH@@
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script attempts to download the crosslinux target source packages.
+#
+# CHANGE LOG
+#
+#      2013-06-15  drj  Adapted to crosslinux from the ttylinux build system.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+#                                                                             #
+# F I L T E R E D   C O N S T A N T S                                         #
+#                                                                             #
+# *************************************************************************** #
+
+cl_libdir="@@CL_LIBDIR@@"
+
+
+# *************************************************************************** #
+#                                                                             #
+# M A I N   P R O G R A M                                                     #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Set up the shell functions and environment variables.
+# *****************************************************************************
+
+K_PKGLIST="crosslinux-pkglst.txt"
+
+G_MISSED_PKG[0]=""
+G_MISSED_URL[0]=""
+G_NMISSING=0
+
+source ./crosslinux-config.sh # target build configuration
+source ${cl_libdir}/scripts/_constants.sh # build support
+source ${cl_libdir}/scripts/_functions.sh # build support
+
+CL_config_setup || exit 1
+
+
+# *****************************************************************************
+# Main Program
+# *****************************************************************************
+
+echo "i> Getting source code packages [be patient, this will not lock up]."
+echo "i> Download cache directory: ${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
+
+_c=0     # Download count.
+_p=${1:-} # See if there is a single package to download.
+while read pname pad1 fname pad2 url; do
+	[[ -z "${pname}"                       ]] && continue || true
+	[[ "${pname:0:1}" == "#"               ]] && continue || true
+	[[ -n "${_p}" && "${pname}" != "${_p}" ]] && continue || true
+	CL_dload_get_file ${pname} ${fname} ${url}
+	_c=$((${_c} + 1))
+done <${K_PKGLIST}
+echo "i> Fetched ${_c} packages."
+if [[ ${_c} -eq 0 && -n "${_p}" ]]; then
+	echo -e "${TEXT_BRED}Error${TEXT_NORM}: no package named \"${_p}\""
+fi
+unset _p
+
+if [[ ${G_NMISSING} != 0 ]]; then
+	echo "Oops -- missing ${G_NMISSING} packages."
+	echo ""
+	echo -e "${TEXT_BRED}Error${TEXT_NORM}:"
+	echo "At least one source package failed to download.  If all source   "
+	echo "packages failed to download then check your Internet access.     "
+	echo "Listed below are the missing source package name(s) and the last "
+	echo "URL used to find the package.  Likely failure possibilities are: "
+	echo "=> The URL is wrong, maybe it has changed.                       "
+	echo "=> The source package name is no longer at the URL, maybe the    "
+	echo "   version name has changed at the URL.                          "
+	echo ""
+	echo "You can use your web browser to look for the package, and maybe  "
+	echo "use Google to look for an alternate site hosting the source,     "
+	echo "package."
+	echo ""
+	while [[ ${G_NMISSING} > 0 ]]; do
+		G_NMISSING=$((${G_NMISSING} - 1))
+		echo ${G_MISSED_PKG[${G_NMISSING}]}
+		echo ${G_MISSED_URL[${G_NMISSING}]}
+		if [[ ${G_NMISSING} != 0 ]]; then
+			echo -e "${TEXT_BBLUE}-----${TEXT_NORM}"
+		fi
+	done
+	echo ""
+	exit 1
+fi
+
+
+# *****************************************************************************
+# Exit with Status
+# *****************************************************************************
+
+exit 0
+
+
+# end of file

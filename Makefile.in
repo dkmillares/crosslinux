@@ -1,0 +1,388 @@
+#!@MAKE@
+# vim: syntax=make
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Inspired by Makefile.in from crosstool-NG
+# (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# (C) 2013 crosstool-NG authors. See complete list at:
+#     http://crosstool-ng.org/hg/crosstool-ng/log/tip/Makefile.in
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# FILE DESCRIPTION
+#
+#      This is the makefile used in making the crosslinux build tool.
+#
+#      Conventions
+#
+#            Although the needed programs are known to exists, because
+#            ./configure has successfully created this Makefile, use variables
+#            such as $(install) for most all programs.  The reasons for this
+#            are:
+#            1) the path to the program may be unusual and ./configure has
+#               found the path
+#            2) to use the variables as they are set by ./configure, so when a
+#               variable doesn't work then a needed program is found that is
+#               not checked by ./configure.
+#            The exceptions are the basic programs that a Linux system needs to
+#            work, such as rm, rmdir, ls, cat, etc.  For any other programs
+#            that could be not yet installed, or in an unusual path, use the
+#            variables.
+#
+# CHANGE LOG
+#
+#      2013-06-14  drj  File creation.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+# Make MAKEFLAGS and Configuration                                            #
+# *************************************************************************** #
+
+# NOTICE (if this makefile need to re-invoke make on itself):
+# GNU make 3.81 does not use MAKEFLAGS to set additional flags for the
+# currently running make:  http://savannah.gnu.org/bugs/?20501
+# The make manual says it should:
+# http://www.gnu.org/software/make/manual/make.html#Options_002fRecursion
+
+# Do not print directories as descend into or ascended from.
+#
+ifeq ($(filter --no-print-directory,$(MAKEFLAGS)),)
+   CL_MAKEFLAGS += --no-print-directory
+endif
+
+## This is useful if this makefile need to re-invoke make on itself.
+## Do not to use the built rules and variables because at least one shell script
+## will be generated from a .sh.in file and there is a built-in implicit rule
+## '%.sh:' that has neither a pre-requisite nor a command associated, and that
+## built-in implicit rule takes precedence over this makefile's non-built-in
+## implicit rule '%: %.in' below.
+##
+## Use neither builtin rules, nor builtin variables.  The two tests are because
+## if -R and -r are given on the command line, MAKEFLAGS contains 'Rr' instead
+## of '-Rr'.  Adding '-Rr' to MAKEFLAGS adds it literally, not 'Rr'.
+##
+#ifeq ($(filter Rr,$(MAKEFLAGS)),)
+#   ifeq ($(filter -Rr,$(MAKEFLAGS)),)
+#      CL_MAKEFLAGS += -Rr
+#   endif
+#endif
+
+MAKEFLAGS += $(CL_MAKEFLAGS)
+
+# Remove suffix rules.  because at least one shell script will be generated
+# from a .sh.in file and there is a built-in implicit rule '%.sh:' that has
+# neither a pre-requisite nor a command associated, and that built-in implicit
+# rule takes precedence over this makefile's non-built-in implicit rule
+# '%: %.in' below.
+#
+.SUFFIXES:
+
+
+# *************************************************************************** #
+# Configuration Variables from ./configure                                    #
+# *************************************************************************** #
+
+export DATE            := @DATE@
+export LOCAL           := @enable_local@
+export PACKAGE_TARNAME := @PACKAGE_TARNAME@
+export PACKAGE_VERSION := @PACKAGE_VERSION@
+export PROG_TXFORM     := @program_transform_name@
+
+export awk             := @AWK@
+export bash            := @BASH@
+export bzip2           := @BZIP2@
+export find            := @FIND@
+export grep            := @EGREP@
+export gzip            := @GZIP@
+export install         := @INSTALL@
+export make            := @MAKE@
+export sed             := @SED@
+export tar             := @TAR@
+export wget            := @WGET@
+
+export prefix          := @prefix@
+export exec_prefix     := @exec_prefix@
+export datarootdir     := @datarootdir@
+export bindir          := @bindir@
+export libdir          := @libdir@@sublibdir@
+export docdir          := @docdir@@subdocdir@
+export mandir          := @mandir@
+
+
+# *************************************************************************** #
+# Make Variables and Default Rule                                             #
+# *************************************************************************** #
+
+export SHELL=@BASH@
+
+# GREP_OPTIONS=--color=always breaks the generated .in files, so clear it.
+#
+export GREP_OPTIONS=
+
+PROG_NAME   := $(shell echo 'cl-bt' | $(sed) -r -e '$(PROG_TXFORM)' )
+TARGETS     := kconfig bin lib doc man
+MAN_SECTION := 1
+MAN_SUBDIR  := man$(MAN_SECTION)
+
+KCONFIG_FILES := Kconfig boards/Kconfig pkg-cfg/Kconfig
+SCRIPT_FILES  := $(shell ls scripts/* | $(sed) -e "s/\.in//")
+
+.PHONY:	default
+default: Makefile build
+
+# Make sure this makefile is up to date.
+#
+Makefile:	Makefile.in
+	@echo "$< changed: you must re-run './configure'"
+	@false
+
+
+# *************************************************************************** #
+# User Make Targets                                                           #
+# *************************************************************************** #
+
+.PHONY:	build clean distclean mrproper install uninstall
+
+build:		$(patsubst %,build-%,$(TARGETS))
+
+clean:		$(patsubst %,clean-%,$(TARGETS))
+
+distclean:	clean
+	@if [[ -f kconfig/Makefile ]]; then	\
+		$(MAKE) -C kconfig distclean;	\
+	fi
+	@echo "RM    Makefile"
+	@rm -f Makefile
+	@echo ""
+	@echo "=> You must run ./configure before building."
+	@echo ""
+
+mrproper:	clean
+	@if [[ -f kconfig/Makefile ]]; then	\
+		$(MAKE) -C kconfig distclean;	\
+	fi
+	@echo "RM    Makefile"
+	@rm -f Makefile
+	@echo "RM    autostuff"
+	@rm -rf autom4te.cache config.log config.status configure Makefile
+	@echo ""
+	@echo "=> You must run ./bootstrap and ./configure before building."
+	@echo ""
+
+install:	build real-install
+
+uninstall:	real-uninstall
+
+
+# *************************************************************************** #
+# Internal build Targets                                                      #
+# *************************************************************************** #
+
+.PHONY:	$(patsubst %,build-%,$(TARGETS))
+
+build-kconfig:
+	@echo "=> Making kconfg."
+	@$(MAKE) -C kconfig
+	@$(install) -m 755 "kconfig/frontends/conf/conf"   "kconfig/"
+	@$(install) -m 755 "kconfig/frontends/mconf/mconf" "kconfig/"
+	@$(install) -m 755 "kconfig/frontends/nconf/nconf" "kconfig/"
+	@echo "=> Done making kconfg."
+
+build-bin:	$(PROG_NAME) setenv.sh
+	@chmod 755 $^
+
+build-lib:	$(KCONFIG_FILES) $(SCRIPT_FILES)
+	@chmod 755 $(SCRIPT_FILES)
+
+build-doc:
+
+build-man:	doc/$(PROG_NAME).1.gz
+
+doc/$(PROG_NAME).1.gz:	doc/$(PROG_NAME).1
+	@echo "GZIP  $@"
+	@$(gzip) -c9 $< >$@
+
+define sed_it
+	@echo "SED   $< --> $@"
+	@$(sed) -r						\
+		-e 's,@@CL_DATE@@,$(DATE),g;'			\
+		-e 's,@@CL_LOCAL@@,$(LOCAL),g;'			\
+		-e 's,@@CL_PROG_NAME@@,$(PROG_NAME),g;'		\
+		-e 's,@@CL_VERSION@@,$(PACKAGE_VERSION),g;'	\
+		-e 's,@@CL_AWK@@,$(awk),g;'			\
+		-e 's,@@CL_BASH@@,$(bash),g;'			\
+		-e 's,@@CL_BZIP2@@,$(bzip2),g;'			\
+		-e 's,@@CL_FIND@@,$(find),g;'			\
+		-e 's,@@CL_GREP@@,$(grep),g;'			\
+		-e 's,@@CL_GZIP@@,$(gzip),g;'			\
+		-e 's,@@CL_INSTALL@@,$(install),g;'		\
+		-e 's,@@CL_MAKE@@,$(make),g;'			\
+		-e 's,@@CL_SED@@,$(sed),g;'			\
+		-e 's,@@CL_TAR@@,$(tar),g;'			\
+		-e 's,@@CL_WGET@@,$(wget),g;'			\
+		-e 's,@@CL_BINDIR@@,$(bindir),g;'		\
+		-e 's,@@CL_LIBDIR@@,$(libdir),g;'		\
+		-e 's,@@CL_DOCDIR@@,$(docdir),g;'		\
+		-e 's,@@CL_MANDIR@@,$(mandir),g;'		\
+		$< >$@
+endef
+
+%:	%.in Makefile
+	$(call sed_it)
+
+$(PROG_NAME):	cl-bt.in Makefile
+	$(call sed_it)
+
+doc/$(PROG_NAME).1:	doc/cl-bt.1.in Makefile
+	$(call sed_it)
+
+
+# *************************************************************************** #
+# Internal clean Targets                                                      #
+# *************************************************************************** #
+
+.PHONY:	$(patsubst %,clean-%,$(TARGETS))
+
+clean-kconfig:
+	@echo "=> Make clean kconfg."
+	@$(MAKE) -C kconfig clean
+	@rm -f "kconfig/conf"
+	@rm -f "kconfig/mconf"
+	@rm -f "kconfig/nconf"
+	@echo "=> Done cleaning kconfg."
+
+clean-bin:
+	@echo "RM    $(PROG_NAME) setenv.sh"
+	@rm -f $(PROG_NAME) setenv.sh
+
+clean-lib:
+	@echo "RM    $(KCONFIG_FILES)"
+	@rm -f $(KCONFIG_FILES)
+	@echo "RM    scripts/*.sh"
+	@rm -f scripts/*.sh
+
+clean-doc:
+
+clean-man:
+	@echo "RM    doc/$(PROG_NAME).1 doc/$(PROG_NAME).1.gz"
+	@rm -f doc/$(PROG_NAME).1 doc/$(PROG_NAME).1.gz
+
+
+# *************************************************************************** #
+# Internal install Targets                                                    #
+# *************************************************************************** #
+
+.PHONY:	real-install $(patsubst %,install-%,$(TARGETS))
+
+ifeq ($(strip $(LOCAL)),yes)
+
+real-install:
+	@true
+
+else
+
+real-install:	$(patsubst %,install-%,$(TARGETS))
+
+install-kconfig:	$(libdir)
+	@echo "INST  kconfig/{conf,mconf,nconf}"
+	@mkdir -p "$(libdir)/kconfig"
+	@$(install) -m 755 "kconfig/conf"  "$(libdir)/kconfig/"
+	@$(install) -m 755 "kconfig/mconf" "$(libdir)/kconfig/"
+	@$(install) -m 755 "kconfig/nconf" "$(libdir)/kconfig/"
+
+install-bin:	$(bindir)
+	@echo "INST  $(PROG_NAME)"
+	@$(install) -m 755 $(PROG_NAME) "$(bindir)/$(PROG_NAME)"
+	@echo "INST  setenv.sh"
+	@$(install) -m 755 setenv.sh "$(bindir)/setenv.sh"
+
+LIB_SUB_DIR := boards loaders pkg-cfg scripts
+install-lib:	$(libdir)
+	@echo "INST  Kconf"
+	@$(install) -m 644 "Kconfig" "$(libdir)/"
+	@for dir in $(LIB_SUB_DIR); do					\
+		echo "INST  $${dir}/";					\
+		$(tar) cf - --exclude='*.in' $${dir}/ 			\
+			| (cd "$(libdir)"; $(tar) xf -);		\
+	done
+
+install-doc:	$(docdir)
+	@echo "INST  doc/*.txt"
+	@for doc_file in doc/*.txt; do					\
+		if [[ -f $${doc_file} ]]; then				\
+			$(install) -m 644 "$${doc_file}" "$(docdir)";	\
+		fi							\
+	done
+
+install-man:	$(mandir)
+	@echo "INST  $(PROG_NAME).1.gz"
+	@mkdir -p "$(mandir)/$(MAN_SUBDIR)"
+	@$(install) -m 644 doc/$(PROG_NAME).1.gz "$(mandir)/$(MAN_SUBDIR)"
+
+$(sort $(bindir) $(libdir) $(docdir) $(mandir)):
+	@echo "MKDIR $@/"
+	@$(install) -m 755 -d "$@"
+
+endif
+
+
+# *************************************************************************** #
+# Internal uninstall Targets                                                  #
+# *************************************************************************** #
+
+.PHONY:	real-uninstall $(patsubst %,uninstall-%,$(TARGETS))
+
+ifeq ($(strip $(LOCAL)),yes)
+
+real-uninstall:
+	@true
+
+else
+
+real-uninstall:   $(patsubst %,uninstall-%,$(TARGETS))
+
+uninstall-kconfig:
+	@true
+
+uninstall-bin:
+	@echo "RM    $(bindir)/$(PROG_NAME)"
+	@rm -f "$(bindir)/$(PROG_NAME)"
+	@echo "RM    $(bindir)/setenv.sh"
+	@rm -f "$(bindir)/setenv.sh"
+
+uninstall-lib:
+	@echo "RMDIR $(libdir)/"
+	@rm -rf "$(libdir)"
+
+uninstall-doc:
+	@echo "RMDIR $(docdir)/"
+	@rm -rf "$(docdir)"
+
+uninstall-man:
+	@echo "RM    $(mandir)/$(MAN_SUBDIR)/$(PROG_NAME).1.gz"
+	@rm -f "$(mandir)/$(MAN_SUBDIR)/$(PROG_NAME).1"{,.gz}
+
+endif
+
+
+# end of Makefile

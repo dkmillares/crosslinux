@@ -1,0 +1,315 @@
+#!@@CL_MAKE@@ -rf
+# vim: syntax=make
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Inspired by ct-ng.in from crosstool-NG
+# (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# FILE DESCRIPTION
+#
+#      This is the makefile used in making a crosslinux distribution.
+#
+#      Conventions
+#
+#            Although the needed programs are known to exists, because
+#            ./configure has successfully created this Makefile, use variables
+#            such as $(install) for most all programs.  The reasons for this
+#            are:
+#            1) the path to the program may be unusual and ./configure has
+#               found the path
+#            2) to use the variables as they are set by ./configure, so when a
+#               variable doesn't work then a needed program is found that is
+#               not checked by ./configure.
+#            The exceptions are the basic programs that a Linux system needs to
+#            work, such as rm, rmdir, ls, cat, etc.  For any other programs
+#            that could be not yet installed, or in an unusual path, use the
+#            variables.
+#
+# CHANGE LOG
+#
+#      2013-06-14  drj  File creation.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+# Configuration Variables from ./configure                                    #
+# *************************************************************************** #
+
+export DATE            := @@CL_DATE@@
+export LOCAL           := @@CL_LOCAL@@
+export PROGRAM_NAME    := @@CL_PROG_NAME@@
+export PACKAGE_VERSION := @@CL_VERSION@@
+
+export grep            := @@CL_GREP@@
+export sed             := @@CL_SED@@
+
+export bindir          := @@CL_BINDIR@@
+export libdir          := @@CL_LIBDIR@@
+export docdir          := @@CL_DOCDIR@@
+export mandir          := @@CL_MANDIR@@
+
+# *************************************************************************** #
+# cl-bt Make Variables and Make Environment                                   #
+# *************************************************************************** #
+
+# -- Single-Package Target
+#
+PACKAGE=""
+
+# -- Sanity
+#
+SHELL=@@CL_BASH@@
+
+BLD_DIRS=build/{kpkgs,kroot,pkgs} img mnt pkg{-bin,-src} sysroot var/{log,run}
+
+# GREP_OPTIONS=--color=always breaks the generated .in files, so clear it.
+#
+export GREP_OPTIONS=
+
+# *************************************************************************** #
+# Make Targets                                                                #
+# *************************************************************************** #
+
+# -----------------------------------------------------------------------------
+# -- Default Target
+# -----------------------------------------------------------------------------
+
+.PHONY: help
+
+help:
+	@echo "crosslinux-buildtool cl-bt-@@CL_VERSION@@"
+	@echo ""
+	@echo "Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>"
+	@echo "This is free software; see the source for copying conditions."
+	@echo "There is NO warranty; not even for MERCHANTABILITY or FITNESS"
+	@echo "FOR A PARTICULAR PURPOSE."
+	@echo ""
+	@echo "crosslinux Build Tool System Targets:"
+	@echo "bt-init    - initialize the build tool system -- do this once"
+	@echo "             before building"
+	@echo "bt-reinit  - remove the build tool system, then initialize"
+	@echo "bt-done    - remove the build tool system"
+	@echo "bt-showcfg - show the configuration of the crosslinux build tool"
+	@echo ""
+	@echo "Housekeeping Targets:"
+	@echo "getcfg     - get a default build config file"
+	@echo "menuconfig - make or change the build config file"
+	@echo "nconfig    - make or change the build config file"
+	@echo "pkglist    - make list of source packages using the config file"
+	@echo "dload      - download source packages"
+	@echo ""
+
+# -----------------------------------------------------------------------------
+# -- Build Tool System Targets
+# -----------------------------------------------------------------------------
+
+.PHONY: bt-init bt-done bt-reinit bt-showcfg
+
+bt-init:
+	@echo "Making build directories."
+	@for d in $(BLD_DIRS); do					\
+		echo "=> making $${d}/";				\
+		mkdir -p $${d};						\
+	done
+	@rm -rf .bt-init
+	@echo "" >.bt-init
+
+bt-done:
+	@echo "Removing build directories."
+	@for d in $(BLD_DIRS); do					\
+		if [[ -d $${d%%/*} ]]; then				\
+			echo "=> removing $${d%%/*}/";			\
+			rm -rf $${d%%/*};				\
+		fi							\
+	done
+	@rm -rf .bt-init
+
+bt-reinit:	bt-done bt-init
+
+bt-showcfg:
+	@echo ""
+	@echo "cl-bt-$(PACKAGE_VERSION) built on $(DATE)"
+	@echo ""
+	@if [[ "$(LOCAL)" = "yes" ]]; then				\
+		echo "Using local crosslinux directory.";		\
+	else								\
+		echo "Using installed configuration.";			\
+	fi
+	@if [[ -f .bt-init ]]; then					\
+		echo "This directory is initialized for building.";	\
+	else								\
+		echo "Run '$(PROGRAM_NAME) bt-init' before building.";	\
+	fi
+	@echo ""
+	@echo "bindir: $(bindir)"
+	@echo "libdir: $(libdir)"
+	@echo "docdir: $(docdir)"
+	@echo "mandir: $(mandir)"
+	@echo ""
+
+# -----------------------------------------------------------------------------
+# -- Housekeeping Targets
+# -----------------------------------------------------------------------------
+
+.PHONY: getcfg config menuconfig nconfig pkglist dload
+
+getcfg:
+	@(								\
+	dlist=`cd $(libdir)/boards/;for d in *; do echo $${d}; done`;	\
+	for d in $${dlist}; do						\
+		for f in $(libdir)/boards/$${d}/$${d}-*config; do	\
+			[[ -f $${f} ]] && llist+="$${f##*/} " || true;	\
+		done;							\
+	done;								\
+	list=($${llist});						\
+	declare -i i=0;							\
+	declare -i cfg=0;						\
+	declare -i cnt="$${#list[@]}";					\
+	while [[ $${cfg} -eq 0 || $${cfg} -gt $${cnt} ]]; do		\
+		echo "";						\
+		echo "crosslinux target board configurations:";		\
+		for (( i=1 ; $${i} <= $${cnt} ; i++ )); do		\
+			echo "$${i}) $${list[(($${i}-1))]}";		\
+		done;							\
+		echo "";						\
+		read -p "   Choose from 1 through $${cnt} -> " cfg;	\
+	done;								\
+	cfg="(($${cfg} - 1))";						\
+	bc=$${list[$${cfg}]};						\
+	echo "";							\
+	echo "=> using $${bc}";						\
+	rm -f crosslinux-config.sh;					\
+	rm -f crosslinux-pkglst.txt;					\
+	cp $(libdir)/boards/$${bc%-*}/$${bc} crosslinux-config.sh;      \
+	)
+	@chmod 666 crosslinux-config.sh
+	@ls --color -Fl crosslinux-config.sh
+	@echo ""
+
+crosslinux-config.sh:
+	@echo "Need a new crosslinux-config.sh file."
+	@echo "=> Run a command to make a new crosslinux-config.sh file:"
+	@echo "   $(PROGRAM_NAME) getcf"
+	@echo "   $(PROGRAM_NAME) menuconfig"
+	@echo "   $(PROGRAM_NAME) nconfig"
+	@false
+
+config:
+	@if [[ -f crosslinux-config.sh && -f .config ]]; then		\
+		echo "E> You have both files:";				\
+		echo "=>  crosslinux-config.sh";			\
+		echo "=>  .config";					\
+		echo "Delete or save the .config file.";		\
+		ls --color -lF crosslinux-config.sh .config;		\
+		false;							\
+	fi
+	@if [[ -f crosslinux-config.sh ]]; then				\
+		cp crosslinux-config.sh .config;			\
+	fi
+	@$(libdir)/kconfig/conf $(libdir)/Kconfig
+	@if [[ -f .config ]]; then					\
+		rm -f crosslinux-config.sh;				\
+		mv .config crosslinux-config.sh;			\
+	fi
+	@chmod 666 crosslinux-config.sh
+	@ls --color -Fl crosslinux-config.sh
+
+menuconfig:
+	@if [[ -f crosslinux-config.sh && -f .config ]]; then		\
+		echo "E> You have both files:";				\
+		echo "=>  crosslinux-config.sh";			\
+		echo "=>  .config";					\
+		echo "Delete or save the .config file.";		\
+		ls --color -lF crosslinux-config.sh .config;		\
+		false;							\
+	fi
+	@if [[ -f crosslinux-config.sh ]]; then				\
+		cp crosslinux-config.sh .config;			\
+	fi
+	@$(libdir)/kconfig/mconf $(libdir)/Kconfig
+	@if [[ -f .config ]]; then					\
+		rm -f crosslinux-config.sh;				\
+		mv .config crosslinux-config.sh;			\
+	fi
+	@chmod 666 crosslinux-config.sh
+	@ls --color -Fl crosslinux-config.sh
+
+nconfig:
+	@if [[ -f crosslinux-config.sh && -f .config ]]; then		\
+		echo "E> You have both files:";				\
+		echo "=>  crosslinux-config.sh";			\
+		echo "=>  .config";					\
+		echo "Delete or save the .config file.";		\
+		ls --color -lF crosslinux-config.sh .config;		\
+		false;							\
+	fi
+	@if [[ -f crosslinux-config.sh ]]; then				\
+		cp crosslinux-config.sh .config;			\
+	fi
+	@$(libdir)/kconfig/nconf $(libdir)/Kconfig
+	@if [[ -f .config ]]; then					\
+		rm -f crosslinux-config.sh;				\
+		mv .config crosslinux-config.sh;			\
+	fi
+	@chmod 666 crosslinux-config.sh
+	@ls --color -Fl crosslinux-config.sh
+
+crosslinux-pkglst.txt pkglist: crosslinux-config.sh
+	@echo "Regenerating crosslinux-pkglst.txt:"
+	@(								\
+	rm -f .pkglst;							\
+	$(grep) "^CONFIG_BLD_" crosslinux-config.sh >.pkglst;		\
+	$(sed) -e "s/^CONFIG_BLD_//" -e "s/=y//"   -i .pkglst;		\
+	$(sed) -e "s/p/./g"          -e "s/_/-/g"  -i .pkglst;		\
+	$(sed) -e "s/\(.*\)/\L\1/g"                -i .pkglst;		\
+	rm -f crosslinux-pkglst.txt;					\
+	touch crosslinux-pkglst.txt;					\
+	for dir in $$(<.pkglst); do					\
+		echo -n "$${dir} " >> crosslinux-pkglst.txt;		\
+		for ((i=35 ; $${i}>$${#dir} ; i--)); do			\
+			echo -n "." >>crosslinux-pkglst.txt;		\
+		done;							\
+		. $(libdir)/pkg-cfg/$${dir}/bld.sh;			\
+		echo -n " $${PKG_ZIP} " >>crosslinux-pkglst.txt;	\
+		for ((i=35 ; $${i}>$${#PKG_ZIP} ; i--)); do		\
+			echo -n "." >>crosslinux-pkglst.txt;		\
+		done;							\
+		echo -n " $${PKG_URL}" >>crosslinux-pkglst.txt;		\
+		echo "" >>crosslinux-pkglst.txt;			\
+	done;								\
+	rm -f .pkglst;							\
+	)
+	@chmod 666 crosslinux-pkglst.txt
+	@ls --color -Fl crosslinux-pkglst.txt
+
+dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
+	@echo "Download source packages."
+	@($(libdir)/scripts/utl-dload.sh $(PACKAGE))
+	@if [[ $$? != 0 ]]; then                                        \
+		echo "Download FAILED.";                                \
+		exit 1;                                                 \
+	fi
+
+
+# end of Makefile

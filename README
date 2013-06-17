@@ -1,6 +1,12 @@
-crosslinux is a relatively simple build system for making small family of small
-Linux systems for several CPU architectures.  crosslinux is the new build
+crosslinux is a relatively simple build system for making a small family of
+small Linux systems for several CPU architectures.  crosslinux is the build
 system for ttylinux.  See the files in the doc/ directory.
+
+
+--
+crosslinux also has a group:
+http://groups.google.com/group/crosslinux/
+
 
 --
 For official ISO distribution releases of ttylinux, see the ttylinux web page:

@@ -1,0 +1,83 @@
+." crosslinux man page
+." Copyright 2013 Douglas Jerome
+." Licensed under the Creative Commons BY-SA, v2.5
+."
+." Beautifying URLs
+.mso www.tmac
+."
+.TH crosslinux 1 "@@CL_DATE@@" "version @@CL_VERSION@@" "User Commands"
+."
+."
+.SH NAME
+@@CL_PROG_NAME@@, crosslinux \- Cross-build a Small Linux Distribution
+."
+."
+.SH SYNOPSIS
+.B @@CL_PROG_NAME@@ [OPTION]
+."
+."
+.SH DESCRIPTION
+.B crosslinux
+is a simple tool that makes a small Linux distribution from scratch.  It is
+designed to use a cross-toolchain constructed with
+.I crosstool-NG
+."
+."
+.SH OPTIONS
+If no option is given
+.B @@CL_PROG_NAME@@
+will print a list of options.
+.PP
+This is an overview of the basic options. For other options, please see
+.I "@@CL_DOCDIR@@/00_Table_Of_Content.txt"
+.TP
+.B bt-init
+Do this in an empty directory.  This option initializes the directory for
+(cross) building a small Linux distribution.  Do this once before building.
+."
+.TP
+.B bt-reinit
+Removes the current cross-build target by removing the items created by the
+.B bt-init
+option, then re-initializes with 'bt-init'.
+."
+.TP
+.B bt-done
+Removes the current cross-build target.  This removes the current cross-build
+target by removing the items created by the
+.B bt-init
+option.
+."
+.TP
+.B bt-show
+Shows the
+.B crosslinux
+version and date, and shows where it is installed.
+."
+.TP
+.B getcfg
+Lets you select from the list of default Linux system configurations.  It will
+be left in the directory as a file name 'crosslinux-config.sh'.
+."
+.TP
+.B menuconfig
+Configures the
+.B crosslinux
+target Linux system for cross-building using a configuration menu very similar
+to that of the Linux kernel.  If you have 'crosslinux-config.sh', for instance
+if you've previously selected a default configuration with
+.I getcfg
+, then that is the starting point for
+.I menuconfig
+The updated configuration will be saved as 'crosslinux-config.sh'.
+."
+.TP
+.B pkglist
+Creates a fie 'crosslinux-pkglst.txt' that is needed for downloading source
+packages before cross-building the target Linux distribution.  This will be
+done automatically when needed if you do not explicitly do it.
+."
+.TP
+.B dload
+Downloads the source packages as needed according to the build configuration.
+."

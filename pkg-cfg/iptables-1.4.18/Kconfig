@@ -1,0 +1,6 @@
+config BLD_IPTABLES_1p4p18
+     bool
+     default y
+     prompt "Build iptables-1.4.18"
+     help
+       Select this option to cross-build iptables.

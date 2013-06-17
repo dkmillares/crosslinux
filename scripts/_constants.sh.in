@@ -1,0 +1,52 @@
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script has the setup for crosslinux-specific constants.
+#
+# CHANGE LOG
+#
+#      2013-06-15  drj  File creation.
+#
+# *****************************************************************************
+
+
+cl_date="@@CL_DATE@@"
+cl_local="@@CL_LOCAL@@"
+cl_name="@@CL_PROG_NAME@@"
+cl_version="@@CL_VERSION@@"
+
+cl_awk="@@CL_AWK@@"
+cl_bash="@@CL_BASH@@"
+cl_bzip2="@@CL_BZIP2@@"
+cl_find="@@CL_FIND@@"
+cl_grep="@@CL_GREP@@"
+cl_gzip="@@CL_GZIP@@"
+cl_install="@@CL_INSTALL@@"
+cl_make="@@CL_MAKE@@"
+cl_sed="@@CL_SED@@"
+cl_tar="@@CL_TAR@@"
+cl_wget="@@CL_WGET@@"
+
+
+# end of file

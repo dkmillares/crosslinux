@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+echo "Running autoconf ... "
+autoconf -Wall --force
+echo "... done."
+
+echo "If there were no errors, you can now run: ./configure"

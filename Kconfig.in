@@ -1,0 +1,176 @@
+mainmenu "Cross Linux Build Tool -- Configure a Cross Linux Build"
+
+# ----------------------------------------------------- System Name and Version
+
+comment "System Name and Version"
+
+config BRAND_NAME
+    string
+    default "crosslinux"
+    prompt "Distribution Name"
+    help
+      This is the brand name of your Linux distribution, like Debian, Fedora,
+      Ubuntu, etc.
+
+config RELEASE_NAME
+    string
+    default "aardweevil"
+    prompt "Release Name"
+    help
+      This is the name of the specific release of your Linux distribution,
+      something like "Gnarly Narwhal", etc.
+
+config RELEASE_VERS
+    string
+    default "0.0.1"
+    prompt "Release Version"
+    help
+      Version of your Linux distribution.  This is a string, you can put
+      anything you want.
+
+# --------------------------------- Target Architecture and Build Configuration
+
+source @@CL_LIBDIR@@/boards/Kconfig
+
+choice
+    bool
+    default BLD_XBT_GLIBC
+    prompt "Libc"
+    help
+      Select the C library that comes from your cross-tool chain.
+
+config BLD_XBT_EGLIBC
+    bool "eglibc"
+    help
+      Embedded GLIBC (EGLIBC) is a variant of the GNU C Library (GLIBC) that
+      is designed to work well on embedded systems.
+
+      ***** You must match this with your cross-tool chain.
+
+      http://www.eglibc.org/home
+
+config BLD_XBT_GLIBC
+    bool "glibc"
+    help
+      The GNU C Library is used as the C library in the GNU systems and most
+      systems with the Linux kernel.
+
+      ***** You must match this with your cross-tool chain.
+
+      http://www.gnu.org/software/libc/
+
+config BLD_XBT_UCLIBC
+    bool "uClibc"
+    help
+      uClibc (aka µClibc/pronounced yew-see-lib-see) is a C library for
+      developing embedded Linux systems.  It is much smaller than the GNU C
+      Library, but nearly all applications supported by glibc also work
+      perfectly with uClibc.
+
+      ***** You must match this with your cross-tool chain.
+
+      http://www.uclibc.org/
+
+endchoice
+
+config LIBC_NAME
+    string
+    default "eglibc" if BLD_XBT_EGLIBC
+    default "glibc"  if BLD_XBT_GLIBC
+    default "uClibc" if BLD_XBT_UCLIBC
+
+config XBT_DIR
+    string
+    default ""
+    prompt "Path to Cross-tool Chain"
+    help
+      This is the path to the cross-tool chain directory.
+
+config XBT_NAME
+    string
+    default ""
+    prompt "Cross-tool Chain Name Prefix (Tuple)"
+    help
+      Enter the cross-tool chain name prefix (tuple) here.
+
+      Cross-tool chain components such as gcc are called by prefixing the
+      target tuple to the component name e.g, "armv7-generic-linux-gnueabi-gcc",
+      wherein "armv7-generic-linux-gnueabi" is the tuple and "gcc" is the
+      component.
+
+      Some cross-tool chains have shortened names and may not use the tuple
+      name, such as "armv7-gcc" or "ppc-gcc".
+
+      If you enter "fubar" here, then the cross-tool chain will be called with
+      program names like "fubar-gcc" and "fubar-as", etc.
+
+      ***** NOTICE do NOT put a "-" on the end of the name; do NOT enter
+                   something like "fubar-".
+
+config DOWNLOAD_DIR
+    string
+    default "${HOME}/Download/"
+    prompt "Download Cache Directory"
+    help
+      Crosslinux downloads source packages to cross-build.  Enter the directory
+      into which to download the source packages.
+
+      If you make this an empty string, then crosslinux will make and use a
+      "pkg-src/" directory in the top-level build directory.
+
+config RAMDISK_SIZE
+    int
+    default 64
+    depends on ! BOARD_BEAGLEBONE
+    prompt "RAM Disk Size"
+    help
+      This is the size in MB of the root file system for the RAM disk-based
+      live CD-ROM systems.
+
+config PARALLEL_JOBS
+    bool
+    default y
+    prompt "Use Parallel Jobs"
+    help
+      This is whether make will be asked to run concurrent jobs.
+
+      Select this and crosslinux will use a number of jobs based on the number
+      of processor cores detected.
+
+      Say no to use only one job.
+
+config STRIP_BINS
+    bool
+    default y
+    prompt "Strip Target Executables and Libraries"
+    help
+      All target executables and libraries will be striped.
+
+# ---------------------------------------------------- User Build Customization
+
+comment "User Build Customization"
+
+config USER_SITE_SCRIPTS
+    bool
+    default n
+    prompt "User Site Scripts"
+    help
+      User site scripts.
+
+config USER_BUSYBOX_CFG
+    bool
+    default n
+    prompt "User BusyBox Config"
+    help
+      User BusyBox configuration.
+
+config USER_KERNEL
+    string
+    prompt "User Kernel"
+    default ""
+    help
+      User kernel.
+
+# -------------------------------------------------------------------- Packages
+
+source @@CL_LIBDIR@@/pkg-cfg/Kconfig

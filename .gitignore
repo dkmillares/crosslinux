@@ -1,0 +1,14 @@
+# temporary files
+*~
+*.[oa]
+*.swp
+
+# cross-tool chains
+cross-tools-*
+
+# cross-tool builder
+xbuildtool/bin-link/[^.]*
+xbuildtool/build/[^.]*
+xbuildtool/pkg-src/[^.]*
+xbuildtool/xbt-build-config.sh
+xbuildtool/xbt-build-env.sh
