@@ -3,7 +3,7 @@ small Linux systems for several CPU architectures.  crosslinux is the build
 system for ttylinux.  See the files in the doc/ directory.
 
 --
-crosslinux also has a group:
+crosslinux group:
 http://groups.google.com/group/crosslinux/
 
 --
