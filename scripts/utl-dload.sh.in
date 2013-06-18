@@ -74,6 +74,19 @@ CL_config_setup || exit 1
 echo "i> Getting source code packages [be patient, this will not lock up]."
 echo "i> Download cache directory: ${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
 
+if [[ ! -d "${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}" ]]; then
+	echo "E> Download cache directory not found."
+	echo "=> \"${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}\""
+	_d="${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
+	if [[ "${_d}" == "${TARGET_PKGSRC_DIR}" ]]; then
+		echo "=> Maybe you forgot to 'cl-bt bt-init'"
+	else
+		echo "=> Maybe your Download Cache Directory doesn't exist."
+	fi
+	unset _d
+	exit 1
+fi
+
 _c=0     # Download count.
 _p=${1:-} # See if there is a single package to download.
 while read pname pad1 fname pad2 url; do
