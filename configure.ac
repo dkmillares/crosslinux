@@ -193,10 +193,16 @@ AC_CONFIG_FILES([Makefile])
 echo ""
 echo "Configuring kconfig..."
 cd kconfig
-./configure
+./configure --enable-mconf --enable-nconf
+if test $? -ne 0; then
+   echo ""
+   echo "=> Something went wrong with kconf ./configure."
+   echo ""
+   exit 1
+fi
 echo "=> Done configuring kconfig."
 echo ""
-)
+) || exit 1
 
 # -----------------------------------------------------------------------------
 # Make the configure output.
