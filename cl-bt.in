@@ -126,14 +126,23 @@ help:
 
 .PHONY: bt-init bt-done bt-reinit bt-showcfg
 
+.bt-init:
+	@if [[ ! -f .bt-init ]]; then					\
+		echo "E> Not initialized for building.";		\
+		false;							\
+	fi
+
 bt-init:
 	@echo "Making build directories."
 	@for d in $(BLD_DIRS); do					\
 		echo "=> making $${d}/";				\
 		mkdir -p $${d};						\
 	done
+	mkdir -p bin-link
+	@$(libdir)/scripts/bt-init.sh
 	@rm -rf .bt-init
-	@echo "" >.bt-init
+	@touch .bt-init
+	@date >>.bt-init
 
 bt-done:
 	@echo "Removing build directories."
@@ -143,6 +152,7 @@ bt-done:
 			rm -rf $${d%%/*};				\
 		fi							\
 	done
+	@rm -rf bin-link
 	@rm -rf .bt-init
 
 bt-reinit:	bt-done bt-init
@@ -306,9 +316,9 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
 	@echo "Download source packages."
 	@($(libdir)/scripts/utl-dload.sh $(PACKAGE))
-	@if [[ $$? != 0 ]]; then                                        \
-		echo "Download FAILED.";                                \
-		exit 1;                                                 \
+	@if [[ $$? != 0 ]]; then					\
+		echo "E> Download FAILED.";				\
+		false;							\
 	fi
 
 

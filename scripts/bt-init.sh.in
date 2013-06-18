@@ -1,0 +1,114 @@
+#!@@CL_BASH@@
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script builds a set of wrapper programs for the programs that are
+#      found by the ./configure process.  ./configure finds these programs and
+#      provides a avriable for each one that is its full path name; there is
+#      some chance some of these are in a non standard path, so make these in
+#      the bin-link/ directory and prefix $PATH with the path to bin-link/.
+#
+#      The scripts in the scripts/ directory do not make use of these wrappers,
+#      but the build files in the pkg-cfg/*/ directories are not filtered, so
+#      they do not use the variables setup like '$(cl_grep)'; they use programs
+#      by name e.g., 'grep'.
+#
+# CHANGE LOG
+#
+#      2013-06-17  drj  File creation.
+#
+# *****************************************************************************
+
+
+rm -f bin-link/*
+
+touch bin-link/awk
+echo "#!@@CL_BASH@@"          >> bin-link/awk
+echo "exec @@CL_AWK@@ "'${@}' >> bin-link/awk
+chmod 700 bin-link/awk
+
+touch bin-link/bash
+echo "#!@@CL_BASH@@"           >> bin-link/bash
+echo "exec @@CL_BASH@@ "'${@}' >> bin-link/bash
+chmod 700 bin-link/bash
+
+touch bin-link/bzip2
+echo "#!@@CL_BASH@@"            >> bin-link/bzip2
+echo "exec @@CL_BZIP2@@ "'${@}' >> bin-link/bzip2
+chmod 700 bin-link/bzip2
+
+touch bin-link/bunzip2
+echo "#!@@CL_BASH@@"                         >> bin-link/bunzip2
+echo "exec @@CL_BZIP2@@ --decompress "'${@}' >> bin-link/bunzip2
+chmod 700 bin-link/bunzip2
+
+touch bin-link/find
+echo "#!@@CL_BASH@@"           >> bin-link/find
+echo "exec @@CL_FIND@@ "'${@}' >> bin-link/find
+chmod 700 bin-link/find
+
+touch bin-link/grep
+echo "#!@@CL_BASH@@"           >> bin-link/grep
+echo "exec @@CL_GREP@@ "'${@}' >> bin-link/grep
+chmod 700 bin-link/grep
+
+touch bin-link/gzip
+echo "#!@@CL_BASH@@"           >> bin-link/gzip
+echo "exec @@CL_GZIP@@ "'${@}' >> bin-link/gzip
+chmod 700 bin-link/gzip
+
+touch bin-link/gunzip
+echo "#!@@CL_BASH@@"                        >> bin-link/gunzip
+echo "exec @@CL_GZIP@@ --decompress "'${@}' >> bin-link/gunzip
+chmod 700 bin-link/gunzip
+
+touch bin-link/install
+echo "#!@@CL_BASH@@"              >> bin-link/install
+echo "exec @@CL_INSTALL@@ "'${@}' >> bin-link/install
+chmod 700 bin-link/install
+
+touch bin-link/make
+echo "#!@@CL_BASH@@"           >> bin-link/make
+echo "exec @@CL_MAKE@@ "'${@}' >> bin-link/make
+chmod 700 bin-link/make
+
+touch bin-link/sed
+echo "#!@@CL_BASH@@"          >> bin-link/sed
+echo "exec @@CL_SED@@ "'${@}' >> bin-link/sed
+chmod 700 bin-link/sed
+
+touch bin-link/tar
+echo "#!@@CL_BASH@@"          >> bin-link/tar
+echo "exec @@CL_TAR@@ "'${@}' >> bin-link/tar
+chmod 700 bin-link/tar
+
+touch bin-link/wget
+echo "#!@@CL_BASH@@"           >> bin-link/wget
+echo "exec @@CL_WGET@@ "'${@}' >> bin-link/wget
+chmod 700 bin-link/wget
+
+
+# end of file
