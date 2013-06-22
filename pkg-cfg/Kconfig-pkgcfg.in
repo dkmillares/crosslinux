@@ -1,7 +1,8 @@
-comment "Base File System"
-
+# ---------------------------------------------------------------- basic system
+menu "Basic System"
 source @@CL_LIBDIR@@/pkg-cfg/crosslinux-basefs/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/crosslinux-devfs/Kconfig
+endmenu
 
 # ------------------------------------------------------------------- libraries
 menu "Libraries"
@@ -13,14 +14,13 @@ source @@CL_LIBDIR@@/pkg-cfg/ncurses-5.9/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/mpc-1.0.1/Kconfig
 endmenu
 
-# -------------------------------------------------------- programs & libraries
-menu "Programs and Libraries"
+# ------------------------------------------------------------- system programs
+menu "System Programs"
 source @@CL_LIBDIR@@/pkg-cfg/util-linux-2.23/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/bash-4.2/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/busybox-1.21.0/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/crosslinux-utils/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/e2fsprogs-1.42.7/Kconfig
-source @@CL_LIBDIR@@/pkg-cfg/iptables-1.4.18/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/kmod-13/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/lilo-23.2/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/ntfs-3g_ntfsprogs-2013.1.13/Kconfig
@@ -35,10 +35,11 @@ menu "Development Tools"
 # source @@CL_LIBDIR@@/pkg-cfg/make-3.82/Kconfig
 endmenu
 
-# -------------------------------------------------------------------- services
-menu "Services"
+# ------------------------------------------------------------ service programs
+menu "Service Programs"
 source @@CL_LIBDIR@@/pkg-cfg/dropbear-2013.58/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/gpm-1.20.7/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/iptables-1.4.18/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/ppp-2.4.5/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/thttpd-2.25b/Kconfig
 endmenu

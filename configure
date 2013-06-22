@@ -2726,7 +2726,14 @@ ac_config_files="$ac_config_files Makefile"
 echo ""
 echo "Configuring kconfig..."
 cd kconfig
-./configure --enable-mconf --enable-nconf
+./configure \
+	--prefix=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
+	--bindir=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
+	--libdir=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
+	--enable-mconf \
+	--enable-nconf \
+	--disable-gconf \
+	--disable-qconf
 if test $? -ne 0; then
    echo ""
    echo "=> Something went wrong with kconf ./configure."

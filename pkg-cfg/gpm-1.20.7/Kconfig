@@ -1,6 +1,6 @@
 config BLD_GPM_1p20p7
-     bool
-     default y
-     prompt "Build gpm-1.20.7"
-     help
-       Select this option to cross-build GPM, a general purpose mouse driver.
+	bool
+	default y
+	prompt "Build gpm-1.20.7"
+	---help---
+	  Select this option to cross-build GPM, a general purpose mouse driver.

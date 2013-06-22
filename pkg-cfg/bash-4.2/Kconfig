@@ -1,6 +1,6 @@
 config BLD_BASH_4p2
-    bool
-    default y
-    prompt "Build bash-4.2"
-    help
-      Select this option to cross-build bash.
+	bool
+	default y
+	prompt "Build bash-4.2"
+	---help---
+	  Select this option to cross-build bash.

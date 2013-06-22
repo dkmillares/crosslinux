@@ -1,0 +1,541 @@
+# vim: syntax=kconfig
+
+# *****************************************************************************
+# Select the board; there needs to be an corresponding directory in boards/ for
+# each option here.  A number of settings are based upon the boards selection.
+# *****************************************************************************
+
+choice
+	bool
+	default BOARD_PC_486
+	prompt "Target Board"
+	---help---
+	  Select the target board.
+
+config BOARD_BEAGLEBONE
+	bool "Beagle Bone \"White\""
+	---help---
+	  The BeagleBone "White" is a low-cost, high-expansion BeagleBoard with
+	  an AM335x 720MHz ARM Cortex-A8 SoC.
+	  http://beagleboard.org/bone/
+	  http://www.ti.com/product/am3358
+	  http://en.wikipedia.org/wiki/ARM_architecture
+
+config BOARD_MAC_G4
+	bool "Macintosh G4"
+	---help---
+	  Macintosh G3 or G4 (PowerPC 7xx/74xx) such as an Apple PowerMac or
+	  PowerBook computer.
+	  http://en.wikipedia.org/wiki/PowerPC_G3
+	  http://en.wikipedia.org/wiki/PowerPC_G4
+
+config BOARD_PC_486
+	bool "PC i486"
+	---help---
+	  Generic PC compatible computer with an Intel i486 microprocessor,
+	  specifically the i486 instruction set, or a more capable compatible
+	  CPU.
+	  http://en.wikipedia.org/wiki/I486
+
+config BOARD_PC_686
+	bool "PC i686"
+	---help---
+	  Generic PC compatible computer with an Intel Pentium Pro
+	  microprocessor, or a more capable compatible CPU.
+	  http://en.wikipedia.org/wiki/I686
+
+config BOARD_PC_X86_64
+	bool "PC x86_64"
+	---help---
+	  Generic PC compatible computer with an AMD64/Intel 64 microprocessor.
+	  http://en.wikipedia.org/wiki/X86_64
+
+endchoice
+
+config BOARD
+	string
+	default "beagle_bone" if BOARD_BEAGLEBONE
+	default "mac_g4"      if BOARD_MAC_G4
+	default "pc_i486"     if BOARD_PC_486
+	default "pc_i686"     if BOARD_PC_686
+	default "pc_x86_64"   if BOARD_PC_X86_64
+
+config CPU_ARCH
+	string
+	default "armv7"   if BOARD_BEAGLEBONE
+	default "powerpc" if BOARD_MAC_G4
+	default "i486"    if BOARD_PC_486
+	default "i686"    if BOARD_PC_686
+	default "x86_64"  if BOARD_PC_X86_64
+
+config LINUX_ARCH
+	string
+	default "arm"     if BOARD_BEAGLEBONE
+	default "powerpc" if BOARD_MAC_G4
+	default "i386"    if BOARD_PC_486
+	default "i386"    if BOARD_PC_686
+	default "x86_64"  if BOARD_PC_X86_64
+
+config CFLAGS
+	string
+	default "-mcpu=cortex-a8"                if BOARD_BEAGLEBONE
+	default "-mcpu=powerpc -mtune=powerpc"   if BOARD_MAC_G4
+	default "-march=i486 -mtune=i486 -Os"    if BOARD_PC_486
+	default "-march=i686 -mtune=generic -Os" if BOARD_PC_686
+	default "-m64 -Os"                       if BOARD_PC_X86_64
+
+config LOADER
+	string
+	default "u-boot"   if BOARD_BEAGLEBONE
+	default "yaboot"   if BOARD_MAC_G4
+	default "isolinux" if BOARD_PC_486
+	default "isolinux" if BOARD_PC_686
+	default "isolinux" if BOARD_PC_X86_64
+
+# *****************************************************************************
+# The default kind of boot is to have the root file system in an ephemeral RAM
+# disk; this option can select to boot and mount the root file system from a
+# persistent fixed drive.
+# *****************************************************************************
+
+config BOOT_PERSISTENT
+	bool
+	default n
+	depends on ! BOARD_MAC_G4
+	prompt "Boot to Persistent Storage Device"
+	---help---
+	  Your target system will be configured to boot to RAM disk unless you
+	  select this option.
+
+	  Select this to configure your target system to boot with the root
+	  file system in a persistent storage device, such as a USB or SDCard.
+	  In this case you will find 'Boot Persistent Drive Options' in which
+	  you need to make sure to select a root partition (mounted at /).
+
+	  Random Related Information:
+
+		  Some systems only boot from a persistent storage device, such
+		  as the BeagleBone.
+
+		  crosslinux configures some target systems to boot only to a
+		  RAM disk, such as for the mac_g4.
+
+config FORCE_BOOT_PERSISTENT
+	def_bool y
+	select BOOT_PERSISTENT if BOARD_BEAGLEBONE
+
+if ! BOOT_PERSISTENT
+comment "'Boot to Persistent Storage Device' NOT selected"
+endif
+
+# *****************************************************************************
+# Choices for the root file system and its size.
+# *****************************************************************************
+
+choice
+	bool
+	default ROOTFS_EXT2
+	prompt "Root File System Type"
+	---help---
+	  Select the root file system type.  The root file system will be
+	  created as an image file and formatted according to the type selected
+	  here.  If you selected to 'Boot to Persistent Storage Device', then
+	  the root file system on that device will be formated according to the
+	  file system type selected here.
+
+config ROOTFS_EXT2
+	bool "ext2"
+	---help---
+	  Format an ext2 root file system.
+
+config ROOTFS_EXT3
+	bool "ext3"
+	---help---
+	  Format an ext3 root file system.
+
+config ROOTFS_EXT4
+	bool "ext4"
+	---help---
+	  Format an ext4 root file system.
+
+endchoice
+
+config ROOTFS_SIZE_MB
+	int
+	default 8
+	prompt "Root File System Size, in MB"
+	---help---
+	  This is the size of the root file system.
+
+	  If your root file system size is less than 16 MB, then set the
+	  'Root File System Type' to ext2; other file system types may not be
+	  able to format such a small file system, at least not without
+	  forgoing file system journalling.
+
+# *****************************************************************************
+# These are the options for the ephemeral RAM Disk.
+# *****************************************************************************
+
+if ! BOOT_PERSISTENT
+
+comment "Target System will Boot to Ephemeral RAM Disk"
+
+menu "RAM Disk Options"
+
+# We don't know how to RAM Disk boot anything other than CD-ROM on a Macintosh,
+# so force that option here.
+
+if BOARD_MAC_G4
+
+config MEDIA_CDROM_EPHEMERAL
+	bool "CD-ROM"
+	---help---
+	  The target system will boot from a CD-ROM.
+
+	  The crosslinux build process will create a bootable ISO9660 image
+	  containing the target Linux system to be built.
+
+config FORCE_MEDIA_CDROM_EPHEMERAL
+	def_bool y
+	select MEDIA_CDROM_EPHEMERAL if BOARD_MAC_G4
+
+endif # if BOARD_MAC_G4
+
+if ! BOARD_MAC_G4
+
+choice
+	bool
+	default MEDIA_CDROM
+	prompt "Boot Media"
+	---help---
+	  Select the type of media from which the target system will boot.
+
+config MEDIA_CDROM
+	bool "CD-ROM"
+	---help---
+	  The target system will boot from a CD-ROM.
+
+	  The crosslinux build process will create a bootable ISO9660 image
+	  containing the target Linux system to be built.
+
+config MEDIA_USB_EPHEMERAL
+	bool "USB Drive or SDCard"
+	---help---
+	  The target system will boot from a USB drive or SDCard.
+
+	  The crosslinux build process will format and install the target Linux
+	  system onto the USB Drive or SDCard.  You will be asked to give the
+	  partition device node.
+
+endchoice
+
+endif # if ! BOARD_MAC_G4
+
+config MEDIA_PDEV
+	string
+	default "/dev/sdb1"
+	depends on MEDIA_USB_EPHEMERAL
+	prompt "Device Node of Media Boot Partition"
+	---help---
+	  This is the disk PARTITION device node, like /dev/sdb1, NOT the whole
+	  disk device node, of the partition in which to put the target Linux
+	  system to be built.
+
+	  This partition will be formatted as an MS-DOS FAT32 file system; it
+	  will have an appropriate boot loader, Linux kernel and root file
+	  system image file.
+
+config INCLUDE_MEDIA_ROOT_DOCS
+	bool
+	default y
+	prompt "Copy files from ./site/root-doc to boot media."
+	---help---
+	  Copy files from ./site/root-doc to boot media top-level directory.
+
+	  This might be good for a license file, "read me" file, authors list
+	  file, etc.
+
+config INCLUDE_MEDIA_DEBUG_KERNEL
+	bool
+	default y
+	prompt "Include debug kernel in boot media."
+	---help---
+	  Include debug kernel in boot media.  It will be in the boot directory
+	  with the stripped compressed kernel, and the System.map file also
+	  will be included in that directory.
+
+	  The directory structure of the boot media may look something like:
+
+		initrd
+	  	boot/vmlinuz
+	  	     vmlinux <------ added by selecting this option
+	  	     System.map <--- added by selecting this option
+
+config INCLUDE_MEDIA_CONFIG_FILES
+	bool
+	default y
+	prompt "Include kernel and busybox config files in boot media."
+	---help---
+	  Include kernel and busybox config files in boot media.  These will be
+	  put into a "config" directory.
+
+	  The directory structure of the boot media may look something like:
+
+		initrd
+		boot/vmlinuz
+		config/busybox.cfg <--- added by selecting this option
+		       kernel.cfg <---- added by selecting this option
+
+config INCLUDE_MEDIA_DOCS
+	bool
+	default y
+	prompt "Copy files from ./site/doc to boot media."
+	---help---
+	  Copy files from ./site/doc to boot media.
+
+config INCLUDE_BUILD_LOGS
+	bool
+	default y
+	prompt "Include build logs on boot media."
+	---help---
+	  Include build logs on boot media.  These will be put into a "logs"
+	  directory.
+
+	  The directory structure of the boot media may look something like:
+
+		initrd
+		boot/vmlinuz
+		logs/bash-<version>.log <------ added by selecting this option
+		     busybox-<version>.log <--- added by selecting this option
+
+config INCLUDE_BIN_PKGS
+	bool
+	default y
+	prompt "Include binary packages on boot media."
+	---help---
+	  Include binary packages on boot media.  These will be put into a
+	  directory named "pkg-bin".
+
+	  The directory structure of the boot media may look something like:
+
+		initrd
+		boot/vmlinuz
+		pkg-bin/bash-<version>.tbz <--- added by selecting this option
+
+endmenu
+
+endif #if ! BOOT_PERSISTENT
+
+# *****************************************************************************
+# These are the options for the persistent fixed drive.
+# *****************************************************************************
+
+if BOOT_PERSISTENT
+
+menu "Boot Persistent Drive Options"
+
+config MEDIA_USB_PERSISTENT
+	bool "USB Drive or SDCard"
+	default y
+	---help---
+	  The target system will boot from a USB Drive or SDCard.
+
+	  The crosslinux build process will format and install the target Linux
+	  system onto the USB Drive or SDCard.  You will be asked to give the
+	  partition device node.
+
+config FORCE_MEDIA_USB_PERSISTENT
+	def_bool y
+	select MEDIA_USB_PERSISTENT if BOOT_PERSISTENT
+
+config MEDIA_DEV
+	string
+	default "/dev/sdb"
+	prompt "Device Node of Installation Media"
+	---help---
+	  This is the disk DEVICE device node, like /dev/sdb, NOT the partition
+	  device node, in which to put the target Linux system to be built.
+
+	  This disk device will be partition and formatted according to the
+	  partition selections.
+
+config MEDIA_PARTITION_2
+	bool
+	default y
+	prompt "Use separate / and /boot partitions."
+	---help---
+	  Select this to use physical partition 2 of the USB Drive or SDCard.
+
+	  Partition 1 will be formatted as the 'Root File System Type' selected
+	  above and mounted as /boot  This partition will be 64 MB in size.
+
+	  NOTICE--> The previous selections for root file system size
+	            will be ignored.
+
+	  Partition 2 will be formatted as selected below and mounted as /
+
+config MEDIA_PARTITION_3
+	bool
+	default y
+	prompt "Media has physical partition 3."
+	---help---
+	  Make and use physical partition 3 on the USB Drive or SDCard..
+
+	  This partition will be formatted and mounted as selected below.
+
+config MEDIA_PARTITION_4
+	bool
+	default y
+	prompt "Media has physical partition 4."
+	---help---
+	  Make and use physical partition 3 on the USB Drive or SDCard..
+
+	  This partition will be formatted and mounted as selected below.
+
+if MEDIA_PARTITION_2
+
+choice
+	bool
+	default MEDIA_P2_EXT2
+	prompt "Root Partition (2) File System Type"
+	---help---
+	  Select the root file system type.
+
+config MEDIA_P2_EXT2
+	bool "ext2"
+	---help---
+	  Use an ext2 root file system.
+
+config MEDIA_P2_EXT3
+	bool "ext3"
+	---help---
+	  Use an ext3 root file system.
+
+config MEDIA_P2_EXT4
+	bool "ext4"
+	---help---
+	  Use an ext4 root file system.
+
+endchoice
+
+endif # if MEDIA_PARTITION_2
+
+if MEDIA_PARTITION_3
+
+choice
+	bool
+	default MEDIA_P3_EXT2
+	prompt "Partition 3 File System Type"
+	---help---
+	  Select the partition 3 file system type.
+
+config MEDIA_P3_EXT2
+	bool "ext2"
+	---help---
+	  Use an ext2 root file system.
+
+config MEDIA_P3_EXT3
+	bool "ext3"
+	---help---
+	  Use an ext3 root file system.
+
+config MEDIA_P3_EXT4
+	bool "ext4"
+	---help---
+	  Use an ext4 root file system.
+
+endchoice
+
+endif # if MEDIA_PARTITION_3
+
+if MEDIA_PARTITION_4
+
+choice
+	bool
+	default MEDIA_P4_EXT2
+	prompt "Partition 4 File System Type"
+	---help---
+	  Select the partition 4 file system type.
+
+config MEDIA_P4_EXT2
+	bool "ext2"
+	---help---
+	  Use an ext2 root file system.
+
+config MEDIA_P4_EXT3
+	bool "ext3"
+	---help---
+	  Use an ext3 root file system.
+
+config MEDIA_P4_EXT4
+	bool "ext4"
+	---help---
+	  Use an ext4 root file system.
+
+endchoice
+
+endif # if MEDIA_PARTITION_4
+
+if MEDIA_PARTITION_2
+
+config MEDIA_P2_SIZE
+	int
+	default 3072
+	prompt "Partition 2 Size (MB)"
+	---help---
+	  This is the size of the root file system.
+
+	  If your root file system size is less than 16 MB, then set the file
+	  system type to ext2; other file system types may not be able to
+	  format such a small file system, at least not without forgoing file
+	  system journalling.
+
+endif # if MEDIA_PARTITION_2
+
+if MEDIA_PARTITION_3
+
+config MEDIA_P3_SIZE
+	int
+	default 256
+	prompt "Partition 3 Size (MB)"
+	---help---
+	  Select the size of physical partition 3.
+
+endif # if MEDIA_PARTITION_3
+
+if MEDIA_PARTITION_4
+
+config MEDIA_P4_SIZE
+	int
+	default 256
+	prompt "Partition 4 Size (MB)"
+	---help---
+	  Select the size of physical partition 3.
+
+endif # if MEDIA_PARTITION_4
+
+if MEDIA_PARTITION_3
+
+config MEDIA_P3_MOUNT
+	string
+	default "/var"
+	prompt "Partition 3 Mount Point"
+	---help---
+	  Select physical partition 3 mount point.
+
+endif # if MEDIA_PARTITION_3
+
+if MEDIA_PARTITION_4
+
+config MEDIA_P4_MOUNT
+	string
+	default "swap"
+	prompt "Partition 4 Mount Point"
+	---help---
+	  Select physical partition 4 mount point.
+
+endif # if MEDIA_PARTITION_4
+
+endmenu
+
+endif #if BOOT_PERSISTENT

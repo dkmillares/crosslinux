@@ -1,10 +1,10 @@
 config BLD_CROSSLINUX_BASEFS
-     bool
-     default y
-     prompt "Base File System -- You must have a base file system"
-     help
-       You must have a base file system.
+	bool
+	default y
+	prompt "Base File System -- You must have a base file system"
+	---help---
+	  You must have a base file system.
 
 config FORCE_BASEFS
-     def_bool y
-     select BLD_CROSSLINUX_BASEFS
+	def_bool y
+	select BLD_CROSSLINUX_BASEFS

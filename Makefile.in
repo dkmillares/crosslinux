@@ -144,7 +144,7 @@ TARGETS     := kconfig bin lib doc man
 MAN_SECTION := 1
 MAN_SUBDIR  := man$(MAN_SECTION)
 
-KCONFIG_FILES := Kconfig boards/Kconfig pkg-cfg/Kconfig
+KCONFIG_FILES := Kconfig Kconfig-bootcfg Kconfig-xtcfg pkg-cfg/Kconfig-pkgcfg
 SCRIPT_FILES  := $(shell ls scripts/* | $(sed) -e "s/\.in//")
 
 .PHONY:	default
@@ -203,9 +203,6 @@ uninstall:	real-uninstall
 build-kconfig:
 	@echo "=> Making kconfg."
 	@$(MAKE) -C kconfig
-	@$(install) -m 755 "kconfig/frontends/conf/conf"   "kconfig/"
-	@$(install) -m 755 "kconfig/frontends/mconf/mconf" "kconfig/"
-	@$(install) -m 755 "kconfig/frontends/nconf/nconf" "kconfig/"
 	@echo "=> Done making kconfg."
 
 build-bin:	$(PROG_NAME) setenv.sh
@@ -266,9 +263,6 @@ doc/$(PROG_NAME).1:	doc/cl-bt.1.in Makefile
 clean-kconfig:
 	@echo "=> Make clean kconfg."
 	@$(MAKE) -C kconfig clean
-	@rm -f "kconfig/conf"
-	@rm -f "kconfig/mconf"
-	@rm -f "kconfig/nconf"
 	@echo "=> Done cleaning kconfg."
 
 clean-bin:
@@ -304,11 +298,9 @@ else
 real-install:	$(patsubst %,install-%,$(TARGETS))
 
 install-kconfig:	$(libdir)
-	@echo "INST  kconfig/{conf,mconf,nconf}"
+	@echo "INST  kconfig"
 	@mkdir -p "$(libdir)/kconfig"
-	@$(install) -m 755 "kconfig/conf"  "$(libdir)/kconfig/"
-	@$(install) -m 755 "kconfig/mconf" "$(libdir)/kconfig/"
-	@$(install) -m 755 "kconfig/nconf" "$(libdir)/kconfig/"
+	@(cd kconfig; make install-exec)
 
 install-bin:	$(bindir)
 	@echo "INST  $(PROG_NAME)"
@@ -318,8 +310,10 @@ install-bin:	$(bindir)
 
 LIB_SUB_DIR := boards pkg-cfg scripts
 install-lib:	$(libdir)
-	@echo "INST  Kconf"
-	@$(install) -m 644 "Kconfig" "$(libdir)/"
+	@for kconfig_file in $(KCONFIG_FILES); do			\
+		echo "INST  $${kconfig_file}";				\
+		$(install) -m 644 "$${kconfig_file}" "$(libdir)/";	\
+	done
 	@for dir in $(LIB_SUB_DIR); do					\
 		echo "INST  $${dir}/";					\
 		$(tar) cf - --exclude='*.in' $${dir}/ 			\

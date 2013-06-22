@@ -1,0 +1,96 @@
+# vim: syntax=kconfig
+
+config XBT_NAME
+	string
+	default ""
+	prompt "Cross-tool Chain Name Prefix (Tuple)"
+	---help---
+	  Enter the cross-tool chain name prefix (tuple) here.
+
+	  Cross-tool chain components such as gcc are called by prefixing the
+	  target tuple to the component name e.g,
+	  "armv7-generic-linux-gnueabi-gcc", wherein
+	  "armv7-generic-linux-gnueabi" is the tuple and "gcc" is the component.
+
+	  Some cross-tool chains have shortened names and may not use the tuple
+	  name, such as "armv7-gcc" or "ppc-gcc".
+
+	  If you enter "fubar" here, then the cross-tool chain will be called
+	  with program names like "fubar-gcc" and "fubar-as", etc.
+
+	  ***** NOTICE do NOT put a "-" on the end of the name; do NOT enter
+		something like "fubar-".
+
+config XBT_DIR
+	string
+	default ""
+	prompt "Path to Cross-tool Chain"
+	---help---
+	  This is the path to the cross-tool chain directory.
+
+config XBT_SYSROOT_DIR
+	string
+	default ""
+	prompt "Path to Cross-tool Chain Sysroot"
+	---help---
+	  This is the path to the cross-tool chain sysroot directory.
+
+config DOWNLOAD_DIR
+	string
+	default "${HOME}/Download/"
+	prompt "Download Cache Directory"
+	---help---
+	  Crosslinux downloads source packages to cross-build.  Enter the
+	  directory into which to download the source packages.
+
+	  If you make this an empty string, then crosslinux will make and use a
+	  "pkg-src/" directory in the top-level build directory.
+
+config PARALLEL_JOBS
+	bool
+	default y
+	prompt "Use Parallel Jobs"
+	---help---
+	  This is whether make will be asked to run concurrent jobs.
+
+	  Select this and crosslinux will use a number of jobs based on the
+	  number of processor cores detected.
+
+	  Say no to use only one job.
+
+config STRIP_BINS
+	bool
+	default y
+	prompt "Strip Target Executables and Libraries"
+	---help---
+	  All target executables and libraries will be striped.
+
+config SITE_SCRIPTS
+	bool
+	default y
+	prompt "Site Scripts"
+	---help---
+	  Run the site scripts during the build process.
+
+config SITE_BUSYBOX_CFG
+	bool
+	default n
+	prompt "Site BusyBox Configuration"
+	---help---
+	  Select this to use the site BusyBox configuration.
+
+config SITE_KERNEL_CFG
+	bool
+	default n
+	prompt "Site Kernel Configuration"
+	default ""
+	---help---
+	  Select this to use the site Kernel configuration.
+
+config SITE_KERNEL
+	bool
+	default n
+	prompt "Site Kernel"
+	default ""
+	---help---
+	  Select this to use the site Kernel tarball and configuration.

@@ -3,6 +3,9 @@
 *.[oa]
 *.swp
 
+# autostuffs
+autom4te.cache
+
 # cross-tool chains
 cross-tools-*
 
