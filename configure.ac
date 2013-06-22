@@ -173,7 +173,8 @@ AS_IF(
    [test x"$enable_local" = x"no"],
    [AC_MSG_NOTICE([enabling --prefix* because --disable-local is set])
     sublibdir="/cl-bt.\${PACKAGE_VERSION}"
-    subdocdir="/cl-bt.\${PACKAGE_VERSION}"],
+    subdocdir="/cl-bt.\${PACKAGE_VERSION}"
+    kconfig_prefix="${prefix}/lib/cl-bt.${PACKAGE_VERSION}"],
    [prefix=$(pwd)
     exec_prefix='${prefix}'
     datarootdir='${exec_prefix}'
@@ -182,7 +183,8 @@ AS_IF(
     docdir='${exec_prefix}'
     mandir='${exec_prefix}'
     subdocdir=""
-    sublibdir=""])
+    sublibdir=""
+    kconfig_prefix="${prefix}"])
 
 # -----------------------------------------------------------------------------
 # Generate files from the *.in files.  Configure in the Kconfig directory.
@@ -194,9 +196,9 @@ echo ""
 echo "Configuring kconfig..."
 cd kconfig
 ./configure \
-	--prefix=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
-	--bindir=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
-	--libdir=${prefix}/lib/cl-bt.${PACKAGE_VERSION}/kconfig \
+	--prefix="${kconfig_prefix}/kconfig-exec" \
+	--bindir="${kconfig_prefix}/kconfig-exec" \
+	--libdir="${kconfig_prefix}/kconfig-exec" \
 	--enable-mconf \
 	--enable-nconf \
 	--disable-gconf \

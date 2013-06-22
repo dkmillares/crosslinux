@@ -291,7 +291,9 @@ clean-man:
 ifeq ($(strip $(LOCAL)),yes)
 
 real-install:
-	@true
+	@echo "INST  kconfig"
+	@mkdir -p "$(libdir)/kconfig-exec"
+	@(cd kconfig; make install-exec)
 
 else
 
@@ -299,7 +301,7 @@ real-install:	$(patsubst %,install-%,$(TARGETS))
 
 install-kconfig:	$(libdir)
 	@echo "INST  kconfig"
-	@mkdir -p "$(libdir)/kconfig"
+	@mkdir -p "$(libdir)/kconfig-exec"
 	@(cd kconfig; make install-exec)
 
 install-bin:	$(bindir)
@@ -350,6 +352,8 @@ ifeq ($(strip $(LOCAL)),yes)
 
 real-uninstall:
 	@true
+	@echo "RM    kconfig installation"
+	@rm -rf kconfig-exec
 
 else
 

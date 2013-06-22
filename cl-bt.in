@@ -237,7 +237,7 @@ config:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig/kconfig-conf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-conf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm -f crosslinux-config.sh;				\
 		mv .config crosslinux-config.sh;			\
@@ -257,7 +257,7 @@ menuconfig:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig/kconfig-mconf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-mconf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm -f crosslinux-config.sh;				\
 		mv .config crosslinux-config.sh;			\
@@ -277,7 +277,7 @@ nconfig:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig/kconfig-nconf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-nconf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm -f crosslinux-config.sh;				\
 		mv .config crosslinux-config.sh;			\
