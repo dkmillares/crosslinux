@@ -73,9 +73,19 @@ export mandir          := @@CL_MANDIR@@
 # cl-bt Make Variables and Make Environment                                   #
 # *************************************************************************** #
 
-# -- Single-Package Target
+# Do not print directories as descend into or ascended from.
+#
+ifeq ($(filter --no-print-directory,$(MAKEFLAGS)),)
+   MAKEFLAGS += --no-print-directory
+endif
+
+# -- Single-Package Support
 #
 PACKAGE=""
+
+# -- Second level argument; see how it is used in the 'clean' targets.
+#
+CMD_PARAM=""
 
 # -- Sanity
 #
@@ -98,7 +108,7 @@ export GREP_OPTIONS=
 .PHONY: help
 
 help:
-	@echo "crosslinux-buildtool cl-bt-@@CL_VERSION@@"
+	@echo "crosslinux-buildtool ${PROGRAM_NAME}-@@CL_VERSION@@"
 	@echo ""
 	@echo "Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>"
 	@echo "This is free software; see the source for copying conditions."
@@ -126,42 +136,37 @@ help:
 
 .PHONY: bt-init bt-done bt-reinit bt-showcfg
 
-.bt-init:
-	@if [[ ! -f .bt-init ]]; then					\
-		echo "E> Not initialized for building.";		\
-		false;							\
-	fi
-
-bt-init:
-	@echo "Making build directories."
+.bt-init bt-init:
+	@echo "i> Initialize for building."
+	@echo "i> Making build directories."
 	@for d in $(BLD_DIRS); do					\
 		echo "=> making $${d}/";				\
-		mkdir -p $${d};						\
+		mkdir --parents $${d};					\
 	done
-	mkdir -p bin-link
+	mkdir --parents bin-link
 	@$(libdir)/scripts/bt-init.sh
-	@rm -rf .bt-init
+	@rm --force --recursive .bt-init
 	@touch .bt-init
 	@date >>.bt-init
 
 bt-done:
-	@echo "Removing build directories."
+	@echo "i> Removing build directories."
 	@for d in $(BLD_DIRS); do					\
 		if [[ -d $${d%%/*} ]]; then				\
 			echo "=> removing $${d%%/*}/";			\
-			rm -rf $${d%%/*};				\
+			rm --force --recursive $${d%%/*};		\
 		fi							\
 	done
-	@rm -rf bin-link
-	@rm -rf .bt-init
+	@rm --force --recursive bin-link
+	@rm --force --recursive .bt-init
 
 bt-reinit:	bt-done bt-init
 
 bt-showcfg:
 	@echo ""
-	@echo "cl-bt-$(PACKAGE_VERSION) built on $(DATE)"
+	@echo "${PROGRAM_NAME}-$(PACKAGE_VERSION) built on $(DATE)"
 	@echo ""
-	@if [[ "$(LOCAL)" = "yes" ]]; then				\
+	@if [[ "$(LOCAL)" == "yes" ]]; then				\
 		echo "Using local crosslinux directory.";		\
 	else								\
 		echo "Using installed configuration.";			\
@@ -209,8 +214,8 @@ getcfg:
 	bc=$${list[$${cfg}]};						\
 	echo "";							\
 	echo "=> using $${bc}";						\
-	rm -f crosslinux-config.sh;					\
-	rm -f crosslinux-pkglst.txt;					\
+	rm --force crosslinux-config.sh;				\
+	rm --force crosslinux-pkglst.txt;				\
 	cp $(libdir)/boards/$${bc%-*}/$${bc} crosslinux-config.sh;      \
 	)
 	@chmod 666 crosslinux-config.sh
@@ -218,9 +223,9 @@ getcfg:
 	@echo ""
 
 crosslinux-config.sh:
-	@echo "Need a new crosslinux-config.sh file."
+	@echo "E> Need a new crosslinux-config.sh file."
 	@echo "=> Run a command to make a new crosslinux-config.sh file:"
-	@echo "   $(PROGRAM_NAME) getcf"
+	@echo "   $(PROGRAM_NAME) getcfg"
 	@echo "   $(PROGRAM_NAME) menuconfig"
 	@echo "   $(PROGRAM_NAME) nconfig"
 	@false
@@ -239,7 +244,7 @@ config:
 	fi
 	@$(libdir)/kconfig-exec/kconfig-conf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
-		rm -f crosslinux-config.sh;				\
+		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
 	fi
 	@chmod 666 crosslinux-config.sh
@@ -259,7 +264,7 @@ menuconfig:
 	fi
 	@$(libdir)/kconfig-exec/kconfig-mconf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
-		rm -f crosslinux-config.sh;				\
+		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
 	fi
 	@chmod 666 crosslinux-config.sh
@@ -279,21 +284,21 @@ nconfig:
 	fi
 	@$(libdir)/kconfig-exec/kconfig-nconf $(libdir)/Kconfig
 	@if [[ -f .config ]]; then					\
-		rm -f crosslinux-config.sh;				\
+		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
 	fi
 	@chmod 666 crosslinux-config.sh
 	@ls --color -Fl crosslinux-config.sh
 
 crosslinux-pkglst.txt pkglist: crosslinux-config.sh
-	@echo "Regenerating crosslinux-pkglst.txt:"
+	@echo "i> Regenerating crosslinux-pkglst.txt:"
 	@(								\
-	rm -f .pkglst;							\
+	rm --force .pkglst;						\
 	$(grep) "^CONFIG_BLD_" crosslinux-config.sh >.pkglst;		\
 	$(sed) -e "s/^CONFIG_BLD_//" -e "s/=y//"   -i .pkglst;		\
 	$(sed) -e "s/p/./g"          -e "s/_/-/g"  -i .pkglst;		\
 	$(sed) -e "s/\(.*\)/\L\1/g"                -i .pkglst;		\
-	rm -f crosslinux-pkglst.txt;					\
+	rm --force crosslinux-pkglst.txt;				\
 	touch crosslinux-pkglst.txt;					\
 	for dir in $$(<.pkglst); do					\
 		echo -n "$${dir} " >> crosslinux-pkglst.txt;		\
@@ -308,18 +313,164 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 		echo -n " $${PKG_URL}" >>crosslinux-pkglst.txt;		\
 		echo "" >>crosslinux-pkglst.txt;			\
 	done;								\
-	rm -f .pkglst;							\
+	rm --force .pkglst;						\
 	)
 	@chmod 666 crosslinux-pkglst.txt
 	@ls --color -Fl crosslinux-pkglst.txt
 
 dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
-	@echo "Download source packages."
+	@echo "i> Download source packages."
 	@($(libdir)/scripts/utl-dload.sh $(PACKAGE))
 	@if [[ $$? != 0 ]]; then					\
 		echo "E> Download FAILED.";				\
 		false;							\
 	fi
+
+# -----------------------------------------------------------------------------
+# -- Build Status Support
+# -----------------------------------------------------------------------------
+
+.PHONY:	check_init ok_to_build
+
+var/run/init:
+	@if [[ ! -f var/run/init ]]; then				\
+		echo "E> Not initialized for building.";		\
+		echo "=> Maybe '${PROGRAM_NAME} init' first.";		\
+		exit 1;							\
+	fi
+
+var/run/packages:
+	@if [[ ! -f var/run/packages ]]; then				\
+		echo "E> Packages are not all built.";			\
+		exit 1;							\
+	fi
+
+check_init:
+	@if [[ -f .bt-init ]]; then					\
+		if [[ ! -f var/run/init ]]; then			\
+			(${PROGRAM_NAME} init);				\
+		fi;							\
+	else								\
+		echo "E> Not initialized for building.";		\
+		echo "=> Maybe '${PROGRAM_NAME} bt-init' first.";	\
+		exit 1;							\
+	fi
+
+ok_to_build:	check_init crosslinux-config.sh
+	@source ./crosslinux-config.sh;					\
+	t=`cat var/run/init`;						\
+	if [[ x"$${t}" != x"$${CONFIG_BOARD}" ]]; then			\
+		echo "E> Build already in progress for \"$${t}\".";	\
+		echo "E> Build MISMATCH.";				\
+		echo "=> Did you change crosslinux-config.sh?";		\
+		echo "=> Maybe '${PROGRAM_NAME} clean' first.";		\
+		exit 1;							\
+	fi
+
+# -----------------------------------------------------------------------------
+# -- Build Targets
+# -----------------------------------------------------------------------------
+
+.PHONY:	init _clean clean kclean pclean pkgs pkgs_
+
+init:	.bt-init crosslinux-config.sh $(libdir)/scripts/bld-init.sh
+	@if [[ -f var/run/init ]]; then					\
+		echo "E> Already building for `cat var/run/init`";	\
+		echo "=> Maybe '${PROGRAM_NAME} clean' first.";		\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Initialize building for:";				\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-init-0.sh ]]; then			\
+			(site/bld-init-0.sh);				\
+		fi							\
+	fi;								\
+	($(libdir)/scripts/bld-init.sh);				\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-init-1.sh ]]; then			\
+			(site/bld-init-1.sh $${mystat});		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "E> Initialize FAILED.";				\
+		exit 1;							\
+	fi;								\
+	echo "$${CONFIG_BOARD}" >var/run/init
+
+_clean:	crosslinux-config.sh $(libdir)/scripts/bld-clean.sh
+	@if [[ -f var/run/init ]]; then					\
+		echo "Remove the `cat var/run/init` ${CMD_PARAM}.";	\
+	else								\
+		echo "Remove the ${CMD_PARAM}.";			\
+	fi
+	@source ./crosslinux-config.sh;					\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-clean-0.sh ]]; then			\
+			(site/bld-clean-0.sh ${CMD_PARAM});		\
+		fi							\
+	fi;								\
+	($(libdir)/scripts/bld-clean.sh ${CMD_PARAM});			\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-clean-1.sh ]]; then			\
+			(site/bld-clean-1.sh ${CMD_PARAM});		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "Clean FAILED.";					\
+		exit 1;							\
+	fi
+	@[[ x"${CMD_PARAM}" == x"build" ]] && rm --force var/run/init || true
+	@rm --force var/run/${CMD_PARAM}
+	@rm --force var/run/fsys
+	@rm --force var/run/distdir
+	@rm --force var/run/distimg
+
+clean:
+	@${PROGRAM_NAME} _clean CMD_PARAM=build
+
+kclean:
+	@${PROGRAM_NAME} _clean CMD_PARAM=kernel
+
+pclean:
+	@${PROGRAM_NAME} _clean CMD_PARAM=packages
+
+pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make the crosslinux packages for:";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm --force var/run/packages;					\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-packages-0.sh ]]; then		\
+			(site/bld-packages-0.sh);			\
+		fi							\
+	fi;								\
+	($(libdir)/scripts/bld-packages.sh ${PACKAGE};);		\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-packages-1.sh ]]; then		\
+			(site/bld-packages-1.sh $${mystat});		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "E> Build FAILED.";				\
+		exit 1;							\
+	fi
+	@touch var/run/packages
+
+pkgs_:
+	@${PROGRAM_NAME} pkgs PACKAGE=continue 
 
 
 # end of Makefile

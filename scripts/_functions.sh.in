@@ -62,13 +62,15 @@ CL_config_setup() {
 	TARGET_SYSROOT_DIR="${TARGET_PROJ_DIR}/sysroot"
 	TARGET_VAR_DIR="${TARGET_PROJ_DIR}/var"
 
-	nameTag="${CONFIG_BOARD}-${CONFIG_RELEASE_VERS}"
-	TARGET_IMG_NAME="${TARGET_PROJ_DIR}/img/file_sys-${nameTag}.img"
-	TARGET_IRD_NAME="${TARGET_PROJ_DIR}/img/initrd-${nameTag}"
-	TARGET_TAR_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}.tar.bz2"
-	TARGET_SRC_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}-src.iso"
-	TARGET_ISO_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${nameTag}.iso"
-	unset nameTag
+	_nameTag="${CONFIG_BOARD}-${CONFIG_RELEASE_VERS}"
+	TARGET_IMG_NAME="${TARGET_PROJ_DIR}/img/file_sys-${_nameTag}.img"
+	TARGET_IRD_NAME="${TARGET_PROJ_DIR}/img/initrd-${_nameTag}"
+	TARGET_TAR_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}.tar.bz2"
+	TARGET_SRC_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}-src.iso"
+	TARGET_ISO_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}.iso"
+	unset _nameTag
+
+	DOWNLOAD_CACHE_DIR="${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
 
 return 0
 
@@ -286,18 +288,17 @@ CL_dload_get_file() {
 	local fileName="$2" # could be like lynx2-8-7.tgz; may not match pkgName
 	local url="$3"
 	local loadedDn="no"
-	local cacheDir="${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
 
 	# Go to the urls.
 	shift
 	shift
 
-	pushd "${cacheDir}" >/dev/null 2>&1
+	pushd "${DOWNLOAD_CACHE_DIR}" >/dev/null 2>&1
 
 	echo -n "i> Checking ${pkgName} "
 	for ((i=28 ; i > ${#pkgName} ; i--)); do echo -n "."; done
 
-	rm -f "${fileName}.download.log"
+	rm --force "${fileName}.download.log"
 
 	# Maybe the file doesn't get downloaded.
 	#
@@ -326,14 +327,14 @@ CL_dload_get_file() {
 	_file=""
 	_args="-T 15 -nc --passive-ftp --progress=dot:binary --tries=3"
 	_log="${fileName}.download.log"
-	rm -f "${_log}"
+	rm --force "${_log}"
 	for url in "$@"; do
-		rm -f ${fileName}
+		rm --force ${fileName}
 		_file="${url}/${fileName}"
 		if ${cl_wget} ${_args} ${_file} >"${_log}" 2>&1; then
 			loadedDn="yes"
 		else
-			rm -f ${fileName}
+			rm --force ${fileName}
 		fi
 	done
 	unset _file
@@ -342,7 +343,7 @@ CL_dload_get_file() {
 
 	if [[ "${loadedDn}" == "yes" ]]; then
 		echo "done"
-		rm -f "${fileName}.download.log"
+		rm --force "${fileName}.download.log"
 		chmod 600 ${fileName}
 	else
 		echo "FAILED"
@@ -354,6 +355,43 @@ CL_dload_get_file() {
 	popd >/dev/null 2>&1
 
 	return 0
+
+}
+
+
+# *****************************************************************************
+# Get and untar a source package.
+# *****************************************************************************
+
+# Function Arguments:
+# $1 ... Source package zip-file name, like "lynx2.8.7.tar.bz2".
+
+CL_package_get() {
+
+	local srcPkg="$1"
+	local tarBall=""
+	local unz=""
+
+if   [[ "$1" =~ (.*)\.tgz$      ]]; then unz="${cl_gzip}  --decompress --force";
+elif [[ "$1" =~ (.*)\.tar\.gz$  ]]; then unz="${cl_gzip}  --decompress --force";
+elif [[ "$1" =~ (.*)\.tbz$      ]]; then unz="${cl_bzip2} --decompress --force";
+elif [[ "$1" =~ (.*)\.tar\.bz2$ ]]; then unz="${cl_bzip2} --decompress --force";
+elif [[ "$1" =~ (.*)\.tar\.xz$  ]]; then unz="${cl_xz}    --decompress --force";
+fi
+
+	if [[ -n "${unz}" ]]; then
+		tarBall="${BASH_REMATCH[1]}.tar"
+		cp "${DOWNLOAD_CACHE_DIR}/${srcPkg}" .
+		${unz} "${srcPkg}" >/dev/null
+		${cl_tar} --extract --file="${tarBall}"
+		rm --force "${tarBall}"
+	else
+		CL_logcom "ERROR ***** ${srcPkg} format not recognized."
+echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"                 >&${CONSOLE_FD}
+echo    "E> Source package ${srcPkg} format not known." >&${CONSOLE_FD}
+echo    "=> Do not know how to decompress that file."   >&${CONSOLE_FD}
+		exit 1 # Bust out of sub-shell.
+	fi
 
 }
 

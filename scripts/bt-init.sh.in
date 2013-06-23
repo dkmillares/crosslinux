@@ -65,6 +65,11 @@ echo "#!@@CL_BASH@@"                         >> bin-link/bunzip2
 echo "exec @@CL_BZIP2@@ --decompress "'${@}' >> bin-link/bunzip2
 chmod 700 bin-link/bunzip2
 
+touch bin-link/fakeroot
+echo "#!@@CL_BASH@@"               >> bin-link/fakeroot
+echo "exec @@CL_FAKEROOT@@ "'${@}' >> bin-link/fakeroot
+chmod 700 bin-link/fakeroot
+
 touch bin-link/find
 echo "#!@@CL_BASH@@"           >> bin-link/find
 echo "exec @@CL_FIND@@ "'${@}' >> bin-link/find
@@ -109,6 +114,16 @@ touch bin-link/wget
 echo "#!@@CL_BASH@@"           >> bin-link/wget
 echo "exec @@CL_WGET@@ "'${@}' >> bin-link/wget
 chmod 700 bin-link/wget
+
+touch bin-link/xz
+echo "#!@@CL_BASH@@"         >> bin-link/xz
+echo "exec @@CL_XZ@@ "'${@}' >> bin-link/xz
+chmod 700 bin-link/xz
+
+touch bin-link/unxz
+echo "#!@@CL_BASH@@"                      >> bin-link/unxz
+echo "exec @@CL_XZ@@ --decompress "'${@}' >> bin-link/unxz
+chmod 700 bin-link/unxz
 
 
 # end of file

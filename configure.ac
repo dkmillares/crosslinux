@@ -53,23 +53,27 @@ if test x$enable_local = "xYES"; then enable_local=yes; fi
 # Check for required programs.
 # -----------------------------------------------------------------------------
 
-ACX_PATH_PROG_REQ([bzip2],   [bzip2])
-ACX_PATH_PROG_REQ([gzip],    [gzip])
-ACX_PATH_PROG_REQ([find],    [find])
-ACX_PATH_PROG_REQ([install], [install])
-ACX_PATH_PROG_REQ([make],    [make])
-ACX_PATH_PROG_REQ([patch],   [patch])
-ACX_PATH_PROG_REQ([tar],     [tar])
-ACX_PATH_PROG_REQ([wget],    [wget])
+ACX_PATH_PROG_REQ([bzip2],    [bzip2])
+ACX_PATH_PROG_REQ([gzip],     [gzip])
+ACX_PATH_PROG_REQ([fakeroot], [fakeroot])
+ACX_PATH_PROG_REQ([find],     [find])
+ACX_PATH_PROG_REQ([install],  [install])
+ACX_PATH_PROG_REQ([make],     [make])
+ACX_PATH_PROG_REQ([patch],    [patch])
+ACX_PATH_PROG_REQ([tar],      [tar])
+ACX_PATH_PROG_REQ([wget],     [wget])
+ACX_PATH_PROG_REQ([xz],       [xz])
 
-AC_SUBST([BZIP2],   [$ac_cv_path_bzip2])
-AC_SUBST([FIND],    [$ac_cv_path_find])
-AC_SUBST([GZIP],    [$ac_cv_path_gzip])
-AC_SUBST([INSTALL], [$ac_cv_path_install])
-AC_SUBST([MAKE],    [$ac_cv_path_make])
-AC_SUBST([PATCH],   [$ac_cv_path_patch])
-AC_SUBST([TAR],     [$ac_cv_path_tar])
-AC_SUBST([WGET],    [$ac_cv_path_wget])
+AC_SUBST([BZIP2],    [$ac_cv_path_bzip2])
+AC_SUBST([FAKEROOT], [$ac_cv_path_fakeroot])
+AC_SUBST([FIND],     [$ac_cv_path_find])
+AC_SUBST([GZIP],     [$ac_cv_path_gzip])
+AC_SUBST([INSTALL],  [$ac_cv_path_install])
+AC_SUBST([MAKE],     [$ac_cv_path_make])
+AC_SUBST([PATCH],    [$ac_cv_path_patch])
+AC_SUBST([TAR],      [$ac_cv_path_tar])
+AC_SUBST([WGET],     [$ac_cv_path_wget])
+AC_SUBST([XZ],       [$ac_cv_path_xz])
 
 # -----------------------------------------------------------------------------
 # Check some program particulars.

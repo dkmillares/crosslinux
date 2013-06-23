@@ -25,7 +25,7 @@
 #
 # PROGRAM DESCRIPTION
 #
-#      This script attempts to download the crosslinux target source packages.
+#      This script initializes the crosslinux build process.
 #
 # CHANGE LOG
 #
@@ -54,12 +54,6 @@ cl_libdir="@@CL_LIBDIR@@"
 # Set up the shell functions and environment variables.
 # *****************************************************************************
 
-K_PKGLIST="crosslinux-pkglst.txt"
-
-G_MISSED_PKG[0]=""
-G_MISSED_URL[0]=""
-G_NMISSING=0
-
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
@@ -71,63 +65,12 @@ CL_config_setup || exit 1
 # Main Program
 # *****************************************************************************
 
-echo "i> Getting source code packages [be patient, this will not lock up]."
-echo "i> Download cache directory: ${DOWNLOAD_CACHE_DIR}"
-
-if [[ ! -d "${DOWNLOAD_CACHE_DIR}" ]]; then
-	echo "E> Download cache directory not found."
-	echo "=> \"${DOWNLOAD_CACHE_DIR}\""
-	if [[ "${DOWNLOAD_CACHE_DIR}" == "${TARGET_PKGSRC_DIR}" ]]; then
-		echo "=> Maybe you forgot to 'cl-bt bt-init'"
-	else
-		echo "=> Maybe your Download Cache Directory doesn't exist."
-	fi
-	exit 1
-fi
-
-_c=0      # Download count.
-_p=${1:-} # See if there is a single package to download.
-while read pname pad1 fname pad2 url; do
-	[[ -z "${pname}"                       ]] && continue || true
-	[[ "${pname:0:1}" == "#"               ]] && continue || true
-	[[ -n "${_p}" && "${pname}" != "${_p}" ]] && continue || true
-	CL_dload_get_file ${pname} ${fname} ${url}
-	_c=$((${_c} + 1))
-done <${K_PKGLIST}
-echo "i> Fetched ${_c} packages."
-if [[ ${_c} -eq 0 && -n "${_p}" ]]; then
-	echo -e "${TEXT_BRED}Error${TEXT_NORM}: no package named \"${_p}\""
-fi
-unset _c
-unset _p
-
-if [[ ${G_NMISSING} != 0 ]]; then
-	echo "Oops -- missing ${G_NMISSING} packages."
-	echo ""
-	echo -e "${TEXT_BRED}Error${TEXT_NORM}:"
-	echo "At least one source package failed to download.  If all source   "
-	echo "packages failed to download then check your Internet access.     "
-	echo "Listed below are the missing source package name(s) and the last "
-	echo "URL used to find the package.  Likely failure possibilities are: "
-	echo "=> The URL is wrong, maybe it has changed.                       "
-	echo "=> The source package name is no longer at the URL, maybe the    "
-	echo "   version name has changed at the URL.                          "
-	echo ""
-	echo "You can use your web browser to look for the package, and maybe  "
-	echo "use Google to look for an alternate site hosting the source,     "
-	echo "package."
-	echo ""
-	while [[ ${G_NMISSING} > 0 ]]; do
-		G_NMISSING=$((${G_NMISSING} - 1))
-		echo ${G_MISSED_PKG[${G_NMISSING}]}
-		echo ${G_MISSED_URL[${G_NMISSING}]}
-		if [[ ${G_NMISSING} != 0 ]]; then
-			echo -e "${TEXT_BBLUE}-----${TEXT_NORM}"
-		fi
-	done
-	echo ""
-	exit 1
-fi
+echo -n "=> Creating preliminary development build directories ... "
+rm --force --recursive "${TARGET_BUILD_DIR}/"*
+mkdir --mode=755 "${TARGET_BUILD_DIR}/kpkgs"
+mkdir --mode=755 "${TARGET_BUILD_DIR}/kroot"
+mkdir --mode=755 "${TARGET_BUILD_DIR}/packages"
+echo "DONE"
 
 
 # *****************************************************************************

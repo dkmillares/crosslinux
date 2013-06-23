@@ -39,6 +39,7 @@ cl_version="@@CL_VERSION@@"
 cl_awk="@@CL_AWK@@"
 cl_bash="@@CL_BASH@@"
 cl_bzip2="@@CL_BZIP2@@"
+cl_fakeroot="@@CL_FAKEROOT@@"
 cl_find="@@CL_FIND@@"
 cl_grep="@@CL_GREP@@"
 cl_gzip="@@CL_GZIP@@"
@@ -47,6 +48,7 @@ cl_make="@@CL_MAKE@@"
 cl_sed="@@CL_SED@@"
 cl_tar="@@CL_TAR@@"
 cl_wget="@@CL_WGET@@"
+cl_xz="@@CL_XZ@@"
 
 
 # end of file

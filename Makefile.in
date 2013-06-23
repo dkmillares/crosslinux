@@ -111,6 +111,7 @@ export PROG_TXFORM     := @program_transform_name@
 export awk             := @AWK@
 export bash            := @BASH@
 export bzip2           := @BZIP2@
+export fakeroot        := @FAKEROOT@
 export find            := @FIND@
 export grep            := @EGREP@
 export gzip            := @GZIP@
@@ -119,6 +120,7 @@ export make            := @MAKE@
 export sed             := @SED@
 export tar             := @TAR@
 export wget            := @WGET@
+export xz              := @XZ@
 
 export prefix          := @prefix@
 export exec_prefix     := @exec_prefix@
@@ -229,6 +231,7 @@ define sed_it
 		-e 's,@@CL_AWK@@,$(awk),g;'			\
 		-e 's,@@CL_BASH@@,$(bash),g;'			\
 		-e 's,@@CL_BZIP2@@,$(bzip2),g;'			\
+		-e 's,@@CL_FAKEROOT@@,$(fakeroot),g;'		\
 		-e 's,@@CL_FIND@@,$(find),g;'			\
 		-e 's,@@CL_GREP@@,$(grep),g;'			\
 		-e 's,@@CL_GZIP@@,$(gzip),g;'			\
@@ -237,6 +240,7 @@ define sed_it
 		-e 's,@@CL_SED@@,$(sed),g;'			\
 		-e 's,@@CL_TAR@@,$(tar),g;'			\
 		-e 's,@@CL_WGET@@,$(wget),g;'			\
+		-e 's,@@CL_XZ@@,$(xz),g;'			\
 		-e 's,@@CL_BINDIR@@,$(bindir),g;'		\
 		-e 's,@@CL_LIBDIR@@,$(libdir),g;'		\
 		-e 's,@@CL_DOCDIR@@,$(docdir),g;'		\
