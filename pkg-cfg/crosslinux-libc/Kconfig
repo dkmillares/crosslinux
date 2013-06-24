@@ -1,0 +1,10 @@
+config BLD_CROSSLINUX_LIBC
+	bool
+	default y
+	prompt "libc -- from the cross-tool chain."
+	---help---
+	  You must have a libc.
+
+config FORCE_LIBC
+	def_bool y
+	select BLD_CROSSLINUX_LIBC

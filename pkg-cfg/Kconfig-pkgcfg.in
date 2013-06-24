@@ -2,6 +2,7 @@
 menu "Basic System"
 source @@CL_LIBDIR@@/pkg-cfg/crosslinux-basefs/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/crosslinux-devfs/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/crosslinux-libc/Kconfig
 endmenu
 
 # ------------------------------------------------------------------- libraries

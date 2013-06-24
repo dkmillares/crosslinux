@@ -74,6 +74,10 @@ export mandir          := @@CL_MANDIR@@
 # cl-bt Make Variables and Make Environment                                   #
 # *************************************************************************** #
 
+# This top level cannot run parallel jobs.
+#
+.NOTPARALLEL:
+
 # Do not print directories as descend into or ascended from.
 #
 ifeq ($(filter --no-print-directory,$(MAKEFLAGS)),)
@@ -147,7 +151,6 @@ help:
 	mkdir --parents bin-link
 	@$(libdir)/scripts/bt-init.sh
 	@rm --force --recursive .bt-init
-	@touch .bt-init
 	@date >>.bt-init
 
 bt-done:
@@ -300,7 +303,7 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 	$(sed) -e "s/p/./g"          -e "s/_/-/g"  -i .pkglst;		\
 	$(sed) -e "s/\(.*\)/\L\1/g"                -i .pkglst;		\
 	rm --force crosslinux-pkglst.txt;				\
-	touch crosslinux-pkglst.txt;					\
+	>crosslinux-pkglst.txt;					\
 	for dir in $$(<.pkglst); do					\
 		echo -n "$${dir} " >> crosslinux-pkglst.txt;		\
 		for ((i=35 ; $${i}>$${#dir} ; i--)); do			\
@@ -468,7 +471,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
 		echo "E> Build FAILED.";				\
 		exit 1;							\
 	fi
-	@touch var/run/packages
+	@>var/run/packages
 
 pkgs_:
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
