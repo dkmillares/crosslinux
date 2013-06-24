@@ -69,12 +69,17 @@ return 0
 
 pkg_install() {
 
+local shareDir="${TARGET_SYSROOT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
+
 PKG_STATUS="install error"
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" -exec touch {} \;
-	${cl_fakeroot} -- cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
+	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
+
+mkdir --mode=755 --parents "${shareDir}"
+chown 0:0 "${shareDir}"
 
 PKG_STATUS=""
 return 0

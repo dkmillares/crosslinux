@@ -98,36 +98,43 @@ CL_btrace() {
 	return 0
 }
 
-CL_DbgSigExit=0
+declare -i CL_infoSigExit=0
 CL_catch_sigexit() {
 	#
 	# Trap for this function with 'trap CL_catch_sigexit EXIT'.
-	# This is for final exit from the shell.  Enable this by setting
-	# 'CL_DbgSigExit' to non-zero.
+	# This is for final exit from the shell.  Enable information printing
+	# by setting 'CL_infoSigExit' to non-zero.
 	#
-	if [[ ${CL_DbgSigExit} -ne 0 ]]; then
+	if [[ ${CL_infoSigExit} -ne 0 ]]; then
 		echo -e "${TEXT_BRED}CL_catch_sigexit${TEXT_NORM}"
 		CL_btrace
 	fi
 	return 0
 }
 
-CL_exitOnSigErr=1
+declare -i CL_infoOnSigErr=1
+declare -i CL_exitOnSigErr=1
 CL_catch_sigerr() {
 	#
 	# Trap for this function with 'trap CL_catch_sigerr ERR'.
 	# This is for trapping a non-zero return value from a shell function.
 	#
-	# See the advantage of 'CL_catch_sigint' in its comments below.
+	# Enable information printing by setting 'CL_infoSigExit' to non-zero.
+	# After printing the backtrace, subsequent invocations do not print the
+	# backtrace.  It is expected that subsequent invocations happen as
+	# subshells unwind, and the first backtrace is all that is needed.
 	#
-	# It looks like the shell does NOT keep running if this function
-	# returns zero, so control the shell exit.  But notice the variable
-	# that can be set to 0 to inhibit the controlled exit; change its value
-	# as needed.
-	#
-	echo -e "${TEXT_BRED}CL_catch_sigerr${TEXT_NORM}"
-	CL_btrace
-	if [[ ${CL_exitOnSigErr} -ne 0 ]]; then
+	if [[ ${CL_infoOnSigErr} -ne 0 ]]; then
+		echo -e "${TEXT_BRED}CL_catch_sigerr${TEXT_NORM}"
+		CL_btrace
+		CL_infoOnSigErr=0
+	fi
+	if [[ ${BASH_SUBSHELL} -gt 0 ]]; then
+		exit 1
+	fi
+	if [[ ${BASH_SUBSHELL} -eq 0 && ${CL_exitOnSigErr} -ne 0 ]]; then
+		# This is an exit to a lower ${SHLVL}, like exiting a shell
+		# script, not just a subshell created within (...)
 		trap - EXIT	# Remove any shell exit handler and exit the
 				# shell.  This means to do any debugging in
 				# this function and avoid the chatter from
@@ -137,7 +144,7 @@ CL_catch_sigerr() {
 	fi
 }
 
-CL_exitOnSigInt=1
+declare -i CL_exitOnSigInt=1
 CL_raise_sigint="kill -s SIGINT $$"
 CL_catch_sigint() {
 	#
@@ -149,10 +156,6 @@ CL_catch_sigint() {
 	# making the SIGINT.  The back-trace from a function's non-zero return
 	# value ends in the _calling_ function, so the function that returned
 	# the non-zero will not be in the back-trace.
-	#
-	# It looks like the shell does keep running if this function returns
-	# zero.  But notice the variable that is set to 1 to inhibit shell
-	# continuation; change its value as needed.
 	#
 	echo -e "${TEXT_BRED}CL_catch_sigint${TEXT_NORM}"
 	CL_btrace
@@ -441,7 +444,7 @@ set -o errtrace ; # Make shell functions inherit the ERR trap.
 umask 022
 
 trap CL_catch_sigexit EXIT   # on final exit from shell
-trap CL_catch_sigerr  ERR    # on non-zero function return value [no continue]
+trap CL_catch_sigerr  ERR    # on non-zero function return value
 trap CL_catch_sigint  SIGINT # self-detected [continues if CL_exitOnSigInt=0]
 
 

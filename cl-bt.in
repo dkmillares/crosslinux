@@ -61,6 +61,7 @@ export LOCAL           := @@CL_LOCAL@@
 export PROGRAM_NAME    := @@CL_PROG_NAME@@
 export PACKAGE_VERSION := @@CL_VERSION@@
 
+export fakeroot        := @@CL_FAKEROOT@@
 export grep            := @@CL_GREP@@
 export sed             := @@CL_SED@@
 
@@ -456,7 +457,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
 			(site/bld-packages-0.sh);			\
 		fi							\
 	fi;								\
-	($(libdir)/scripts/bld-packages.sh ${PACKAGE};);		\
+	($(fakeroot) -- $(libdir)/scripts/bld-packages.sh ${PACKAGE});	\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-packages-1.sh ]]; then		\

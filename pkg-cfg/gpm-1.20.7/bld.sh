@@ -73,7 +73,7 @@ PKG_STATUS="install error"
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" ! -type d -exec touch {} \;
-	${cl_fakeroot} -- cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
+	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 
 PKG_STATUS=""
