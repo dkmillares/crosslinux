@@ -284,48 +284,32 @@ ${cl_sed} --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
 ${cl_sed} --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
 rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
 
-## Strip when possible.
-##
-#XBT_STRIP="${TTYLINUX_XTOOL_DIR}/host/usr/bin/${TTYLINUX_XBT}-strip"
-#_bname=""
-#if [[ x"${CONFIG_STRIP_BINS:-}" == x"y" ]]; then
-#	CL_logcom "***** stripping"
-#	for f in $(<FILES); do
-#		[[ -d "${TTYLINUX_SYSROOT_DIR}/${f}" ]] && continue || true
-#		if [[ "$(dirname ${f})" == "bin" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#		if [[ "$(dirname ${f})" == "sbin" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#		if [[ "$(dirname ${f})" == "usr/bin" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#		if [[ "$(dirname ${f})" == "usr/sbin" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#_bname="$(basename ${f})"
-#[[ $(expr "${_bname}" : ".*\\(.o\)$" ) == ".o" ]] && continue || true
-#[[ $(expr "${_bname}" : ".*\\(.a\)$" ) == ".a" ]] && continue || true
-#		if [[ "$(dirname ${f})" == "lib" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#[[ "${_bname}" == "libgcc_s.so"	  ]] && continue || true
-#[[ "${_bname}" == "libgcc_s.so.1" ]] && continue || true
-#		if [[ "$(dirname ${f})" == "usr/lib" ]]; then
-#			echo "stripping ${f}"
-#			"${XBT_STRIP}" "${TTYLINUX_SYSROOT_DIR}/${f}" || true
-#		fi
-#	done
-#else
-#	CL_logcom "***** not stripping"
-#fi
-#unset _bname
+# Strip when possible.
+#
+_strip="${CONFIG_XBT_DIR}/${CONFIG_XBT_NAME}-strip"
+if [[ x"${CONFIG_STRIP_BINS:-}" == x"y" ]]; then
+	CL_logcom "***** stripping"
+	for f in $(<FILES); do
+		[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
+		[[ "${f}" =~ .*\.a$                ]] && continue || true
+		[[ "${f}" =~ .*\.o$                ]] && continue || true
+		[[ "${f}" =~ .*\libgcc_s\.so$      ]] && continue || true
+		[[ "${f}" =~ .*\libgcc_s\.so.1$    ]] && continue || true
+		if [[	"${f}" =~ bin/.*      || \
+			"${f}" =~ lib/.*      || \
+			"${f}" =~ sbin/.*     || \
+			"${f}" =~ usr/bin/.*  || \
+			"${f}" =~ usr/lib/.*  || \
+			"${f}" =~ usr/sbin/.* ]]
+		then
+			CL_logcom "=> ${f}"
+			"${_strip}" "${TARGET_SYSROOT_DIR}/${f}" || true
+		fi
+	done
+else
+	CL_logcom "***** not stripping"
+fi
+unset _strip
 
 }
 
@@ -336,7 +320,52 @@ rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
 # *****************************************************************************
 
 manpage_compress() {
-:
+
+local i=0
+local f=""
+#local lFile=""  # link file
+#local mFile=""  # man file
+#local manDir="" # man file directory
+
+echo -n "m" >&${CONSOLE_FD}
+for f in $(<FILES); do
+	[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
+	if [[ "${f}" =~ ^usr/share/man/man.* ]]; then
+		i=$(($i + 1))
+#
+# The goal of this is to gzip any non-gziped man pages.  The problem is that
+# some of those have more than one sym link to them; how to fixup all the
+# symlinks?
+#
+#               lFile=""
+#               mFile=$(basename ${f})
+#               manDir=$(dirname ${f})
+#               pushd "${TARGET_SYSROOT_DIR}/${manDir}" >/dev/null 2>&1
+#               if [[ -L ${mFile} ]]; then
+#                       lFile="${mFile}"
+#                       mFile="$(readlink ${lFile})"
+#               fi
+#               if [[   x"${mFile%.gz}"  == x"${mFile}" && \
+#                       x"${mFile%.bz2}" == x"${mFile}" ]]; then
+#                       echo "zipping \"${mFile}\""
+#                       ${cl_gzip} "${mFile}"
+#                       if [[ -n "${lFile}" ]]; then
+#                               rm --force "${lFile}"
+#                               ln --force --symbolic "${mFile}.gz" "${lFile}"
+#                       fi
+#                       sed --in-place "${TARGET_BUILD_DIR}/packages/FILES" \
+#                               --expression="s|${mFile}$|${mFile}.gz|"
+#               fi
+#               popd >/dev/null 2>&1
+	fi
+done
+[[ ${#i} -eq 1 ]] && echo -n "___${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 2 ]] && echo -n  "__${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 3 ]] && echo -n   "_${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 4 ]] && echo -n    "${i}." >&${CONSOLE_FD}
+
+return 0
+
 }
 
 

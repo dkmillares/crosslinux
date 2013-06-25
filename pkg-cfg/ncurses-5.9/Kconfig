@@ -21,3 +21,15 @@ config BLD_NCURSES_LIBS
 		/usr/share/terminfo/v/vt320
 		/usr/share/terminfo/x/xterm
 		/usr/share/terminfo/x/xterm-color
+
+config BLD_NCURSES_WIDEC
+	bool
+	default n
+	depends on BLD_NCURSES_LIBS
+	prompt "Build ncurses-5.9 libs with wide characters"
+	---help---
+	  Select this option to cross-build the ncurses libraries with wide
+	  character support.  The wide-character libraries are usable in
+	  multibyte and traditional 8-bit locales; the normal libraries work
+	  properly only in 8-bit locales.  Wide-character and normal libraries
+	  are source-compatible, but not binary-compatible. 
