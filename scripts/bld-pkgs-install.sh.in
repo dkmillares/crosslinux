@@ -273,12 +273,11 @@ rm --force ${TARGET_SYSROOT_DIR}/usr/lib/*.la
 
 package_find_files() {
 
-echo -n "i." >&${CONSOLE_FD}
+echo -n "f." >&${CONSOLE_FD}
 
 # Make a list of the installed files.  Remove sysroot and its path component
 # from the file names.
 #
-echo -n "f." >&${CONSOLE_FD}
 ${cl_find} ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
 ${cl_sed} --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
 ${cl_sed} --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
@@ -384,6 +383,7 @@ local shareDir="${TARGET_SYSROOT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
 
 # Save the list of files actually installed into sysroot/
 #
+[[ ! -d "${shareDir}" ]] && mkdir --mode=755 --parents "${shareDir}" || true
 cp --force FILES "${shareDir}/pkg-$1-FILES"
 rm --force FILES # All done with the FILES file.
 

@@ -14,8 +14,6 @@ etc/${CONFIG_BRAND_NAME}-target
 'glob' lib/libm*
 'glob' lib/libnsl*
 'glob' lib/libnss*
-'glob' lib/libnss*
-'glob' lib/libnss*
 'glob' lib/libpthread*
 'glob' lib/libresolv*
 'glob' lib/librt*
