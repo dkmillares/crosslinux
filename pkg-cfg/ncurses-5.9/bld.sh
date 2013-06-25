@@ -55,12 +55,14 @@ PKG_STATUS="./configure error"
 
 cd "${PKG_DIR}"
 
+if [[ -f "${CROSSLINUX_PKGCFG_DIR}/$1/terminfo.src" ]]; then
+	mv --verbose misc/terminfo.src misc/terminfo.src-ORIG
+	cp --verbose ${CROSSLINUX_PKGCFG_DIR}/$1/terminfo.src misc/terminfo.src
+fi
+
 if [[ x"${CONFIG_BLD_NCURSES_WIDEC:-}" == x"y" ]]; then
 	ENABLE_WIDEC="--enable-widec"
 fi
-
-mv -v misc/terminfo.src misc/terminfo.src-ORIG
-cp -v ${CROSSLINUX_PKGCFG_DIR}/$1/terminfo.src misc/terminfo.src
 
 PATH="${CONFIG_XBT_DIR}:${PATH}" \
 AR="${CONFIG_XBT_NAME}-ar" \
@@ -132,6 +134,77 @@ PKG_STATUS="install error"
 cd "${PKG_DIR}"
 PATH="${CONFIG_XBT_DIR}:${PATH}" make install || return 1
 cd ..
+
+# ****************************************************** #
+#                                                        #
+# This is the install results; it is not what I want.    #
+#                                                        #
+# sysroot/lib/libcurses.so -> libncurses.so.5.9*         #
+# sysroot/lib/libform[w].so -> libform.so.5*             #
+# sysroot/lib/libform[w].so.5 -> libform.so.5.9*         #
+# sysroot/lib/libform[w].so.5.9*                         #
+# sysroot/lib/libmenu[w].so -> libmenu.so.5*             #
+# sysroot/lib/libmenu[w].so.5 -> libmenu.so.5.9*         #
+# sysroot/lib/libmenu[w].so.5.9*                         #
+# sysroot/lib/libncurses++[w].a                          #
+# sysroot/lib/libncurses[w].so -> libncurses.so.5*       #
+# sysroot/lib/libncurses[w].so.5 -> libncurses.so.5.9*   #
+# sysroot/lib/libncurses[w].so.5.9*                      #
+# sysroot/lib/libpanel[w].so -> libpanel.so.5*           #
+# sysroot/lib/libpanel[w].so.5 -> libpanel.so.5.9*       #
+# sysroot/lib/libpanel[w].so.5.9*                        #
+#                                                        #
+# sysroot/usr/bin/captoinfo -> tic*                      #
+# sysroot/usr/bin/clear*                                 #
+# sysroot/usr/bin/infocmp*                               #
+# sysroot/usr/bin/infotocap -> tic*                      #
+# sysroot/usr/bin/ncurses5-config*                       #
+# sysroot/usr/bin/reset -> tset*                         #
+# sysroot/usr/bin/tabs*                                  #
+# sysroot/usr/bin/tic*                                   #
+# sysroot/usr/bin/toe*                                   #
+# sysroot/usr/bin/tput*                                  #
+# sysroot/usr/bin/tset*                                  #
+#                                                        #
+# sysroot/usr/lib/terminfo -> ../share/terminfo/         #
+#                                                        #
+# ****************************************************** #
+
+# Move any .a files from /lib to /usr/lib; there seems to be only one .a file:
+# libncurses++[w].a
+#
+_sysroot="${TARGET_SYSROOT_DIR}"
+for _file in ${_sysroot}/lib/libncurses++*.a; do
+	if [[ -f "${_file}" ]]; then mv ${_file} ${_sysroot}/usr/lib/; fi
+done; unset _file
+unset _sysroot
+
+_w=${CONFIG_BLD_NCURSES_WIDEC:+w} # Either "" or "w"
+_usrlib="${TARGET_SYSROOT_DIR}/usr/lib"
+
+# Many applications expect the linker to find non-wide character ncurses
+# libraries; in /usr/lib make them link with /lib libraries by way of linker
+# scripts.
+#
+for _lib in form menu ncurses panel ; do
+	rm --force --verbose          ${_usrlib}/lib${_lib}.so
+	echo "INPUT(-l${_lib}${_w})" >${_usrlib}/lib${_lib}.so
+done; unset _lib
+
+# Do something in /usr/lib about builds that look for -lcurses, -lcursesw and
+# -ltinfo.
+#
+if [[ -n "${_w}" ]]; then
+	rm --force --verbose      ${_usrlib}/libcursesw.so
+	echo "INPUT(-lncursesw)" >${_usrlib}/libcursesw.so
+fi
+rm --force --verbose          ${_usrlib}/libcurses.so
+echo "INPUT(-lncurses${_w})" >${_usrlib}/libcurses.so
+ln --force --symbolic libncurses.so ${_usrlib}/libtinfo.so.5
+ln --force --symbolic libtinfo.so.5 ${_usrlib}/libtinfo.so
+
+unset _w
+unset _usrlib
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" ! -type d -exec touch {} \;

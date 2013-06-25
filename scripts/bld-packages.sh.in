@@ -245,6 +245,7 @@ _bitch=${K_NCPU:-1}
 [[ -z "${_bitch//[0-9]}" ]] && NJOBS=$((${_bitch:-1} + 1)) || NJOBS=2
 unset _bitch
 [[ x"${CONFIG_PARALLEL_JOBS:-}" == x"y" ]] || NJOBS=1
+NJOBS=1 # XXX Because fakeroot hangs when make runs multiple jobs.
 
 # Patch, configure, build, install and clean.
 #

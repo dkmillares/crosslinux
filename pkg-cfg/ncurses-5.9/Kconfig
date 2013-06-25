@@ -33,3 +33,8 @@ config BLD_NCURSES_WIDEC
 	  multibyte and traditional 8-bit locales; the normal libraries work
 	  properly only in 8-bit locales.  Wide-character and normal libraries
 	  are source-compatible, but not binary-compatible. 
+
+config BLD_NCURSES_NOWIDEC
+	bool
+	default y
+	depends on BLD_NCURSES_LIBS && ! BLD_NCURSES_WIDEC
