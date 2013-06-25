@@ -1,5 +1,5 @@
 # vim: syntax=sh
-if {BLD_NCURSES_WIDEC:-} == y
+if {NCURSES_HAS_WIDEC:-} == y
 lib/libformw.so
 lib/libformw.so.5
 lib/libformw.so.5.9
@@ -42,7 +42,7 @@ usr/lib/libtinfo.so
 usr/lib/libtinfo.so.5
 usr/lib/terminfo
 fi
-if {BLD_NCURSES_NOWIDEC:-} == y
+if {NCURSES_HAS_NOWIDEC:-} == y
 usr/lib/libcurses.so
 lib/libform.so
 lib/libform.so.5

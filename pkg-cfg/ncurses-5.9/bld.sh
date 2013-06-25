@@ -60,7 +60,7 @@ if [[ -f "${CROSSLINUX_PKGCFG_DIR}/$1/terminfo.src" ]]; then
 	cp --verbose ${CROSSLINUX_PKGCFG_DIR}/$1/terminfo.src misc/terminfo.src
 fi
 
-if [[ x"${CONFIG_BLD_NCURSES_WIDEC:-}" == x"y" ]]; then
+if [[ x"${CONFIG_NCURSES_HAS_WIDEC:-}" == x"y" ]]; then
 	ENABLE_WIDEC="--enable-widec"
 fi
 
@@ -179,7 +179,7 @@ for _file in ${_sysroot}/lib/libncurses++*.a; do
 done; unset _file
 unset _sysroot
 
-_w=${CONFIG_BLD_NCURSES_WIDEC:+w} # Either "" or "w"
+_w=${CONFIG_NCURSES_HAS_WIDEC:+w} # Either "" or "w"
 _usrlib="${TARGET_SYSROOT_DIR}/usr/lib"
 
 # Many applications expect the linker to find non-wide character ncurses

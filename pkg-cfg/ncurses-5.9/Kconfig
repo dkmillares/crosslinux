@@ -1,7 +1,7 @@
 config BLD_NCURSES_5p9
 	def_bool y
 
-config BLD_NCURSES_LIBS
+config NCURSES_HAS_LIBS
 	bool
 	default n
 	prompt "Build ncurses-5.9 libs"
@@ -22,10 +22,10 @@ config BLD_NCURSES_LIBS
 		/usr/share/terminfo/x/xterm
 		/usr/share/terminfo/x/xterm-color
 
-config BLD_NCURSES_WIDEC
+config NCURSES_HAS_WIDEC
 	bool
 	default n
-	depends on BLD_NCURSES_LIBS
+	depends on NCURSES_HAS_LIBS
 	prompt "Build ncurses-5.9 libs with wide characters"
 	---help---
 	  Select this option to cross-build the ncurses libraries with wide
@@ -34,7 +34,7 @@ config BLD_NCURSES_WIDEC
 	  properly only in 8-bit locales.  Wide-character and normal libraries
 	  are source-compatible, but not binary-compatible. 
 
-config BLD_NCURSES_NOWIDEC
+config NCURSES_HAS_NOWIDEC
 	bool
 	default y
-	depends on BLD_NCURSES_LIBS && ! BLD_NCURSES_WIDEC
+	depends on NCURSES_HAS_LIBS && ! NCURSES_HAS_WIDEC

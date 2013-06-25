@@ -1,0 +1,504 @@
+#!@@CL_BASH@@
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script installes the crosslinux target packages under fakeroot.
+#
+# CHANGE LOG
+#
+#      2013-06-25  drj  New file generation.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+#                                                                             #
+# F I L T E R E D   C O N S T A N T S                                         #
+#                                                                             #
+# *************************************************************************** #
+
+cl_libdir="@@CL_LIBDIR@@"
+
+
+# *************************************************************************** #
+#                                                                             #
+# F U N C T I O N S                                                           #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Make a file to list the package contents.
+# *****************************************************************************
+
+# Function Arguments:
+#      $1 ... ASCII file that is the file list
+
+package_list_make() {
+
+# The file list is an ASCII file that is the list of files from which to make
+# the binary package; it can have some scripting that interprets variables to
+# enable the selection of package files, so the file list needs some special
+# processing.  It is filtered, honoring any embedded scripting, and the actual
+# list of binary package files is created as ${TARGET_VAR_DIR}/files
+
+local cfgPkgFiles="$1"
+local pathname=""
+
+local -i lineNum=0
+local -i nestings=0
+local -i uselines=1
+local -i oldUseLine=1
+local -i retStat=0
+
+CL_logcom "***** Making Package File List"
+
+rm --force "${TARGET_VAR_DIR}/files"
+>"${TARGET_VAR_DIR}/files"
+while read; do
+	lineNum=$((${lineNum}+1))
+	if [[ "${REPLY}" =~ ^if\  ]]; then
+		# ................................... Interpret the 'if' lines.
+		if [[ ${nestings} == 1 ]]; then
+CL_logcom "E> Cannot nest scripting in pkg-cfg files-list file."
+CL_logcom "=> line ${lineNum}: \"${REPLY}\""
+			continue
+		fi
+		set ${REPLY}
+		if [[ $# != 4 ]]; then
+CL_logcom "E> IGNORING malformed script in pkg-cfg files-list file."
+CL_logcom "=> line ${lineNum}: \"${REPLY}\""
+			continue
+		fi
+		oldUseLine=${uselines}
+		eval [[ "\$$2" $3 "$4" ]] && uselines=1 || uselines=0
+		nestings=1
+CL_logcom "if \$$2 $3 $4 # -- nestings=${nestings} uselines=${uselines}"
+		continue
+	fi
+	if [[ "${REPLY}" =~ ^fi ]]; then
+		# ................................... Interpret the 'fi' lines.
+		uselines=${oldUseLine}
+		nestings=0
+CL_logcom "fi # ------------- nestings=${nestings} uselines=${uselines}"
+		continue
+	fi
+	if [[ "${REPLY}" =~ ^\ *# ]]; then
+		# ................................ Interpret the comment lines.
+CL_logcom "Skipping ${REPLY}"
+		continue
+	fi
+	if [[ ${uselines} == 1 ]]; then
+		# ................................... Interpret the used lines.
+		if [[ "${REPLY}" =~ ^\'glob\'\  ]]; then
+		# ....................................... Interpret file globs.
+			set ${REPLY}
+CL_logcom "Start 'glob' \"$2\""
+			_p=""
+			for pathname in ${TARGET_SYSROOT_DIR}/$2; do
+				if [[ -f ${pathname} ]]; then
+					_p=${pathname#${TARGET_SYSROOT_DIR}/}
+					echo ${_p} >>"${TARGET_VAR_DIR}/files"
+				fi
+			done
+			unset _p
+CL_logcom "End 'glob' \"$2\""
+		else
+		# ....................................... Interpret file names.
+			eval "pathname=${REPLY}"
+			echo ${pathname} >>"${TARGET_VAR_DIR}/files"
+		fi
+	fi
+done <"${cfgPkgFiles}"
+
+while read; do
+	if [[ ! -e ${TARGET_SYSROOT_DIR}/${REPLY} ]]; then
+		CL_logcom "ERROR ***** sysroot is missing \"${REPLY}\""
+		CL_logcom "=> from ${cfgPkgFiles}"
+		retStat=1
+	fi
+done <"${TARGET_VAR_DIR}/files"
+
+if [[ ${retStat} -eq 1 ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"         >&${CONSOLE_FD}
+	echo    "E> Something wrong in ${cfgPkgFiles}." >&${CONSOLE_FD}
+fi
+
+return ${retStat}
+
+}
+
+
+# *****************************************************************************
+# Install a package into the sysroot.
+# *****************************************************************************
+
+# Function Arguments:
+#      $1 ... Package name, like "glibc-2.19".
+
+package_install() {
+
+echo -n "i." >&${CONSOLE_FD}
+
+# Check for the package build script.
+#
+if [[ ! -f "${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh" ]]; then
+	CL_logcom "ERROR ***** Cannot find build script."
+	CL_logcom "=> ${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh"
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"            >&${CONSOLE_FD}
+	echo    "E> Cannot find build script."             >&${CONSOLE_FD}
+	echo    "   => ${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh" >&${CONSOLE_FD}
+	exit 1 # Bust out of shell.
+fi
+
+# Get the crosslinux-specific rootfs, if any.
+#
+if [[ -f "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" ]]; then
+	cp "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" .
+	${cl_bzip2} --decompress --force "rootfs.tar.bz2"
+	${cl_tar} --extract --file="rootfs.tar"
+	rm --force "rootfs.tar"
+fi
+
+# ${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh defines several variables and functions:
+#
+# Functions
+#
+#	pkg_patch	This function applies any patches or fix-ups to the
+#			source package before building.
+#			NOTE -- Patches are applied before package
+#				configuration.
+#
+#	pkg_configure	This function configures the source package for
+#			building.
+#			NOTE -- Post-configuration patches might be applied.
+#
+#	pkg_make	This function builds the source package in place in the
+#			${TARGET_BUILD_DIR}/packages/ directory
+#
+#	pkg_install	This function installs any built items into the build
+#			root ${TARGET_SYSROOT_DIR}/ directory tree.
+#
+#	pkg_clean	This function is responsible for cleaning-up; notice
+#			it is not called if one of the other functions
+#			returns an error.
+#
+# Variables
+#
+#	PKG_ZIP		The name of the source package tar-zip file.
+#
+#	PKG_TAR		The name of the unzipped source package file.  This
+#			file name will end in ".tar".
+#
+#	PKG_DIR		The name of the directory created by untarring the
+#			${PKG_TAR} file.
+#
+#	PKG_STATUS	Set by the above function to indicate an error worthy
+#			stopping the build process.
+#
+unset pkg_patch
+unset pkg_configure
+unset pkg_make
+unset pkg_install
+unset pkg_clean
+source "${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh"
+
+# Prepare to create a list of the installed files.
+#
+rm --force INSTALL_STAMP
+rm --force FILES
+>INSTALL_STAMP
+>FILES
+sleep 1 # For detecting files newer than INSTALL_STAMP
+
+NJOBS=1 # XXX Because fakeroot hangs when make runs multiple jobs.
+
+# Install
+#
+PKG_STATUS=""
+[[ -z "${PKG_STATUS}" ]] && pkg_install $1
+unset NJOBS
+if [[ -n "${PKG_STATUS}" ]]; then
+	CL_logcom "ERROR ***** ${PKG_STATUS}"
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}" >&${CONSOLE_FD}
+	echo    "E> ${PKG_STATUS}"              >&${CONSOLE_FD}
+	exit 1 # Bust out of shell.
+fi
+unset PKG_STATUS
+
+# Only the latest revision of libtool understands sysroot, but even it has
+# problems when cross-building: remove the .la files.
+#
+rm --force ${TARGET_SYSROOT_DIR}/lib/*.la
+rm --force ${TARGET_SYSROOT_DIR}/usr/lib/*.la
+
+# Remove the un-tarred source package directory, the un-tarred rootfs directory
+# and any other needed un-tarred source package directories.
+#
+[[ -d "${PKG_DIR}" ]] && rm --force --recursive "${PKG_DIR}" || true
+[[ -d "rootfs"     ]] && rm --force --recursive "rootfs"     || true
+
+}
+
+
+# *****************************************************************************
+# Find the files and strip if so asked.
+# *****************************************************************************
+
+# Function Arguments:
+#      $1 ... Package name, like "glibc-2.19".
+
+package_find_files() {
+
+echo -n "i." >&${CONSOLE_FD}
+
+# Make a list of the installed files.  Remove sysroot and its path component
+# from the file names.
+#
+echo -n "f." >&${CONSOLE_FD}
+${cl_find} ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
+${cl_sed} --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
+${cl_sed} --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
+rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
+
+# Strip when possible.
+#
+_strip="${CONFIG_XBT_DIR}/${CONFIG_XBT_NAME}-strip"
+if [[ x"${CONFIG_STRIP_BINS:-}" == x"y" ]]; then
+	CL_logcom "***** stripping"
+	for f in $(<FILES); do
+		[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
+		[[ "${f}" =~ .*\.a$                ]] && continue || true
+		[[ "${f}" =~ .*\.o$                ]] && continue || true
+		[[ "${f}" =~ .*\libgcc_s\.so$      ]] && continue || true
+		[[ "${f}" =~ .*\libgcc_s\.so.1$    ]] && continue || true
+		if [[	"${f}" =~ bin/.*      || \
+			"${f}" =~ lib/.*      || \
+			"${f}" =~ sbin/.*     || \
+			"${f}" =~ usr/bin/.*  || \
+			"${f}" =~ usr/lib/.*  || \
+			"${f}" =~ usr/sbin/.* ]]
+		then
+			CL_logcom "=> ${f}"
+			"${_strip}" "${TARGET_SYSROOT_DIR}/${f}" || true
+		fi
+	done
+else
+	CL_logcom "***** not stripping"
+fi
+unset _strip
+
+}
+
+
+# *****************************************************************************
+# Find the installed man pages, compress them, and adjust the file name in the
+# so called database FILES list.
+# *****************************************************************************
+
+manpage_compress() {
+
+echo -n "m" >&${CONSOLE_FD}
+
+local i=0
+local f=""
+#local lFile=""  # link file
+#local mFile=""  # man file
+#local manDir="" # man file directory
+
+for f in $(<FILES); do
+	[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
+	if [[ "${f}" =~ ^usr/share/man/man.* ]]; then
+		i=$(($i + 1))
+#
+# The goal of this is to gzip any non-gziped man pages.  The problem is that
+# some of those have more than one sym link to them; how to fixup all the
+# symlinks?
+#
+#               lFile=""
+#               mFile=$(basename ${f})
+#               manDir=$(dirname ${f})
+#               pushd "${TARGET_SYSROOT_DIR}/${manDir}" >/dev/null 2>&1
+#               if [[ -L ${mFile} ]]; then
+#                       lFile="${mFile}"
+#                       mFile="$(readlink ${lFile})"
+#               fi
+#               if [[   x"${mFile%.gz}"  == x"${mFile}" && \
+#                       x"${mFile%.bz2}" == x"${mFile}" ]]; then
+#                       echo "zipping \"${mFile}\""
+#                       ${cl_gzip} "${mFile}"
+#                       if [[ -n "${lFile}" ]]; then
+#                               rm --force "${lFile}"
+#                               ln --force --symbolic "${mFile}.gz" "${lFile}"
+#                       fi
+#                       sed --in-place "${TARGET_BUILD_DIR}/packages/FILES" \
+#                               --expression="s|${mFile}$|${mFile}.gz|"
+#               fi
+#               popd >/dev/null 2>&1
+	fi
+done
+
+[[ ${#i} -eq 1 ]] && echo -n "___${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 2 ]] && echo -n  "__${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 3 ]] && echo -n   "_${i}." >&${CONSOLE_FD}
+[[ ${#i} -eq 4 ]] && echo -n    "${i}." >&${CONSOLE_FD}
+
+return 0
+
+}
+
+
+# *****************************************************************************
+# Collect the installed files into an as-built package.
+# *****************************************************************************
+
+package_collect() {
+
+echo -n "p." >&${CONSOLE_FD}
+
+local fileList=""
+local shareDir="${TARGET_SYSROOT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
+
+# Save the list of files actually installed into sysroot/
+#
+cp --force FILES "${shareDir}/pkg-$1-FILES"
+rm --force FILES # All done with the FILES file.
+
+# Look for a package configuration file list.  There does not need to be one.
+#
+_fname1="${CROSSLINUX_PKGCFG_DIR}/$1/files"
+_fname2="site/pkg-cfg-$1/files"
+if [[ -f "${_fname1}" ]]; then
+	fileList="${_fname1}"
+fi
+if [[ -f "${_fname1}-${CONFIG_CPU_ARCH}" ]]; then
+	fileList="${_fname1}-${CONFIG_CPU_ARCH}"
+fi
+if [[ -f "${_fname2}" ]]; then
+	fileList="${_fname2}"
+fi
+if [[ -f "${_fname2}-${CONFIG_CPU_ARCH}" ]]; then
+	fileList="${_fname2}-${CONFIG_CPU_ARCH}"
+fi
+unset _fname1
+unset _fname2
+
+if [[ -z "${fileList}" ]]; then
+	CL_logcom "ERROR ***** No file list for package $1."
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"  >&${CONSOLE_FD}
+	echo "E> No file list for package $1."   >&${CONSOLE_FD}
+	exit 1 # Bust out of shell.
+fi
+
+# This is tricky.  First make a ${TARGET_VAR_DIR}/files from ${fileList}; then
+# make a binary package from the list in ${TARGET_VAR_DIR}/files
+#
+package_list_make "${fileList}" || exit 1 # Bust out of sub-shell.
+_uTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tar"
+_cTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tbz"
+${cl_tar} --create \
+	--directory="${TARGET_SYSROOT_DIR}" \
+	--file="${_uTarBall}" \
+	--files-from="${TARGET_VAR_DIR}/files" \
+	--no-recursion
+${cl_bzip2} --force "${_uTarBall}"
+mv --force "${_uTarBall}.bz2" "${_cTarBall}"
+unset _uTarBall
+unset _cTarBall
+rm --force "${TARGET_VAR_DIR}/files" # Remove the temporary file.
+
+return 0
+
+}
+
+
+# *************************************************************************** #
+#                                                                             #
+# M A I N   P R O G R A M                                                     #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Set up the shell functions and environment variables.
+# *****************************************************************************
+
+# This script is expected to be invoked in the build/package/ directory.  Go up
+# to the project directory and setup the evironment; do this with hard-coded
+# paths.
+
+cd "../.."
+source ./crosslinux-config.sh # target build configuration
+source ${cl_libdir}/scripts/_constants.sh # build support
+source ${cl_libdir}/scripts/_functions.sh # build support
+
+CL_config_setup || {
+	cd "build/packages"
+	exit 1
+}
+
+cd "build/packages"
+
+
+# *****************************************************************************
+# Main Program
+# *****************************************************************************
+
+# Check for a script argument:
+#
+# $1 ... Package name, like "glibc-2.19".
+
+# This script is design to run in a particular context; it is expected to be
+# running under fakeroot and in the build/package/ directory; this script's job
+# is to complete the installation part of a package build process.  This means
+# the package build directory is in build/packages/ and has been built and is
+# waiting for 'make install'.
+#
+# Standard output, and stderr, are being directed to a log file and the
+# variable CONSOLE_FD is the standard output file descriptor.
+#
+# These indicators are expected to be printed to standard output without a
+# newline"
+#
+# "i."     - installing the package into sysroot
+# "f."     - finding installed files
+# "m_xxx." - looking for man pages to compress
+# "p."     - creating installable package
+
+package_install    "$1"
+package_find_files "$1" # and strip them if so asked
+manpage_compress   "$1"
+package_collect    "$1"
+
+
+# *****************************************************************************
+# Exit with Status
+# *****************************************************************************
+
+exit 0
+
+
+# end of file

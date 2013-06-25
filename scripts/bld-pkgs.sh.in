@@ -51,109 +51,7 @@ cl_libdir="@@CL_LIBDIR@@"
 
 
 # *****************************************************************************
-# Make a file to list the package contents.
-# *****************************************************************************
-
-# Function Arguments:
-#      $1 ... ASCII file that is the file list
-
-package_list_make() {
-
-# The file list is an ASCII file that is the list of files from which to make
-# the binary package; it can have some scripting that interprets variables to
-# enable the selection of package files, so the file list needs some special
-# processing.  It is filtered, honoring any embedded scripting, and the actual
-# list of binary package files is created as ${TARGET_VAR_DIR}/files
-
-local cfgPkgFiles="$1"
-local pathname=""
-
-local -i lineNum=0
-local -i nestings=0
-local -i uselines=1
-local -i oldUseLine=1
-local -i retStat=0
-
-CL_logcom "***** Making Package File List"
-
-rm --force "${TARGET_VAR_DIR}/files"
->"${TARGET_VAR_DIR}/files"
-while read; do
-	lineNum=$((${lineNum}+1))
-	if [[ "${REPLY}" =~ ^if\  ]]; then
-		# ................................... Interpret the 'if' lines.
-		if [[ ${nestings} == 1 ]]; then
-CL_logcom "E> Cannot nest scripting in pkg-cfg files-list file."
-CL_logcom "=> line ${lineNum}: \"${REPLY}\""
-			continue
-		fi
-		set ${REPLY}
-		if [[ $# != 4 ]]; then
-CL_logcom "E> IGNORING malformed script in pkg-cfg files-list file."
-CL_logcom "=> line ${lineNum}: \"${REPLY}\""
-			continue
-		fi
-		oldUseLine=${uselines}
-		eval [[ "\$$2" $3 "$4" ]] && uselines=1 || uselines=0
-		nestings=1
-CL_logcom "if \$$2 $3 $4 # -- nestings=${nestings} uselines=${uselines}"
-		continue
-	fi
-	if [[ "${REPLY}" =~ ^fi ]]; then
-		# ................................... Interpret the 'fi' lines.
-		uselines=${oldUseLine}
-		nestings=0
-CL_logcom "fi # ------------- nestings=${nestings} uselines=${uselines}"
-		continue
-	fi
-	if [[ "${REPLY}" =~ ^\ *# ]]; then
-		# ................................ Interpret the comment lines.
-CL_logcom "Skipping ${REPLY}"
-		continue
-	fi
-	if [[ ${uselines} == 1 ]]; then
-		# ................................... Interpret the used lines.
-		if [[ "${REPLY}" =~ ^\'glob\'\  ]]; then
-		# ....................................... Interpret file globs.
-			set ${REPLY}
-CL_logcom "Start 'glob' \"$2\""
-			_p=""
-			for pathname in ${TARGET_SYSROOT_DIR}/$2; do
-				if [[ -f ${pathname} ]]; then
-					_p=${pathname#${TARGET_SYSROOT_DIR}/}
-					echo ${_p} >>"${TARGET_VAR_DIR}/files"
-				fi
-			done
-			unset _p
-CL_logcom "End 'glob' \"$2\""
-		else
-		# ....................................... Interpret file names.
-			eval "pathname=${REPLY}"
-			echo ${pathname} >>"${TARGET_VAR_DIR}/files"
-		fi
-	fi
-done <"${cfgPkgFiles}"
-
-while read; do
-	if [[ ! -e ${TARGET_SYSROOT_DIR}/${REPLY} ]]; then
-		CL_logcom "ERROR ***** sysroot is missing \"${REPLY}\""
-		CL_logcom "=> from ${cfgPkgFiles}"
-		retStat=1
-	fi
-done <"${TARGET_VAR_DIR}/files"
-
-if [[ ${retStat} -eq 1 ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"         >&${CONSOLE_FD}
-	echo    "E> Something wrong in ${cfgPkgFiles}." >&${CONSOLE_FD}
-fi
-
-return ${retStat}
-
-}
-
-
-# *****************************************************************************
-# Build a package from source and install into the sysroot.
+# Build a package from source.
 # *****************************************************************************
 
 # Function Arguments:
@@ -172,15 +70,6 @@ if [[ ! -f "${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh" ]]; then
 	echo    "E> Cannot find build script."             >&${CONSOLE_FD}
 	echo    "   => ${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh" >&${CONSOLE_FD}
 	exit 1 # Bust out of sub-shell.
-fi
-
-# Get the crosslinux-specific rootfs, if any.
-#
-if [[ -f "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" ]]; then
-	cp "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" .
-	${cl_bzip2} --decompress --force "rootfs.tar.bz2"
-	${cl_tar} --extract --file="rootfs.tar"
-	rm --force "rootfs.tar"
 fi
 
 # ${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh defines several variables and functions:
@@ -231,31 +120,20 @@ source "${CROSSLINUX_PKGCFG_DIR}/$1/bld.sh"
 #
 [[ "x${PKG_ZIP}" == "x(none)" ]] || CL_package_get ${PKG_ZIP}
 
-# Prepare to create a list of the installed files.
-#
-rm --force INSTALL_STAMP
-rm --force FILES
->INSTALL_STAMP
->FILES
-sleep 1 # For detecting files newer than INSTALL_STAMP
-
 # Figure the number of parallel jobs to give to make.
 #
 _bitch=${K_NCPU:-1}
 [[ -z "${_bitch//[0-9]}" ]] && NJOBS=$((${_bitch:-1} + 1)) || NJOBS=2
 unset _bitch
 [[ x"${CONFIG_PARALLEL_JOBS:-}" == x"y" ]] || NJOBS=1
-NJOBS=1 # XXX Because fakeroot hangs when make runs multiple jobs.
 
-# Patch, configure, build, install and clean.
+# Patch, configure, and build.
 #
 PKG_STATUS=""
 echo -n "b." >&${CONSOLE_FD}
 [[ -z "${PKG_STATUS}" ]] && pkg_patch     $1
 [[ -z "${PKG_STATUS}" ]] && pkg_configure $1
 [[ -z "${PKG_STATUS}" ]] && pkg_make      $1
-[[ -z "${PKG_STATUS}" ]] && pkg_install   $1
-[[ -z "${PKG_STATUS}" ]] && pkg_clean     $1
 unset NJOBS
 if [[ -n "${PKG_STATUS}" ]]; then
 	CL_logcom "ERROR ***** ${PKG_STATUS}"
@@ -264,174 +142,6 @@ if [[ -n "${PKG_STATUS}" ]]; then
 	exit 1 # Bust out of sub-shell.
 fi
 unset PKG_STATUS
-
-# Only the latest revision of libtool understands sysroot, but even it has
-# problems when cross-building: remove the .la files.
-#
-rm --force ${TARGET_SYSROOT_DIR}/lib/*.la
-rm --force ${TARGET_SYSROOT_DIR}/usr/lib/*.la
-
-# Remove the un-tarred source package directory.
-#
-[[ -d "${PKG_DIR}" ]] && rm --force --recursive "${PKG_DIR}" || true
-[[ -d "rootfs"     ]] && rm --force --recursive "rootfs"     || true
-
-# Make a list of the installed files.  Remove sysroot and its path component
-# from the file names.
-#
-echo -n "f." >&${CONSOLE_FD}
-${cl_find} ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
-${cl_sed} --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
-${cl_sed} --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
-rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
-
-# Strip when possible.
-#
-_strip="${CONFIG_XBT_DIR}/${CONFIG_XBT_NAME}-strip"
-if [[ x"${CONFIG_STRIP_BINS:-}" == x"y" ]]; then
-	CL_logcom "***** stripping"
-	for f in $(<FILES); do
-		[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
-		[[ "${f}" =~ .*\.a$                ]] && continue || true
-		[[ "${f}" =~ .*\.o$                ]] && continue || true
-		[[ "${f}" =~ .*\libgcc_s\.so$      ]] && continue || true
-		[[ "${f}" =~ .*\libgcc_s\.so.1$    ]] && continue || true
-		if [[	"${f}" =~ bin/.*      || \
-			"${f}" =~ lib/.*      || \
-			"${f}" =~ sbin/.*     || \
-			"${f}" =~ usr/bin/.*  || \
-			"${f}" =~ usr/lib/.*  || \
-			"${f}" =~ usr/sbin/.* ]]
-		then
-			CL_logcom "=> ${f}"
-			"${_strip}" "${TARGET_SYSROOT_DIR}/${f}" || true
-		fi
-	done
-else
-	CL_logcom "***** not stripping"
-fi
-unset _strip
-
-}
-
-
-# *****************************************************************************
-# Find the installed man pages, compress them, and adjust the file name in the
-# so called database FILES list.
-# *****************************************************************************
-
-manpage_compress() {
-
-local i=0
-local f=""
-#local lFile=""  # link file
-#local mFile=""  # man file
-#local manDir="" # man file directory
-
-echo -n "m" >&${CONSOLE_FD}
-for f in $(<FILES); do
-	[[ -d "${TARGET_SYSROOT_DIR}/${f}" ]] && continue || true
-	if [[ "${f}" =~ ^usr/share/man/man.* ]]; then
-		i=$(($i + 1))
-#
-# The goal of this is to gzip any non-gziped man pages.  The problem is that
-# some of those have more than one sym link to them; how to fixup all the
-# symlinks?
-#
-#               lFile=""
-#               mFile=$(basename ${f})
-#               manDir=$(dirname ${f})
-#               pushd "${TARGET_SYSROOT_DIR}/${manDir}" >/dev/null 2>&1
-#               if [[ -L ${mFile} ]]; then
-#                       lFile="${mFile}"
-#                       mFile="$(readlink ${lFile})"
-#               fi
-#               if [[   x"${mFile%.gz}"  == x"${mFile}" && \
-#                       x"${mFile%.bz2}" == x"${mFile}" ]]; then
-#                       echo "zipping \"${mFile}\""
-#                       ${cl_gzip} "${mFile}"
-#                       if [[ -n "${lFile}" ]]; then
-#                               rm --force "${lFile}"
-#                               ln --force --symbolic "${mFile}.gz" "${lFile}"
-#                       fi
-#                       sed --in-place "${TARGET_BUILD_DIR}/packages/FILES" \
-#                               --expression="s|${mFile}$|${mFile}.gz|"
-#               fi
-#               popd >/dev/null 2>&1
-	fi
-done
-[[ ${#i} -eq 1 ]] && echo -n "___${i}." >&${CONSOLE_FD}
-[[ ${#i} -eq 2 ]] && echo -n  "__${i}." >&${CONSOLE_FD}
-[[ ${#i} -eq 3 ]] && echo -n   "_${i}." >&${CONSOLE_FD}
-[[ ${#i} -eq 4 ]] && echo -n    "${i}." >&${CONSOLE_FD}
-
-return 0
-
-}
-
-
-# *****************************************************************************
-# Collect the installed files into an as-built package.
-# *****************************************************************************
-
-package_collect() {
-
-echo -n "p." >&${CONSOLE_FD}
-
-local fileList=""
-local shareDir="${TARGET_SYSROOT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
-
-# Save the list of files actually installed into sysroot/
-#
-cp --force FILES "${shareDir}/pkg-$1-FILES"
-rm --force FILES # All done with the FILES file.
-
-# Look for a package configuration file list.  There does not need to be one.
-#
-_fname1="${CROSSLINUX_PKGCFG_DIR}/$1/files"
-_fname2="site/pkg-cfg-$1/files"
-if [[ -f "${_fname1}" ]]; then
-	fileList="${_fname1}"
-fi
-if [[ -f "${_fname1}-${CONFIG_CPU_ARCH}" ]]; then
-	fileList="${_fname1}-${CONFIG_CPU_ARCH}"
-fi
-if [[ -f "${_fname2}" ]]; then
-	fileList="${_fname2}"
-fi
-if [[ -f "${_fname2}-${CONFIG_CPU_ARCH}" ]]; then
-	fileList="${_fname2}-${CONFIG_CPU_ARCH}"
-fi
-unset _fname1
-unset _fname2
-
-if [[ -z "${fileList}" ]]; then
-	CL_logcom "ERROR ***** No file list for package $1."
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"  >&${CONSOLE_FD}
-	echo "E> No file list for package $1."   >&${CONSOLE_FD}
-	exit 1
-fi
-
-# This is tricky.  First make a ${TARGET_VAR_DIR}/files from ${fileList}; then
-# make a binary package from the list in ${TARGET_VAR_DIR}/files
-#
-package_list_make "${fileList}" || exit 1 # Bust out of sub-shell.
-_uTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tar"
-_cTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tbz"
-${cl_tar} --create \
-	--directory="${TARGET_SYSROOT_DIR}" \
-	--file="${_uTarBall}" \
-	--files-from="${TARGET_VAR_DIR}/files" \
-	--no-recursion
-${cl_bzip2} --force "${_uTarBall}"
-mv --force "${_uTarBall}.bz2" "${_cTarBall}"
-unset _uTarBall
-unset _cTarBall
-rm --force "${TARGET_VAR_DIR}/files" # Remove the temporary file.
-
-echo -n "c" >&${CONSOLE_FD}
-
-return 0
 
 }
 
@@ -508,12 +218,12 @@ fi
 
 echo ""
 echo "##### START cross-building packages"
-echo "g - getting the source and configuration packages"
-echo "b - building and installing the package into sysroot"
-echo "f - finding installed files"
-echo "m - looking for man pages to compress"
-echo "p - creating installable package"
-echo "c - cleaning"
+echo "g.     - getting the source and configuration packages"
+echo "b.     - building the package"
+echo "i.     - installing the package into sysroot"
+echo "f.     - finding installed files"
+echo "m_xxx. - looking for man pages to compress"
+echo "p.     - creating installable package"
 echo ""
 
 pushd "${TARGET_BUILD_DIR}/packages" >/dev/null 2>&1
@@ -543,7 +253,7 @@ for p in ${K_PACKAGE[@]}; do
 	echo -n " ";
 
 	exec 4>&1    # Save stdout at fd 4.
-	CONSOLE_FD=4 #
+	export CONSOLE_FD=4 #
 
 	# Even with 'set +e' the trap handler will run if a command or shell
 	# function returns non-zero, and in that case the trap handler also
@@ -562,9 +272,9 @@ for p in ${K_PACKAGE[@]}; do
 	# function returns non-zero.
 	CL_infoOnSigErr=1
 	rm --force "${TARGET_VAR_DIR}/log/${p}.log"
-	package_xbuild  "${p}" >>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
-	manpage_compress       >>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
-	package_collect "${p}" >>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
+	package_xbuild "${p}"	>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
+	${cl_fakeroot} -- "${cl_libdir}/scripts/bld-pkgs-install.sh" "${p}" \
+				>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
 	)
 	if [[ $? -ne 0 ]]; then
 		echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
@@ -581,7 +291,7 @@ for p in ${K_PACKAGE[@]}; do
 
 	>"${TARGET_VAR_DIR}/run/done.${p}"
 
-	echo -n " ... DONE ["
+	echo -n " DONE ["
 	t2=${SECONDS}
 	mins=$(((${t2}-${t1})/60))
 	secs=$(((${t2}-${t1})%60))

@@ -468,7 +468,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
 			(site/bld-packages-0.sh);			\
 		fi							\
 	fi;								\
-	($(fakeroot) -- $(libdir)/scripts/bld-packages.sh ${PACKAGE});	\
+	($(libdir)/scripts/bld-pkgs.sh ${PACKAGE});			\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-packages-1.sh ]]; then		\
