@@ -378,6 +378,10 @@ ok_to_build:	check_init crosslinux-config.sh
 .PHONY:	init _clean clean kclean pclean pkgs pkgs_
 
 init:	.bt-init crosslinux-config.sh $(libdir)/scripts/bld-init.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
 	@if [[ -f var/run/init ]]; then					\
 		echo "E> Already building for `cat var/run/init`";	\
 		echo "=> Maybe '${PROGRAM_NAME} clean' first.";		\
@@ -447,6 +451,10 @@ pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
 
 pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
 	@source ./crosslinux-config.sh;					\
 	echo "i> Make the crosslinux packages for:";			\
 	sysName="'$${CONFIG_BRAND_NAME}' ";				\
@@ -474,6 +482,10 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
 	@>var/run/packages
 
 pkgs_:
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
 
 

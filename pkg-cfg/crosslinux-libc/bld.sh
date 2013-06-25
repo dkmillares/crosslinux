@@ -69,12 +69,27 @@ return 0
 
 pkg_install() {
 
+local srcdir="${CONFIG_XBT_SYSROOT_DIR}"
+local bf="etc/${CONFIG_BRAND_NAME}-build"
+local tf="etc/${CONFIG_BRAND_NAME}-target"
+
 PKG_STATUS="install error"
+
+CL_logcom "Copying cross-tool target components to sysroot."
+cp --no-dereference --recursive "${srcdir}"/* "${TARGET_SYSROOT_DIR}"
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
+
+CL_logcom "Recording build information in the target:"
+CL_logcom "=> /${bf}"
+CL_logcom "=> /${tf}"
+rm --force "${TARGET_SYSROOT_DIR}/${bf}"
+rm --force "${TARGET_SYSROOT_DIR}/${tf}"
+echo "${MACHTYPE}"        >"${TARGET_SYSROOT_DIR}/${bf}"
+echo "${CONFIG_XBT_NAME}" >"${TARGET_SYSROOT_DIR}/${tf}"
 
 PKG_STATUS=""
 return 0

@@ -405,11 +405,6 @@ echo    "=> Do not know how to decompress that file."   >&${CONSOLE_FD}
 #                                                                             #
 # *************************************************************************** #
 
-if [[ $(id -u) -eq 0 ]]; then
-	echo "E> Do not do this as root" >&2
-	return 1
-fi
-
 TEXT_BRED="\E[1;31m"    # bold+red
 TEXT_BGREEN="\E[1;32m"  # bold+green
 TEXT_BYELLOW="\E[1;33m" # bold+yellow

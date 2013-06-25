@@ -80,7 +80,8 @@ rm --force "${TARGET_VAR_DIR}/files"
 >"${TARGET_VAR_DIR}/files"
 while read; do
 	lineNum=$((${lineNum}+1))
-	if [[ "${REPLY}" =~ ^if\  ]]; then # ........ Interpret the 'if' lines.
+	if [[ "${REPLY}" =~ ^if\  ]]; then
+		# ................................... Interpret the 'if' lines.
 		if [[ ${nestings} == 1 ]]; then
 CL_logcom "E> Cannot nest scripting in pkg-cfg files-list file."
 CL_logcom "=> line ${lineNum}: \"${REPLY}\""
@@ -98,26 +99,45 @@ CL_logcom "=> line ${lineNum}: \"${REPLY}\""
 CL_logcom "if \$$2 $3 $4 # -- nestings=${nestings} uselines=${uselines}"
 		continue
 	fi
-	if [[ "${REPLY}" =~ ^fi ]]; then # .......... Interpret the 'fi' lines.
+	if [[ "${REPLY}" =~ ^fi ]]; then
+		# ................................... Interpret the 'fi' lines.
 		uselines=${oldUseLine}
 		nestings=0
 CL_logcom "fi # ------------- nestings=${nestings} uselines=${uselines}"
 		continue
 	fi
-	if [[ "${REPLY}" =~ ^\ *# ]]; then # ..... Interpret the comment lines.
+	if [[ "${REPLY}" =~ ^\ *# ]]; then
+		# ................................ Interpret the comment lines.
 CL_logcom "Skipping ${REPLY}"
 		continue
 	fi
-	if [[ ${uselines} == 1 ]]; then # ........... Interpret the used lines.
-		eval "pathname=${REPLY}"
-		echo ${pathname} >>"${TARGET_VAR_DIR}/files"
+	if [[ ${uselines} == 1 ]]; then
+		# ................................... Interpret the used lines.
+		if [[ "${REPLY}" =~ ^\'glob\'\  ]]; then
+		# ....................................... Interpret file globs.
+			set ${REPLY}
+CL_logcom "Start 'glob' \"$2\""
+			_p=""
+			for pathname in ${TARGET_SYSROOT_DIR}/$2; do
+				if [[ -f ${pathname} ]]; then
+					_p=${pathname#${TARGET_SYSROOT_DIR}/}
+					echo ${_p} >>"${TARGET_VAR_DIR}/files"
+				fi
+			done
+			unset _p
+CL_logcom "End 'glob' \"$2\""
+		else
+		# ....................................... Interpret file names.
+			eval "pathname=${REPLY}"
+			echo ${pathname} >>"${TARGET_VAR_DIR}/files"
+		fi
 	fi
 done <"${cfgPkgFiles}"
 
 while read; do
 	if [[ ! -e ${TARGET_SYSROOT_DIR}/${REPLY} ]]; then
-		CL_logcom "ERROR ***** missing \"${REPLY}\""
-		CL_logcom "=> in ${cfgPkgFiles}"
+		CL_logcom "ERROR ***** sysroot is missing \"${REPLY}\""
+		CL_logcom "=> from ${cfgPkgFiles}"
 		retStat=1
 	fi
 done <"${TARGET_VAR_DIR}/files"
@@ -421,25 +441,23 @@ CL_config_setup || exit 1
 # $1 == <name> ....... Anything other than "continue" is interpreted as a
 #                      package name, so build the one named package.
 
+_c=0  # Package count.
+_p="" # Package name.
+
 if [[ $# -gt 0 && -n "$1" ]]; then
 	# "$1" may be unbound so hide it in this if statement.
 	# Set the K_ZIPP flag, if so given; otherwise reset the package list.
-	[[ "$1" == "continue" ]] && K_ZIPP="y" || K_PACKAGE=("$1")
+	[[ "$1" == "continue" ]] && K_ZIPP="y" || _p=$1
 fi
 
-_c=0 # Package count.
-_p=${K_PACKAGE[${_c}]}
-
-if [[ -z "${K_PACKAGE[0]}" ]]; then
-	# Need to get the list of packages from the ${K_PKGLIST} file.
-	while read pname pad; do
-		[[ -z "${pname}"                       ]] && continue || true
-		[[ "${pname:0:1}" == "#"               ]] && continue || true
-		[[ -n "${_p}" && "${pname}" != "${_p}" ]] && continue || true
-		K_PACKAGE[${_c}]=${pname}
-		_c=$((${_c} + 1))
-	done <${K_PKGLIST}
-fi
+# Need to get the list of packages from the ${K_PKGLIST} file.
+while read pname pad; do
+	[[ -z "${pname}"                       ]] && continue || true
+	[[ "${pname:0:1}" == "#"               ]] && continue || true
+	[[ -n "${_p}" && "${pname}" != "${_p}" ]] && continue || true
+	K_PACKAGE[${_c}]=${pname}
+	_c=$((${_c} + 1))
+done <${K_PKGLIST}
 
 if [[ ${_c} -eq 0 && -n "${_p}" ]]; then
 	echo "E> No package named \"${_p}\""
