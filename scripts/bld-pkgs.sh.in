@@ -275,6 +275,7 @@ for p in ${K_PACKAGE[@]}; do
 	package_xbuild "${p}"	>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
 	${cl_fakeroot} -- "${cl_libdir}/scripts/bld-pkgs-install.sh" "${p}" \
 				>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
+	pkg_clean
 	)
 	if [[ $? -ne 0 ]]; then
 		echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"

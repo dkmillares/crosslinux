@@ -130,7 +130,6 @@ PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-NJOBS=1
 PATH="${CONFIG_XBT_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	CROSS_COMPILE=${CONFIG_XBT_NAME}- || return 1
