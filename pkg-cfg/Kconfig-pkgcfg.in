@@ -20,7 +20,7 @@ menu "System Programs"
 source @@CL_LIBDIR@@/pkg-cfg/util-linux-2.23/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/bash-4.2/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/busybox-1.21.0/Kconfig
-source @@CL_LIBDIR@@/pkg-cfg/e2fsprogs-1.42.7/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/e2fsprogs-1.42.8/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/kmod-13/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/lilo-23.2/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/ntfs-3g_ntfsprogs-2013.1.13/Kconfig

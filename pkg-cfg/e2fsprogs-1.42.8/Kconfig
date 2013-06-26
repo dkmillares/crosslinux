@@ -1,7 +1,7 @@
-config BLD_E2FSPROGS_1p42p7
+config BLD_E2FSPROGS_1p42p8
 	bool
 	default y
-	prompt "Build e2fsprogs-1.42.7"
+	prompt "Build e2fsprogs-1.42.8"
 	---help---
 	  Select this option to cross-build e2fsprogs.
 

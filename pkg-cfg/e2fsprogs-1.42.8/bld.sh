@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="http://ftp.gnu.org/gnu/bash/"
-PKG_ZIP="bash-4.2.tar.gz"
+PKG_URL="http://sourceforge.net/projects/e2fsprogs/files/e2fsprogs/v1.42.8/"
+PKG_ZIP="e2fsprogs-1.42.8.tar.gz"
 PKG_SUM=""
 
-PKG_TAR="bash-4.2.tar"
-PKG_DIR="bash-4.2"
+PKG_TAR="e2fsprogs-1.42.8.tar"
+PKG_DIR="e2fsprogs-1.42.8"
 
 
 # ******************************************************************************
@@ -38,21 +38,8 @@ PKG_DIR="bash-4.2"
 # ******************************************************************************
 
 pkg_patch() {
-
-local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
-local patchFile=""
-
-PKG_STATUS="init error"
-
-cd "${PKG_DIR}"
-for patchFile in "${patchDir}"/*; do
-	[[ -r "${patchFile}" ]] && patch -p0 <"${patchFile}"
-done
-cd ..
-
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -62,30 +49,20 @@ return 0
 
 pkg_configure() {
 
-local TERMCAP_LIB="gnutermcap"
+local CONFIG_BLKID="--disable-libblkid"
+local CROSSLINUX_LDFLAGS="-lblkid"
 
 PKG_STATUS="./configure error"
 
 cd "${PKG_DIR}"
 
-if [[ x"${CONFIG_NCURSES_HAS_LIBS:-}" == x"y" ]]; then
-	TERMCAP_LIB="libcurses"
+if [[ x"${CONFIG_E2FSPROGS_HAS_BLKID:-}" == x"y" ]]; then
+	CONFIG_BLKID="--enable-libblkid"
+	CROSSLINUX_LDFLAGS=""
 fi
 
-# ac_cv_func_setvbuf_reversed=no
-# ac_cv_have_decl_sys_siglist=yes
-# ac_cv_rl_prefix=path
-# ac_cv_rl_version=6.2
-# bash_cv_decl_under_sys_siglist=yes
-# bash_cv_func_ctype_nonascii=yes
-# bash_cv_func_sigsetjmp=present
-# bash_cv_getcwd_malloc=yes
-# bash_cv_job_control_missing=present
-# bash_cv_printf_a_format=yes
-# bash_cv_sys_named_pipes=present
-# bash_cv_termcap_lib=libcurses
-# bash_cv_ulimit_maxfds=yes
-# bash_cv_unusable_rtsigs=no
+# I don't remember why: "--disable-defrag" was needed for building for the
+# WRTU54G-TM with uClibc.
 
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XBT_DIR}:${PATH}" \
@@ -100,23 +77,41 @@ RANLIB="${CONFIG_XBT_NAME}-ranlib" \
 SIZE="${CONFIG_XBT_NAME}-size" \
 STRIP="${CONFIG_XBT_NAME}-strip" \
 CFLAGS="${CONFIG_CFLAGS}" \
-bash_cv_job_control_missing=present \
-bash_cv_printf_a_format=yes \
-bash_cv_termcap_lib=${TERMCAP_LIB} \
+LDFLAGS="${CROSSLINUX_LDFLAGS}" \
 ./configure \
 	--build=${MACHTYPE} \
 	--host=${CONFIG_XBT_NAME} \
 	--prefix=/usr \
-	--enable-job-control \
+	--with-root-prefix="" \
+	${CONFIG_BLKID} \
+	--enable-defrag \
+	--enable-fsck \
+	--enable-libuuid \
+	--enable-option-checking \
+	--enable-rpath \
+	--enable-tls \
+	--enable-verbose-makecmds \
+	--disable-blkid-debug \
+	--disable-bsd-shlibs \
+	--disable-checker \
+	--disable-compression \
+	--disable-debugfs \
+	--disable-e2initrd-helper \
+	--disable-elf-shlibs \
+	--disable-imager \
+	--disable-jbd-debug \
+	--disable-maintainer-mode \
 	--disable-nls \
-	--without-bash-malloc || return 1
+	--disable-profile \
+	--disable-resizer \
+	--disable-testio-debug \
+	--disable-uuidd || return 1
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
 
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -138,7 +133,6 @@ cd ..
 
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -150,11 +144,29 @@ pkg_install() {
 
 PKG_STATUS="install error"
 
+# This will overwrite /sbin/findfs if it was installed from util-linux.  The
+# reason this is not a problem is because the util-linux pkg-bin/ binary
+# tarball has already been made.  But the wrongs findfs will be in sysroot; try
+# to do something about it.
+
+if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS}" == x"n" ]]; then
+	mv "${TARGET_SYSROOT_DIR}/sbin/findfs" /tmp
+fi
+
 cd "${PKG_DIR}"
-install --mode=755 --owner=0 --group=0 bash "${TARGET_SYSROOT_DIR}/bin"
-rm --force "${TARGET_SYSROOT_DIR}/bin/sh"
-ln --force --symbolic bash "${TARGET_SYSROOT_DIR}/bin/sh"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	DESTDIR=${TARGET_SYSROOT_DIR} \
+	install || return 1
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	DESTDIR=${TARGET_SYSROOT_DIR} \
+	install-libs || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
+
+if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS}" == x"n" ]]; then
+	mv /tmp/findfs "${TARGET_SYSROOT_DIR}/sbin/"
+fi
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" ! -type d -exec touch {} \;
