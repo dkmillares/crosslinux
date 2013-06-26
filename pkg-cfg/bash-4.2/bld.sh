@@ -38,8 +38,21 @@ PKG_DIR="bash-4.2"
 # ******************************************************************************
 
 pkg_patch() {
+
+local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="init error"
+
+cd "${PKG_DIR}"
+for patchFile in "${patchDir}"/*; do
+	[[ -r "${patchFile}" ]] && patch -p0 <"${patchFile}"
+done
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -48,8 +61,62 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
+
+local TERMCAP_LIB="gnutermcap"
+
+PKG_STATUS="./configure error"
+
+if [[ x"${CONFIG_NCURSES_HAS_LIBS:-}" == x"y" ]]; then
+	TERMCAP_LIB="libcurses"
+fi
+
+cd "${PKG_DIR}"
+
+# ac_cv_func_setvbuf_reversed=no
+# ac_cv_have_decl_sys_siglist=yes
+# ac_cv_rl_prefix=path
+# ac_cv_rl_version=6.2
+# bash_cv_decl_under_sys_siglist=yes
+# bash_cv_func_ctype_nonascii=yes
+# bash_cv_func_sigsetjmp=present
+# bash_cv_getcwd_malloc=yes
+# bash_cv_job_control_missing=present
+# bash_cv_printf_a_format=yes
+# bash_cv_sys_named_pipes=present
+# bash_cv_termcap_lib=libcurses
+# bash_cv_ulimit_maxfds=yes
+# bash_cv_unusable_rtsigs=no
+
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" \
+AR="${CONFIG_XBT_NAME}-ar" \
+AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XBT_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XBT_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XBT_NAME}-nm" \
+OBJCOPY="${CONFIG_XBT_NAME}-objcopy" \
+RANLIB="${CONFIG_XBT_NAME}-ranlib" \
+SIZE="${CONFIG_XBT_NAME}-size" \
+STRIP="${CONFIG_XBT_NAME}-strip" \
+CFLAGS="${CONFIG_CFLAGS}" \
+bash_cv_job_control_missing=present \
+bash_cv_printf_a_format=yes \
+bash_cv_termcap_lib=${TERMCAP_LIB} \
+./configure \
+	--build=${MACHTYPE} \
+	--host=${CONFIG_XBT_NAME} \
+	--prefix=/usr \
+	--enable-job-control \
+	--disable-nls \
+	--without-bash-malloc || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -58,8 +125,21 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+PKG_STATUS="make error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+NJOBS=1
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	--jobs=${NJOBS} \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -70,6 +150,12 @@ return 0
 pkg_install() {
 
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+install --mode=755 --owner=0 --group=0 bash "${TARGET_SYSROOT_DIR}/bin"
+rm --force "${TARGET_SYSROOT_DIR}/bin/sh"
+ln --force --symbolic bash "${TARGET_SYSROOT_DIR}/bin/sh"
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	${cl_find} "rootfs/" ! -type d -exec touch {} \;

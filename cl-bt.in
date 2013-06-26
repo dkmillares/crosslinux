@@ -450,7 +450,7 @@ kclean:
 pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
 
-pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
+pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
 		echo "E> Do not do this as root";			\
 		exit 1;							\
@@ -464,15 +464,15 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-packages.sh
 	echo "=> $${CONFIG_BOARD}";					\
 	rm --force var/run/packages;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-packages-0.sh ]]; then		\
-			(site/bld-packages-0.sh);			\
+		if [[ -x site/bld-pkgs-0.sh ]]; then			\
+			(site/bld-pkgs-0.sh);				\
 		fi							\
 	fi;								\
 	($(libdir)/scripts/bld-pkgs.sh ${PACKAGE});			\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-packages-1.sh ]]; then		\
-			(site/bld-packages-1.sh $${mystat});		\
+		if [[ -x site/bld-pkgs-1.sh ]]; then			\
+			(site/bld-pkgs-1.sh $${mystat});		\
 		fi							\
 	fi;								\
 	if [[ $$mystat != 0 ]]; then					\

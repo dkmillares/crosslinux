@@ -64,6 +64,7 @@ if [[ x"${CONFIG_NCURSES_HAS_WIDEC:-}" == x"y" ]]; then
 	ENABLE_WIDEC="--enable-widec"
 fi
 
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XBT_DIR}:${PATH}" \
 AR="${CONFIG_XBT_NAME}-ar" \
 AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
@@ -94,6 +95,7 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--without-debug \
 	--without-gpm \
 	--without-normal || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
 
@@ -112,9 +114,11 @@ pkg_make() {
 PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XBT_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	CROSS_COMPILE=${CONFIG_XBT_NAME}- || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
 PKG_STATUS=""
@@ -132,7 +136,9 @@ pkg_install() {
 PKG_STATUS="install error"
 
 cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XBT_DIR}:${PATH}" make install || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
 # ****************************************************** #
