@@ -42,7 +42,7 @@ pkg_patch() {
 local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
 local patchFile=""
 
-PKG_STATUS="init error"
+PKG_STATUS="patch error"
 
 cd "${PKG_DIR}"
 for patchFile in "${patchDir}"/*; do

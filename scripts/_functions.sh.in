@@ -405,10 +405,6 @@ echo    "=> Do not know how to decompress that file."   >&${CONSOLE_FD}
 #                                                                             #
 # *************************************************************************** #
 
-export IFS="${K_SP}${K_TB}${K_NL}"
-export LC_ALL=POSIX
-export PATH=$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
-
 TEXT_BRED="\E[1;31m"    # bold+red
 TEXT_BGREEN="\E[1;32m"  # bold+green
 TEXT_BYELLOW="\E[1;33m" # bold+yellow
@@ -428,8 +424,12 @@ K_TB=$'\t'
 K_NL=$'\n'
 K_SP=$' '
 
+export IFS="${K_SP}${K_TB}${K_NL}" # Relies upon constants above.
+export LC_ALL=POSIX
+export PATH=$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
+
 K_BANG='!'
-K_NCPU=$(grep "^processor" /proc/cpuinfo | wc -l)
+K_NCPU=$(grep "^processor" /proc/cpuinfo | wc -l) # Relies upon PATH above.
 
 set -o errexit  ; # Exit immediately if a command exits with a non-zero status.
 set -o nounset  ; # Treat unset variables as an error when substituting.

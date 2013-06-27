@@ -38,8 +38,21 @@ PKG_DIR="lilo-23.2"
 # ******************************************************************************
 
 pkg_patch() {
+
+local patchDir="${TTYLINUX_PKGCFG_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}"
+for patchFile in "${patchDir}"/*; do
+	[[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
+done
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -58,8 +71,32 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+PKG_STATUS="make error"
+
+cd "${PKG_DIR}"
+
+[[ "$(uname -m)" != "x86_64" ]] && HOST_CC="gcc"
+[[ "$(uname -m)" == "x86_64" ]] && HOST_CC="gcc -m64"
+
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	--jobs=${NJOBS} \
+	BUILD_CC="${HOST_CC}" \
+	CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+	CONFIG="-DBDATA         -DDSECS=3    -DDEVMAPPER=\"\" -DEVMS  \
+		-DIGNORECASE    -DLVM        -DONE_SHOT       -DPASS160 \
+		-DREWRITE_TABLE -DSOLO_CHAIN -DVERSION" \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- \
+	OPT="${CONFIG_CFLAGS}" \
+	all || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -70,6 +107,12 @@ return 0
 pkg_install() {
 
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+install --mode=755 --owner=0 --group=0 src/lilo "${TARGET_SYSROOT_DIR}/sbin"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;
