@@ -178,28 +178,60 @@ if [[ -d "rootfs/" ]]; then
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 
-for _issueFile in ${TARGET_SYSROOT_DIR}/etc/issue*; do
-	if [[ -f "${_issueFile}" ]]; then
-		_sedCmd="${cl_sed} --in-place ${_issueFile}"
-		${_sedCmd} -e "s/CROSSLINUX_VERS/${CONFIG_RELEASE_VERS}/"
-		${_sedCmd} -e "s/CROSSLINUX_NAME/${CONFIG_RELEASE_NAME}/"
-		${_sedCmd} -e "s/^.m/${CONFIG_CPU_ARCH}/"
-		unset _sedCmd
-	fi
-done; unset _issueFile
+declare _sedFile=""
 
-_modprobeFile="${TARGET_SYSROOT_DIR}/etc/modprobe.d/modprobe.conf"
+# ***** /etc/HOSTNAME
+#
+_sedFile="${TARGET_SYSROOT_DIR}/etc/HOSTNAME"
+sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+
+# ***** /etc/issue
+#
+for _sedFile in "${TARGET_SYSROOT_DIR}/etc/issue"*; do
+	if [[ -f "${_sedFile}" ]]; then
+		sed -i "${_sedFile}"					\
+			-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
+			-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"	\
+			-e "s/@RELEASE_NAME@/${CONFIG_RELEASE_NAME}/"	\
+			-e "s/^.m/${CONFIG_CPU_ARCH}/"
+	fi
+done
+
+# ***** /etc/modprobe.d/modprobe.conf
+# ***** /etc/modtab
+#
 case "${CONFIG_BOARD}" in
 	'mac_g4')
-		sed --in-place "${_modprobeFile}" --expression="s/#nomac /# /"
-		sed --in-place "${TARGET_SYSROOT_DIR}/etc/modtab" \
-			--expression="s/# snd-powermac/snd-powermac/"
+		_sedFile="${TARGET_SYSROOT_DIR}/etc/modprobe.d/modprobe.conf"
+		sed -i "${_sedFile}" -e "s/#nomac /# /"
+		_sedFile="${TARGET_SYSROOT_DIR}/etc/modtab"
+		sed -i "${_sedFile}" -e "s/# snd-powermac/snd-powermac/"
 		;;
 	*)
-		sed --in-place "${_modprobeFile}" --expression="s/#nomac //"
+		_sedFile="${TARGET_SYSROOT_DIR}/etc/modprobe.d/modprobe.conf"
+		sed -i "${_sedFile}" -e "s/#nomac //"
 		;;
 esac
-unset _modprobeFile
+
+# ***** /etc/password
+#
+_sedFile="${TARGET_SYSROOT_DIR}/etc/passwd"
+sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+
+# ***** /etc/rc.d/rc.sysinit
+# ***** /etc/rc.d/rc.sysdone
+#
+_sedFile="${TARGET_SYSROOT_DIR}/etc/rc.d/rc.sysinit"
+sed -i "${_sedFile}"					\
+	-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
+	-e "s/@BRAND_URL@/${CONFIG_BRAND_URL}/"		\
+	-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"
+_sedFile="${TARGET_SYSROOT_DIR}/etc/rc.d/rc.sysdone"
+sed -i "${_sedFile}"					\
+	-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
+	-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"
+
+unset _sedFile
 
 PKG_STATUS=""
 return 0

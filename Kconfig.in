@@ -14,6 +14,13 @@ config BRAND_NAME
 	  This is the brand name of your Linux distribution, like Debian,
 	  Fedora, Ubuntu, etc.
 
+config BRAND_URL
+	string
+	default "www.crosslinux.org"
+	prompt "Distribution Website"
+	---help---
+	  This is the web site for your Linux distribution.
+
 config RELEASE_NAME
 	string
 	default "aardweevil"
