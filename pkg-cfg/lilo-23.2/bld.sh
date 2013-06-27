@@ -39,7 +39,7 @@ PKG_DIR="lilo-23.2"
 
 pkg_patch() {
 
-local patchDir="${TTYLINUX_PKGCFG_DIR}/$1/patch"
+local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
 local patchFile=""
 
 PKG_STATUS="patch error"
@@ -118,6 +118,12 @@ if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
+
+# ***** /etc/lilo.conf
+#
+_sedFile="${TARGET_SYSROOT_DIR}/etc/lilo.conf"
+sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+unset _sedFile
 
 PKG_STATUS=""
 return 0

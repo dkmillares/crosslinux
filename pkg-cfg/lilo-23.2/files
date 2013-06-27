@@ -1,4 +1,4 @@
 # vim: syntax=sh
-boot/ttylinux.bmp
+boot/lilo.bmp
 etc/lilo.conf
 sbin/lilo

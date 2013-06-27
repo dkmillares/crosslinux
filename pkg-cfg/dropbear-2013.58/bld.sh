@@ -38,8 +38,21 @@ PKG_DIR="dropbear-2013.58"
 # ******************************************************************************
 
 pkg_patch() {
+
+local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}"
+for patchFile in "${patchDir}"/*; do
+	[[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
+done
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -48,8 +61,38 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
+
+PKG_STATUS="./configure error"
+
+cd "${PKG_DIR}"
+
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" \
+AR="${CONFIG_XBT_NAME}-ar" \
+AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XBT_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XBT_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XBT_NAME}-nm" \
+OBJCOPY="${CONFIG_XBT_NAME}-objcopy" \
+RANLIB="${CONFIG_XBT_NAME}-ranlib" \
+SIZE="${CONFIG_XBT_NAME}-size" \
+STRIP="${CONFIG_XBT_NAME}-strip" \
+CFLAGS="${CONFIG_CFLAGS} -DLTC_NO_BSWAP"
+./configure \
+	--build=${MACHTYPE} \
+	--host=${CONFIG_XBT_NAME} \
+	--prefix=/usr \
+	--enable-shadow \
+	--disable-pam \
+	--disable-zlib || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -58,8 +101,23 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+PKG_STATUS="make error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make --jobs=${NJOBS} \
+	ARFLAGS="rv" \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- \
+	PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" \
+	MULTI=1 \
+	SCPPROGRESS=1 || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -69,7 +127,25 @@ return 0
 
 pkg_install() {
 
+local installDir="${TARGET_SYSROOT_DIR}/usr/bin"
+
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+install --mode=755 --owner=0 --group=0 dropbearmulti "${installDir}"
+pushd "${installDir}" >/dev/null 2>&1
+rm --force dbclient
+rm --force dropbearkey
+rm --force dropbearconvert
+rm --force scp
+rm --force ../sbin/dropbear
+link dropbearmulti dbclient
+link dropbearmulti dropbearkey
+link dropbearmulti dropbearconvert
+link dropbearmulti scp
+link dropbearmulti ../sbin/dropbear
+popd >/dev/null 2>&1
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;
