@@ -38,8 +38,21 @@ PKG_DIR="ppp-2.4.5"
 # ******************************************************************************
 
 pkg_patch() {
+
+local patchDir="${CROSSLINUX_PKGCFG_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}" # ppp patches are applied above the dir.
+for patchFile in "${patchDir}"/*; do
+	[[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
+done
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -48,8 +61,33 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
+
+PKG_STATUS="./configure error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" \
+AR="${CONFIG_XBT_NAME}-ar" \
+AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XBT_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XBT_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XBT_NAME}-nm" \
+OBJCOPY="${CONFIG_XBT_NAME}-objcopy" \
+RANLIB="${CONFIG_XBT_NAME}-ranlib" \
+SIZE="${CONFIG_XBT_NAME}-size" \
+STRIP="${CONFIG_XBT_NAME}-strip" \
+CFLAGS="${CONFIG_CFLAGS}" \
+./configure \
+	--build=${MACHTYPE} \
+	--host=${CONFIG_XBT_NAME} \
+	--prefix=/usr || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -58,8 +96,23 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+PKG_STATUS="make error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	--jobs=${NJOBS} \
+	AR="${CONFIG_XBT_NAME}-ar" \
+	CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+	COPTS="${CONFIG_CFLAGS}" \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -69,7 +122,16 @@ return 0
 
 pkg_install() {
 
+local instCmd="install --owner=0"
+
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+${instCmd} --mode=755  --group=0  chat/chat "${TARGET_SYSROOT_DIR}/usr/sbin"
+${instCmd} --mode=4550 --group=40 pppd/pppd "${TARGET_SYSROOT_DIR}/usr/sbin"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

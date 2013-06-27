@@ -48,8 +48,42 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
+
+PKG_STATUS="./configure error"
+
+cd "${PKG_DIR}"
+
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" \
+AR="${CONFIG_XBT_NAME}-ar" \
+AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XBT_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XBT_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XBT_NAME}-nm" \
+OBJCOPY="${CONFIG_XBT_NAME}-objcopy" \
+RANLIB="${CONFIG_XBT_NAME}-ranlib" \
+SIZE="${CONFIG_XBT_NAME}-size" \
+STRIP="${CONFIG_XBT_NAME}-strip" \
+CFLAGS="${CONFIG_CFLAGS}" \
+./configure \
+	--build=${MACHTYPE} \
+	--host=${CONFIG_XBT_NAME} \
+	--prefix=/ \
+	--libexecdir=/lib \
+	--mandir=/usr/share/man \
+	--enable-ipv4 \
+	--enable-static \
+	--disable-devel \
+	--disable-shared \
+	--without-kernel || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -58,8 +92,20 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+PKG_STATUS="make error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	--jobs=${NJOBS} \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -70,6 +116,23 @@ return 0
 pkg_install() {
 
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+rm --force ${TARGET_SYSROOT_DIR}/sbin/ip6tables
+rm --force ${TARGET_SYSROOT_DIR}/sbin/ip6tables-restore
+rm --force ${TARGET_SYSROOT_DIR}/sbin/ip6tables-save
+rm --force ${TARGET_SYSROOT_DIR}/sbin/iptables
+rm --force ${TARGET_SYSROOT_DIR}/sbin/iptables-restore
+rm --force ${TARGET_SYSROOT_DIR}/sbin/iptables-save
+rm --force ${TARGET_SYSROOT_DIR}/sbin/xptables-multi
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	DESTDIR=${TARGET_SYSROOT_DIR} \
+	install || return 1
+rm --force ${TARGET_SYSROOT_DIR}/bin/iptables-xml
+ln --symbolic ../sbin/xtables-multi ${TARGET_SYSROOT_DIR}/bin/iptables-xml
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

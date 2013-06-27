@@ -58,8 +58,32 @@ return 0
 # ******************************************************************************
 
 pkg_make() {
+
+local THREADING=1
+
+PKG_STATUS="make error"
+
+if [[ x"${RETAWQ_HAS_THREADING:-}" == x"y" ]]; then
+	THREADING=0
+fi
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+	CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+	CFLAGS="${CONFIG_CFLAGS}" \
+	CROSS_COMPILE=${CONFIG_XBT_NAME}- \
+	OPTION_NEWS=0 \
+	OPTION_TEXTMODEMOUSE=0 \
+	OPTION_TG=bicurses \
+	OPTION_THREADING=${THREADING} \
+	devel || return 1
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -70,6 +94,10 @@ return 0
 pkg_install() {
 
 PKG_STATUS="install error"
+
+cd "${PKG_DIR}"
+install --mode=755 --owner=0 --group=0 retawq "${TARGET_SYSROOT_DIR}/usr/bin"
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

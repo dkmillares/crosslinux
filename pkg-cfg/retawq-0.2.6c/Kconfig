@@ -4,3 +4,12 @@ config BLD_RETAWQ_0p2p6C
 	prompt "Build retawq-0.2.6c"
 	---help---
 	  Select this option to cross-build retawq.
+
+config RETAWQ_HAS_THREADING
+	bool
+	default n
+	depends on BLD_RETAWQ_0p2p6C
+	prompt "Build retawq-0.2.6c with threading"
+	---help---
+	  Select this option to cross-build retawq with threading.  You might
+	  not want to use threading to minimize memory usage.

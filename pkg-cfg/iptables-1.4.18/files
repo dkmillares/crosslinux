@@ -1,1 +1,8 @@
 # vim: syntax=sh
+etc/firewall.conf
+etc/rc.d/init.d/firewall
+etc/rc.d/rc.startup/01.firewall
+etc/sysconfig/firewall
+lib/xtables
+sbin/iptables
+sbin/xtables-multi
