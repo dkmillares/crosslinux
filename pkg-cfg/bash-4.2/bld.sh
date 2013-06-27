@@ -157,7 +157,7 @@ ln --force --symbolic bash "${TARGET_SYSROOT_DIR}/bin/sh"
 cd ..
 
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" ! -type d -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

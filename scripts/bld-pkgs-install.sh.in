@@ -178,8 +178,8 @@ fi
 #
 if [[ -f "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" ]]; then
 	cp "${CROSSLINUX_PKGCFG_DIR}/$1/rootfs.tar.bz2" .
-	${cl_bzip2} --decompress --force "rootfs.tar.bz2"
-	${cl_tar} --extract --file="rootfs.tar"
+	bunzip2 --force "rootfs.tar.bz2"
+	tar --extract --file="rootfs.tar"
 	rm --force "rootfs.tar"
 fi
 
@@ -278,9 +278,9 @@ echo -n "f." >&${CONSOLE_FD}
 # Make a list of the installed files.  Remove sysroot and its path component
 # from the file names.
 #
-${cl_find} ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
-${cl_sed} --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
-${cl_sed} --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
+find ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
+sed --in-place "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d"
+sed --in-place "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"
 rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
 
 # Strip when possible.
@@ -348,7 +348,7 @@ for f in $(<FILES); do
 #               if [[   x"${mFile%.gz}"  == x"${mFile}" && \
 #                       x"${mFile%.bz2}" == x"${mFile}" ]]; then
 #                       echo "zipping \"${mFile}\""
-#                       ${cl_gzip} "${mFile}"
+#                       gzip "${mFile}"
 #                       if [[ -n "${lFile}" ]]; then
 #                               rm --force "${lFile}"
 #                               ln --force --symbolic "${mFile}.gz" "${lFile}"
@@ -419,12 +419,12 @@ fi
 package_list_make "${fileList}" || exit 1 # Bust out of sub-shell.
 _uTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tar"
 _cTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tbz"
-${cl_tar} --create \
+tar --create \
 	--directory="${TARGET_SYSROOT_DIR}" \
 	--file="${_uTarBall}" \
 	--files-from="${TARGET_VAR_DIR}/files" \
 	--no-recursion
-${cl_bzip2} --force "${_uTarBall}"
+bzip2 --force "${_uTarBall}"
 mv --force "${_uTarBall}.bz2" "${_cTarBall}"
 unset _uTarBall
 unset _cTarBall

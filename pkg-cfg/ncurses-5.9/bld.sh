@@ -213,7 +213,7 @@ unset _w
 unset _usrlib
 
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" ! -type d -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

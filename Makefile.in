@@ -116,6 +116,7 @@ export find            := @FIND@
 export grep            := @EGREP@
 export gzip            := @GZIP@
 export install         := @INSTALL@
+export ln              := @LN@
 export make            := @MAKE@
 export sed             := @SED@
 export tar             := @TAR@
@@ -236,6 +237,7 @@ define sed_it
 		-e 's,@@CL_GREP@@,$(grep),g;'			\
 		-e 's,@@CL_GZIP@@,$(gzip),g;'			\
 		-e 's,@@CL_INSTALL@@,$(install),g;'		\
+		-e 's,@@CL_LN@@,$(ln),g;'			\
 		-e 's,@@CL_MAKE@@,$(make),g;'			\
 		-e 's,@@CL_SED@@,$(sed),g;'			\
 		-e 's,@@CL_TAR@@,$(tar),g;'			\

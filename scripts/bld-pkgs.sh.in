@@ -273,8 +273,8 @@ for p in ${K_PACKAGE[@]}; do
 	CL_infoOnSigErr=1
 	rm --force "${TARGET_VAR_DIR}/log/${p}.log"
 	package_xbuild "${p}"	>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
-	${cl_fakeroot} -- "${cl_libdir}/scripts/bld-pkgs-install.sh" "${p}" \
-				>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
+	fakeroot -- "${CROSSLINUX_SCRIPT_DIR}/bld-pkgs-install.sh" "${p}" \
+					>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
 	pkg_clean
 	)
 	if [[ $? -ne 0 ]]; then

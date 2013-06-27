@@ -36,19 +36,11 @@ cl_local="@@CL_LOCAL@@"
 cl_name="@@CL_PROG_NAME@@"
 cl_version="@@CL_VERSION@@"
 
-cl_awk="@@CL_AWK@@"
-cl_bash="@@CL_BASH@@"
-cl_bzip2="@@CL_BZIP2@@"
-cl_fakeroot="@@CL_FAKEROOT@@"
-cl_find="@@CL_FIND@@"
-cl_grep="@@CL_GREP@@"
-cl_gzip="@@CL_GZIP@@"
-cl_install="@@CL_INSTALL@@"
-cl_make="@@CL_MAKE@@"
-cl_sed="@@CL_SED@@"
-cl_tar="@@CL_TAR@@"
-cl_wget="@@CL_WGET@@"
-cl_xz="@@CL_XZ@@"
+cl_bash="@@CL_BASH@@" # This is the one program that has a cl_ variable set for
+                      # for it.  The pkg-cfg/*/bld.sh scripts are not
+                      # sed-filtered (and they are sourced from scripts in the
+                      # scripts/ directory) so this cl_bash variable is created
+                      # so those pkg-cfg/*/bld.sh scripts can use it in a #!
 
 
 # end of file

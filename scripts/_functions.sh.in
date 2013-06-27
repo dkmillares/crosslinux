@@ -334,7 +334,7 @@ CL_dload_get_file() {
 	for url in "$@"; do
 		rm --force ${fileName}
 		_file="${url}/${fileName}"
-		if ${cl_wget} ${_args} ${_file} >"${_log}" 2>&1; then
+		if wget ${_args} ${_file} >"${_log}" 2>&1; then
 			loadedDn="yes"
 		else
 			rm --force ${fileName}
@@ -375,18 +375,18 @@ CL_package_get() {
 	local tarBall=""
 	local unz=""
 
-if   [[ "$1" =~ (.*)\.tgz$      ]]; then unz="${cl_gzip}  --decompress --force";
-elif [[ "$1" =~ (.*)\.tar\.gz$  ]]; then unz="${cl_gzip}  --decompress --force";
-elif [[ "$1" =~ (.*)\.tbz$      ]]; then unz="${cl_bzip2} --decompress --force";
-elif [[ "$1" =~ (.*)\.tar\.bz2$ ]]; then unz="${cl_bzip2} --decompress --force";
-elif [[ "$1" =~ (.*)\.tar\.xz$  ]]; then unz="${cl_xz}    --decompress --force";
-fi
+	if   [[ "$1" =~ (.*)\.tgz$      ]]; then unz="gunzip  --force";
+	elif [[ "$1" =~ (.*)\.tar\.gz$  ]]; then unz="gunzip  --force";
+	elif [[ "$1" =~ (.*)\.tbz$      ]]; then unz="bunzip2 --force";
+	elif [[ "$1" =~ (.*)\.tar\.bz2$ ]]; then unz="bunzip2 --force";
+	elif [[ "$1" =~ (.*)\.tar\.xz$  ]]; then unz="unxz    --force";
+	fi
 
 	if [[ -n "${unz}" ]]; then
 		tarBall="${BASH_REMATCH[1]}.tar"
 		cp "${DOWNLOAD_CACHE_DIR}/${srcPkg}" .
 		${unz} "${srcPkg}" >/dev/null
-		${cl_tar} --extract --file="${tarBall}"
+		tar --extract --file="${tarBall}"
 		rm --force "${tarBall}"
 	else
 		CL_logcom "ERROR ***** ${srcPkg} format not recognized."
@@ -404,6 +404,10 @@ echo    "=> Do not know how to decompress that file."   >&${CONSOLE_FD}
 # _ f u n c t i o n s   B o d y                                               #
 #                                                                             #
 # *************************************************************************** #
+
+export IFS="${K_SP}${K_TB}${K_NL}"
+export LC_ALL=POSIX
+export PATH=$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
 
 TEXT_BRED="\E[1;31m"    # bold+red
 TEXT_BGREEN="\E[1;32m"  # bold+green
@@ -425,11 +429,7 @@ K_NL=$'\n'
 K_SP=$' '
 
 K_BANG='!'
-K_NCPU=$(${cl_grep} "^processor" /proc/cpuinfo | wc -l)
-
-export IFS="${K_SP}${K_TB}${K_NL}"
-export LC_ALL=POSIX
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+K_NCPU=$(grep "^processor" /proc/cpuinfo | wc -l)
 
 set -o errexit  ; # Exit immediately if a command exits with a non-zero status.
 set -o nounset  ; # Treat unset variables as an error when substituting.

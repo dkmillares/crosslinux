@@ -91,7 +91,7 @@ CL_logcom "Copying cross-tool target components to sysroot."
 # path, copies the file to the project sysroot, then adds group and user write
 # and execute permissions if the file is not a symlink.
 #
-${cl_find} "${srcdir}" ! -type d | while read srcname; do
+find "${srcdir}" ! -type d | while read srcname; do
 	CL_logcom "~~~~~ ${srcname#${srcdir}/}"
 	pitchit=0
 	if [[ -L "${srcname}" ]]; then
@@ -113,7 +113,7 @@ done
 # Get the typical pkg-cfg rootfs/ files.
 #
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" ! -type d -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

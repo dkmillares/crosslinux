@@ -78,8 +78,7 @@ cd "${PKG_DIR}"
 
 cfg="${cfgDir}/_bbox-stnd.cfg"
 if [[ x"${CONFIG_BUSYBOX_HAS_LOSETUP:-}" == x"" ]]; then
-	${cl_sed} --in-place ${cfg} \
-		--expression='s/CONFIG_LOSETUP=y/# CONFIG_LOSETUP is not set/'
+	sed -i ${cfg} -e 's/CONFIG_LOSETUP=y/# CONFIG_LOSETUP is not set/'
 fi
 cp "${cfg}" .config
 
@@ -160,7 +159,7 @@ rm --force "${TARGET_SYSROOT_DIR}/usr/bin/crontab"
 rm --force "${TARGET_SYSROOT_DIR}/usr/bin/passwd"
 rm --force "${TARGET_SYSROOT_DIR}/usr/bin/traceroute"
 _bbsuid="${TARGET_SYSROOT_DIR}/bin/busybox-suid"
-${cl_install} --mode=4711 --owner=0 --group=0 busybox "${_bbsuid}"
+install --mode=4711 --owner=0 --group=0 busybox "${_bbsuid}"
 link "${_bbsuid}" "${TARGET_SYSROOT_DIR}/bin/mount"
 link "${_bbsuid}" "${TARGET_SYSROOT_DIR}/bin/ping"
 link "${_bbsuid}" "${TARGET_SYSROOT_DIR}/bin/su"
@@ -174,7 +173,7 @@ cd ..
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" ! -type d -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

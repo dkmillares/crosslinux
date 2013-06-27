@@ -169,7 +169,7 @@ if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS}" == x"n" ]]; then
 fi
 
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" ! -type d -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

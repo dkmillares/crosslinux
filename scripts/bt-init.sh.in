@@ -31,10 +31,10 @@
 #      some chance some of these are in a non standard path, so make these in
 #      the bin-link/ directory and prefix $PATH with the path to bin-link/.
 #
-#      The scripts in the scripts/ directory do not make use of these wrappers,
-#      but the build files in the pkg-cfg/*/ directories are not filtered, so
-#      they do not use the variables setup like '$(cl_grep)'; they use programs
-#      by name e.g., 'grep'.
+#      The scripts in the scripts/ directory and the scripts in the pkg-cfg/*/
+#      directories, which are not filtered, do not use the variables setup like
+#      '${cl_grep}'; they use programs by name e.g., 'grep' and the bin-link/
+#      directory will be early in the PATH.
 #
 # CHANGE LOG
 #
@@ -45,68 +45,72 @@
 
 rm -f bin-link/*
 
-echo "#!@@CL_BASH@@"          >> bin-link/awk
-echo "exec @@CL_AWK@@ "'${@}' >> bin-link/awk
+echo "#!@@CL_BASH@@"            >> bin-link/awk
+echo "exec @@CL_AWK@@ "'"${@}"' >> bin-link/awk
 chmod 700 bin-link/awk
 
-echo "#!@@CL_BASH@@"           >> bin-link/bash
-echo "exec @@CL_BASH@@ "'${@}' >> bin-link/bash
+echo "#!@@CL_BASH@@"             >> bin-link/bash
+echo "exec @@CL_BASH@@ "'"${@}"' >> bin-link/bash
 chmod 700 bin-link/bash
 
-echo "#!@@CL_BASH@@"            >> bin-link/bzip2
-echo "exec @@CL_BZIP2@@ "'${@}' >> bin-link/bzip2
+echo "#!@@CL_BASH@@"              >> bin-link/bzip2
+echo "exec @@CL_BZIP2@@ "'"${@}"' >> bin-link/bzip2
 chmod 700 bin-link/bzip2
 
-echo "#!@@CL_BASH@@"                         >> bin-link/bunzip2
-echo "exec @@CL_BZIP2@@ --decompress "'${@}' >> bin-link/bunzip2
+echo "#!@@CL_BASH@@"                           >> bin-link/bunzip2
+echo "exec @@CL_BZIP2@@ --decompress "'"${@}"' >> bin-link/bunzip2
 chmod 700 bin-link/bunzip2
 
-echo "#!@@CL_BASH@@"               >> bin-link/fakeroot
-echo "exec @@CL_FAKEROOT@@ "'${@}' >> bin-link/fakeroot
+echo "#!@@CL_BASH@@"                 >> bin-link/fakeroot
+echo "exec @@CL_FAKEROOT@@ "'"${@}"' >> bin-link/fakeroot
 chmod 700 bin-link/fakeroot
 
-echo "#!@@CL_BASH@@"           >> bin-link/find
-echo "exec @@CL_FIND@@ "'${@}' >> bin-link/find
+echo "#!@@CL_BASH@@"             >> bin-link/find
+echo "exec @@CL_FIND@@ "'"${@}"' >> bin-link/find
 chmod 700 bin-link/find
 
-echo "#!@@CL_BASH@@"           >> bin-link/grep
-echo "exec @@CL_GREP@@ "'${@}' >> bin-link/grep
+echo "#!@@CL_BASH@@"             >> bin-link/grep
+echo "exec @@CL_GREP@@ "'"${@}"' >> bin-link/grep
 chmod 700 bin-link/grep
 
-echo "#!@@CL_BASH@@"           >> bin-link/gzip
-echo "exec @@CL_GZIP@@ "'${@}' >> bin-link/gzip
+echo "#!@@CL_BASH@@"             >> bin-link/gzip
+echo "exec @@CL_GZIP@@ "'"${@}"' >> bin-link/gzip
 chmod 700 bin-link/gzip
 
-echo "#!@@CL_BASH@@"                        >> bin-link/gunzip
-echo "exec @@CL_GZIP@@ --decompress "'${@}' >> bin-link/gunzip
+echo "#!@@CL_BASH@@"                          >> bin-link/gunzip
+echo "exec @@CL_GZIP@@ --decompress "'"${@}"' >> bin-link/gunzip
 chmod 700 bin-link/gunzip
 
-echo "#!@@CL_BASH@@"              >> bin-link/install
-echo "exec @@CL_INSTALL@@ "'${@}' >> bin-link/install
+echo "#!@@CL_BASH@@"                >> bin-link/install
+echo "exec @@CL_INSTALL@@ "'"${@}"' >> bin-link/install
 chmod 700 bin-link/install
 
-echo "#!@@CL_BASH@@"           >> bin-link/make
-echo "exec @@CL_MAKE@@ "'${@}' >> bin-link/make
+echo "#!@@CL_BASH@@"           >> bin-link/ln
+echo "exec @@CL_LN@@ "'"${@}"' >> bin-link/ln
+chmod 700 bin-link/ln
+
+echo "#!@@CL_BASH@@"             >> bin-link/make
+echo "exec @@CL_MAKE@@ "'"${@}"' >> bin-link/make
 chmod 700 bin-link/make
 
-echo "#!@@CL_BASH@@"          >> bin-link/sed
-echo "exec @@CL_SED@@ "'${@}' >> bin-link/sed
+echo "#!@@CL_BASH@@"            >> bin-link/sed
+echo "exec @@CL_SED@@ "'"${@}"' >> bin-link/sed
 chmod 700 bin-link/sed
 
-echo "#!@@CL_BASH@@"          >> bin-link/tar
-echo "exec @@CL_TAR@@ "'${@}' >> bin-link/tar
+echo "#!@@CL_BASH@@"            >> bin-link/tar
+echo "exec @@CL_TAR@@ "'"${@}"' >> bin-link/tar
 chmod 700 bin-link/tar
 
-echo "#!@@CL_BASH@@"           >> bin-link/wget
-echo "exec @@CL_WGET@@ "'${@}' >> bin-link/wget
+echo "#!@@CL_BASH@@"             >> bin-link/wget
+echo "exec @@CL_WGET@@ "'"${@}"' >> bin-link/wget
 chmod 700 bin-link/wget
 
-echo "#!@@CL_BASH@@"         >> bin-link/xz
-echo "exec @@CL_XZ@@ "'${@}' >> bin-link/xz
+echo "#!@@CL_BASH@@"           >> bin-link/xz
+echo "exec @@CL_XZ@@ "'"${@}"' >> bin-link/xz
 chmod 700 bin-link/xz
 
-echo "#!@@CL_BASH@@"                      >> bin-link/unxz
-echo "exec @@CL_XZ@@ --decompress "'${@}' >> bin-link/unxz
+echo "#!@@CL_BASH@@"                        >> bin-link/unxz
+echo "exec @@CL_XZ@@ --decompress "'"${@}"' >> bin-link/unxz
 chmod 700 bin-link/unxz
 
 

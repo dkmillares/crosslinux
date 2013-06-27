@@ -61,7 +61,6 @@ export LOCAL           := @@CL_LOCAL@@
 export PROGRAM_NAME    := @@CL_PROG_NAME@@
 export PACKAGE_VERSION := @@CL_VERSION@@
 
-export fakeroot        := @@CL_FAKEROOT@@
 export grep            := @@CL_GREP@@
 export sed             := @@CL_SED@@
 
@@ -299,17 +298,20 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 	@(								\
 	rm --force .pkglst;						\
 	$(grep) "^CONFIG_BLD_" crosslinux-config.sh >.pkglst;		\
-	$(sed) -e "s/^CONFIG_BLD_//" -e "s/=y//"   -i .pkglst;		\
-	$(sed) -e "s/p/./g"          -e "s/_/-/g"  -i .pkglst;		\
-	$(sed) -e "s/\(.*\)/\L\1/g"                -i .pkglst;		\
+	$(sed) -i .pkglst						\
+		-e "s/^CONFIG_BLD_//"					\
+		-e "s/=y//"						\
+		-e "s/p/./g"						\
+		-e "s/_/-/g"						\
+		-e "s/\(.*\)/\L\1/g";					\
 	rm --force crosslinux-pkglst.txt;				\
-	>crosslinux-pkglst.txt;					\
+	>crosslinux-pkglst.txt;						\
 	for dir in $$(<.pkglst); do					\
 		echo -n "$${dir} " >> crosslinux-pkglst.txt;		\
 		for ((i=35 ; $${i}>$${#dir} ; i--)); do			\
 			echo -n "." >>crosslinux-pkglst.txt;		\
 		done;							\
-		. $(libdir)/pkg-cfg/$${dir}/bld.sh;			\
+		source $(libdir)/pkg-cfg/$${dir}/bld.sh;		\
 		echo -n " $${PKG_ZIP} " >>crosslinux-pkglst.txt;	\
 		for ((i=35 ; $${i}>$${#PKG_ZIP} ; i--)); do		\
 			echo -n "." >>crosslinux-pkglst.txt;		\

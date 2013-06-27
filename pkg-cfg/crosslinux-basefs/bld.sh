@@ -74,7 +74,7 @@ local shareDir="${TARGET_SYSROOT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
 PKG_STATUS="install error"
 
 if [[ -d "rootfs/" ]]; then
-	${cl_find} "rootfs/" -exec touch {} \;
+	find "rootfs/" -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

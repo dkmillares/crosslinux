@@ -58,6 +58,7 @@ ACX_PATH_PROG_REQ([gzip],     [gzip])
 ACX_PATH_PROG_REQ([fakeroot], [fakeroot])
 ACX_PATH_PROG_REQ([find],     [find])
 ACX_PATH_PROG_REQ([install],  [install])
+ACX_PATH_PROG_REQ([ln],       [ln])
 ACX_PATH_PROG_REQ([make],     [make])
 ACX_PATH_PROG_REQ([patch],    [patch])
 ACX_PATH_PROG_REQ([tar],      [tar])
@@ -69,6 +70,7 @@ AC_SUBST([FAKEROOT], [$ac_cv_path_fakeroot])
 AC_SUBST([FIND],     [$ac_cv_path_find])
 AC_SUBST([GZIP],     [$ac_cv_path_gzip])
 AC_SUBST([INSTALL],  [$ac_cv_path_install])
+AC_SUBST([LN],       [$ac_cv_path_ln])
 AC_SUBST([MAKE],     [$ac_cv_path_make])
 AC_SUBST([PATCH],    [$ac_cv_path_patch])
 AC_SUBST([TAR],      [$ac_cv_path_tar])
@@ -151,8 +153,7 @@ AC_CACHE_CHECK([for bash >= 3.1], [ac_cv_path_bash],
         test -n "$bash_ver" && ac_cv_path_bash=$ac_path_bash ac_path_bash_found=:]],
       [AC_MSG_RESULT([no])
        AC_MSG_ERROR([could not find bash >= 3.1])])])
-AC_SUBST([BASH],     [$ac_cv_path_bash])
-AC_SUBST([CL_SHELL], [$ac_cv_path_bash])
+AC_SUBST([BASH], [$ac_cv_path_bash])
 
 # -----------------------------------------------------------------------------
 # Check for some programs, but don't fail; report if missing.
