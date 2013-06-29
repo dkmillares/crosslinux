@@ -67,21 +67,21 @@ PKG_STATUS="./configure error"
 cd "${PKG_DIR}"
 
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XBT_DIR}:${PATH}" \
-AR="${CONFIG_XBT_NAME}-ar" \
-AS="${CONFIG_XBT_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
-CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
-CXX="${CONFIG_XBT_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
-LD="${CONFIG_XBT_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
-NM="${CONFIG_XBT_NAME}-nm" \
-OBJCOPY="${CONFIG_XBT_NAME}-objcopy" \
-RANLIB="${CONFIG_XBT_NAME}-ranlib" \
-SIZE="${CONFIG_XBT_NAME}-size" \
-STRIP="${CONFIG_XBT_NAME}-strip" \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
+AR="${CONFIG_XTOOL_NAME}-ar" \
+AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XTOOL_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XTOOL_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XTOOL_NAME}-nm" \
+OBJCOPY="${CONFIG_XTOOL_NAME}-objcopy" \
+RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
+SIZE="${CONFIG_XTOOL_NAME}-size" \
+STRIP="${CONFIG_XTOOL_NAME}-strip" \
 CFLAGS="${CONFIG_CFLAGS} -DLTC_NO_BSWAP"
 ./configure \
 	--build=${MACHTYPE} \
-	--host=${CONFIG_XBT_NAME} \
+	--host=${CONFIG_XTOOL_NAME} \
 	--prefix=/usr \
 	--enable-shadow \
 	--disable-pam \
@@ -106,9 +106,9 @@ PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XBT_DIR}:${PATH}" make --jobs=${NJOBS} \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make --jobs=${NJOBS} \
 	ARFLAGS="rv" \
-	CROSS_COMPILE=${CONFIG_XBT_NAME}- \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" \
 	MULTI=1 \
 	SCPPROGRESS=1 || return 1

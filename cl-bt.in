@@ -133,6 +133,15 @@ help:
 	@echo "pkglist    - make list of source packages using the config file"
 	@echo "dload      - download source packages"
 	@echo ""
+	@echo "Build Targets:"
+	@echo "init   - initialize for building from the build config file"
+	@echo "clean  - remove the entire build"
+	@echo "kclean - remove the kernel build"
+	@echo "pclean - remove the packages build"
+	@echo "pkgs   - build the packages listed in the build config file"
+	@echo "pkgs_  - continue building the packages"
+	@echo "kernel - build the target kernel"
+	@echo ""
 
 # -----------------------------------------------------------------------------
 # -- Build Tool System Targets
@@ -408,7 +417,7 @@ init:	.bt-init crosslinux-config.sh $(libdir)/scripts/bld-init.sh
 			(site/bld-init-1.sh $${mystat});		\
 		fi							\
 	fi;								\
-	if [[ $$mystat != 0 ]]; then					\
+	if [[ $${mystat} != 0 ]]; then					\
 		echo "E> Initialize FAILED.";				\
 		exit 1;							\
 	fi;								\
@@ -433,7 +442,7 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-clean.sh
 			(site/bld-clean-1.sh ${CMD_PARAM});		\
 		fi							\
 	fi;								\
-	if [[ $$mystat != 0 ]]; then					\
+	if [[ $${mystat} != 0 ]]; then					\
 		echo "Clean FAILED.";					\
 		exit 1;							\
 	fi
@@ -477,7 +486,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 			(site/bld-pkgs-1.sh $${mystat});		\
 		fi							\
 	fi;								\
-	if [[ $$mystat != 0 ]]; then					\
+	if [[ $${mystat} != 0 ]]; then					\
 		echo "E> Build FAILED.";				\
 		exit 1;							\
 	fi
@@ -489,6 +498,37 @@ pkgs_:
 		exit 1;							\
 	fi
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
+
+kernel:	ok_to_build $(libdir)/scripts/bld-kernel.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make the ttylinux kernel for:";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm -f var/run/kernel;						\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-kernel-0.sh ]]; then			\
+			(site/bld-kernel-0.sh);				\
+		fi							\
+	fi;								\
+	$(libdir)/scripts/bld-kernel.sh;				\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-kernel-1.sh ]]; then			\
+			(site/bld-kernel-1.sh $${mystat});		\
+		fi							\
+	fi;								\
+	if [[ $${mystat} != 0 ]]; then					\
+		echo "Kernel FAILED.";					\
+		exit 1;							\
+	fi
+	@>var/run/kernel
 
 
 # end of Makefile

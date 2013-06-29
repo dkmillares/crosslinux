@@ -69,7 +69,7 @@ return 0
 
 pkg_install() {
 
-local    srcdir="${CONFIG_XBT_SYSROOT_DIR}"
+local    srcdir="${CONFIG_XTOOL_SYSROOT_DIR}"
 local    srcname=""
 local    dstfile=""
 local    dstpath=""
@@ -125,7 +125,7 @@ CL_logcom "=> /${tf}"
 rm --force "${TARGET_SYSROOT_DIR}/${bf}"
 rm --force "${TARGET_SYSROOT_DIR}/${tf}"
 echo "${MACHTYPE}"        >"${TARGET_SYSROOT_DIR}/${bf}"
-echo "${CONFIG_XBT_NAME}" >"${TARGET_SYSROOT_DIR}/${tf}"
+echo "${CONFIG_XTOOL_NAME}" >"${TARGET_SYSROOT_DIR}/${tf}"
 
 PKG_STATUS=""
 return 0

@@ -65,11 +65,14 @@ CL_config_setup || exit 1
 if [[ $# -gt 0 ]]; then
 	[[ x"$1" == x"build" || x"$1" == x"kernel" ]] && {
 		echo "=> Removing kernel modules package, if any."
-		rm --force --recursive ${TARGET_BUILD_DIR}/kpkgs/*
+		rm --force --recursive "${TARGET_BUILD_DIR}/kpkgs/"*
 		echo "=> Removing kernel and module tree, if any."
-		rm --force --recursive ${TARGET_BUILD_DIR}/kroot/*
+		rm --force --recursive "${TARGET_BUILD_DIR}/kroot/"*
+		echo "=> Removing kernel source tree, if any."
+		rm --force --recursive "${TARGET_BUILD_DIR}/linux-"*
+		echo "=> Removing kernel build log, if any."
 		for _file in ${TARGET_VAR_DIR}/log/*; do
-			if [[ $(basename ${_file}) =~ "^linux-" ]]; then
+			if [[ ${_file##*/} =~ ^linux- ]]; then
 				rm --force ${_file}
 			fi
 		done
@@ -90,7 +93,7 @@ if [[ $# -gt 0 ]]; then
 		rm --force --recursive ${TARGET_PKGBIN_DIR}/*
 		echo "   -> Removing var/log/ build logs."
 		for _file in ${TARGET_VAR_DIR}/log/*; do
-			if [[ $(basename ${_file}) =~ "^linux-" ]]; then
+			if [[ ${_file##*/} =~ ^linux- ]]; then
 				:
 			else
 				rm --force ${_file}

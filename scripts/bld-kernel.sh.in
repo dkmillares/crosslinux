@@ -1,0 +1,531 @@
+#!@@CL_BASH@@
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script builds the crosslinux target kernel.
+#
+# CHANGE LOG
+#
+#      2013-06-22  drj  Adapted to crosslinux from the ttylinux build system.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+#                                                                             #
+# F I L T E R E D   C O N S T A N T S                                         #
+#                                                                             #
+# *************************************************************************** #
+
+cl_libdir="@@CL_LIBDIR@@"
+
+
+# *************************************************************************** #
+#                                                                             #
+# F U N C T I O N S                                                           #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Find the Linux kernel source package.
+# *****************************************************************************
+
+# This function sets:
+#      K_KERNEL_SOURCE_PATH ... rooted dirname
+#      K_KERNEL_SOURCE_NAME ... like "linux-2.6.32.60"
+#      K_KERNEL_SOURCE_EXTN ... like ".tar.xz"
+#      K_KERNEL_CONFIG ........ rooted pathname
+#
+# There is no I/O redirect to a log file.  On error, print a message and
+# 'exit 1'.
+
+kernel_src_find() {
+
+local siteKernel="no"
+local siteConfig="no"
+
+# Look for the Linux kernel source package.
+#
+if [[ x"${CONFIG_SITE_KERNEL:-}" == x"y" ]]; then
+	K_KERNEL_SOURCE_PATH="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_PNAME}"
+	siteKernel="yes"
+else
+	_target_source="${CONFIG_XTOOL_TARGET_MANIFEST_DIR}"
+	while read idstr fname url; do
+		if [[ x"${idstr}" == x"linux" ]]; then
+			K_KERNEL_SOURCE_PATH="${_target_source}/${fname}"
+		fi
+	done <"${_target_source}/manifest.txt"
+fi
+
+# Bail if kernel pathname not found.
+#
+if [[ -z "${K_KERNEL_SOURCE_PATH}" ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
+	echo    "E> No kernel source package name."
+	echo    "   => looking for site kernel: ${siteKernel}"
+	exit 1 # Bust out of shell.
+fi
+
+# Set the variables: path, filename without extension, filename extension.
+#
+K_KERNEL_SOURCE_NAME="${K_KERNEL_SOURCE_PATH##*/}"
+K_KERNEL_SOURCE_PATH="${K_KERNEL_SOURCE_PATH%/*}"
+_ext=""
+if   [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tgz$      ]]; then _ext=".tgz";
+elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.gz$  ]]; then _ext=".tar.gz";
+elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tbz$      ]]; then _ext=".tbz";
+elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.bz2$ ]]; then _ext=".tar.bz2";
+elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.xz$  ]]; then _ext=".tar.xz";
+fi
+K_KERNEL_SOURCE_NAME="${BASH_REMATCH[1]}"
+K_KERNEL_SOURCE_EXTN="${_ext}"
+unset _ext
+
+# Figure the kernel configuration file pathname.
+#
+if [[ x"${CONFIG_SITE_KERNEL_CFG:-}" == x"y" ]]; then
+	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${SITE_KERNEL_CFG_PNAME}"
+else
+	K_KERNEL_CONFIG="${CROSSLINUX_BOARDC_DIR}/${K_KERNEL_SOURCE_NAME}.cfg"
+fi
+
+# Bail if kernel configuration file name not found.
+#
+if [[ -z "${K_KERNEL_CONFIG}" ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
+	echo    "E> No kernel configuration file name."
+	exit 1 # Bust out of shell.
+fi
+
+# Bail if kernel source package not found.
+#
+_kfile="${K_KERNEL_SOURCE_PATH}/${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}"
+if [[ ! -f "${_kfile}" ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
+	echo    "E> No kernel source package."
+	echo    "   => looking for site kernel: ${siteKernel}"
+	exit 1 # Bust out of shell.
+fi
+unset _kfile
+
+# Bail if kernel configuration file name not found.
+#
+if [[ ! -f "${K_KERNEL_CONFIG}" ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
+	echo    "E> No kernel configuration file."
+	exit 1 # Bust out of shell.
+fi
+
+}
+
+
+# *****************************************************************************
+# Get the kernel source tree and configuration file.
+# *****************************************************************************
+
+kernel_src_get() {
+
+echo -n "g." >&${CONSOLE_FD}
+
+CL_logcom ""
+CL_logcom "Linux kernel:"
+CL_logcom "file => ${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}"
+CL_logcom "from => ${K_KERNEL_SOURCE_PATH}"
+CL_logcom ""
+
+CL_logcom ""
+CL_logcom "Kernel Config:"
+CL_logcom "=> ${K_KERNEL_CONFIG}"
+CL_logcom ""
+
+# Cleanup any previous left-over build results.
+#
+rm --force --recursive "${K_KERNEL_SOURCE_NAME}/"
+rm --force --recursive "linux/"
+
+# Uncompress, untarr then remove ${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}
+# and put ${K_KERNEL_CONFIG} in place.
+#
+_unz=""
+if   [[ "${K_KERNEL_SOURCE_EXTN}" == ".tgz"     ]]; then _unz="gunzip";
+elif [[ "${K_KERNEL_SOURCE_EXTN}" == ".tar.gz"  ]]; then _unz="gunzip";
+elif [[ "${K_KERNEL_SOURCE_EXTN}" == ".tbz"     ]]; then _unz="bunzip2";
+elif [[ "${K_KERNEL_SOURCE_EXTN}" == ".tar.bz2" ]]; then _unz="bunzip2";
+elif [[ "${K_KERNEL_SOURCE_EXTN}" == ".tar.xz"  ]]; then _unz="unxz";
+fi
+_ksrc="${K_KERNEL_SOURCE_PATH}/${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}"
+_file="${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}"
+CL_logcom ""
+CL_logcmd "cp ${_ksrc} ."
+CL_logcmd "${_unz} --force ${_file}"
+CL_logcmd "tar --extract --file=${K_KERNEL_SOURCE_NAME}.tar"
+CL_logcmd "rm --force ${K_KERNEL_SOURCE_NAME}.tar"
+CL_logcmd "cp ${K_KERNEL_CONFIG} ${K_KERNEL_SOURCE_NAME}/.config"
+CL_logcom ""
+unset _ksrc
+unset _file
+
+}
+
+
+# *****************************************************************************
+# Build the kernel from source and make a binary package.
+# *****************************************************************************
+
+kernel_xbuild() {
+
+echo -n "b." >&${CONSOLE_FD}
+
+local bitch=""
+local NJOBS=""
+local target=""
+
+# Figure the number of parallel jobs to give to make.
+#
+bitch=${K_NCPU:-1}
+[[ -z "${bitch//[0-9]}" ]] && NJOBS=$((${bitch:-1} + 1)) || NJOBS=2
+unset _bitch
+[[ x"${CONFIG_PARALLEL_JOBS:-}" == x"y" ]] || NJOBS=1
+
+# Set the right kernel make target.
+case "${CONFIG_LINUX_ARCH}" in
+	arm)     target="uImage"  ;;
+	powerpc) target="zImage"  ;;
+	i386)    target="bzImage" ;;
+	x86_64)  target="bzImage" ;;
+	mips)    target="vmlinux" ;;
+esac
+
+cd "${K_KERNEL_SOURCE_NAME}"
+
+_modules=$(set +u; source ".config"; echo "${CONFIG_MODULES}")
+[[ x"${_modules}" == x"y" ]] && K_KERNEL_MODULES="yes"
+unset _modules
+if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
+	CL_logcom ""
+	CL_logcom "This kernel configuration has modules."
+	CL_logcom ""
+else
+	CL_logcom ""
+	CL_logcom "This kernel configuration has NO modules."
+	CL_logcom ""
+fi
+
+# Do the kernel cross-building.  If this kernel has modules then build them.
+# Leave the kernel, system map and any kernel modules in place; get them
+# later.
+#
+if [[ "${target}" == "uImage" ]]; then
+	# This is the BeagleBone target; add the uboot build directory that has
+	# the mkimage program, and add the device tree to the build target.
+	_xtraPath="${CROSSLINUX_LOADER_DIR}"
+	target="uImage dtbs"
+else
+	_xtraPath=""
+fi
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+_cmd="PATH=\"${_xtraPath}:${CONFIG_XTOOL_BIN_DIR}:${PATH}\" \
+make -j ${NJOBS} ${target} \
+	V=1 \
+	ARCH=${CONFIG_LINUX_ARCH} \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}-"
+CL_logcom ""
+CL_logcmd "${_cmd}"
+CL_logcom ""
+unset _cmd
+if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
+	_cmd="PATH=\"${CONFIG_XTOOL_BIN_DIR}:${PATH}\" \
+	make -j ${NJOBS} modules \
+		V=1 \
+		ARCH=${CONFIG_LINUX_ARCH} \
+		CROSS_COMPILE=${CONFIG_XTOOL_NAME}-"
+	CL_logcom ""
+	CL_logcmd "${_cmd}"
+	CL_logcom ""
+	unset _cmd
+fi
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+unset _xtraPath
+
+cd ..
+
+return 0
+
+}
+
+
+# *****************************************************************************
+# Collect the built kernel into an as-built packge.
+# *****************************************************************************
+
+kernel_collect() {
+
+echo -n "i.f." >&${CONSOLE_FD}
+
+local kver="${K_KERNEL_SOURCE_NAME##*-}"
+local vmlinuz=""
+local dtbfile=""
+local bitch=""
+local NJOBS=""
+
+# Setup kernel directories.
+#
+CL_logcmd "rm --force --recursive kroot"
+CL_logcmd "mkdir --parents kroot/boot"
+CL_logcmd "mkdir --parents kroot/boot"
+CL_logcmd "mkdir --parents kroot/etc"
+CL_logcmd "mkdir --parents kroot/lib"
+CL_logcmd "mkdir --parents kroot/lib/modules"
+
+# $ make vmlinux
+# $ mipsel-linux-strip vmlinux
+# $ echo "root=/dev/ram0 ramdisk_size=8192" >kernel.params
+# $ mipsel-linux-objcopy --add-section kernparm=kernel.params vmlinux
+# $ mipsel-linux-objcopy --add-section initrd=initrd.gz vmlinux
+
+vmlinuz="arch/${CONFIG_LINUX_ARCH}/boot/"
+case "${CONFIG_BOARD}" in
+	beagle_bone)	dtbfile="${vmlinuz}/dts/am335x-bone.dtb" ;
+			vmlinuz+="uImage"  ;;
+	mac_g4)		vmlinuz+="zImage"  ;;
+	*_i486)		vmlinuz+="bzImage" ;;
+	*_i686)		vmlinuz+="bzImage" ;;
+	*_x86_64)	vmlinuz+="bzImage" ;;
+	wrtu54g_tm)	vmlinuz="vmlinux"  ;;
+esac
+
+# Get the kernel and its system map.
+#
+_bDir="kroot/boot"
+_cmd1="cp \"${K_KERNEL_SOURCE_NAME}/System.map\" \"${_bDir}/System.map\""
+_cmd2="cp \"${K_KERNEL_SOURCE_NAME}/vmlinux\"    \"${_bDir}/vmlinux\""
+_cmd3="cp \"${K_KERNEL_SOURCE_NAME}/${vmlinuz}\" \"${_bDir}/${vmlinuz##*/}\""
+_cmd4="cp \"${K_KERNEL_SOURCE_NAME}/${dtbfile}\" \"${_bDir}/${dtbfile##*/}\""
+CL_logcmd "${_cmd1}"
+CL_logcmd "${_cmd2}"
+CL_logcmd "${_cmd3}"
+[[ -n "${dtbfile}" ]] && CL_logcmd "${_cmd4}" || true
+unset _cmd1
+unset _cmd2
+unset _cmd3
+unset _cmd4
+unset _bDir
+
+if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
+
+	# Figure the number of parallel jobs to give to make.
+	#
+	bitch=${K_NCPU:-1}
+	[[ -z "${bitch//[0-9]}" ]] && NJOBS=$((${bitch:-1} + 1)) || NJOBS=2
+	unset _bitch
+	[[ x"${CONFIG_PARALLEL_JOBS:-}" == x"y" ]] || NJOBS=1
+
+	_bDir="${TARGET_BUILD_DIR}/kroot"
+	_pDir="${TARGET_BUILD_DIR}/kpkgs"
+
+	# Install the kernel modules into ${TTYLINUX_BUILD_DIR}/kroot
+	#
+	CL_logcom "Install the kernel modules into:"
+	CL_logcom "=> ${_bDir}"
+	cd "${K_KERNEL_SOURCE_NAME}"
+	source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+	_cmd="PATH=\"${CONFIG_XTOOL_BIN_DIR}:${PATH}\" \
+	make -j ${NJOBS} modules_install \
+		V=1 \
+		ARCH=${CONFIG_LINUX_ARCH} \
+		CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
+		INSTALL_MOD_PATH=${_bDir}"
+	CL_logcom ""
+	CL_logcmd"${_cmd}"
+	CL_logcom ""
+	unset _cmd
+	source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+	cd ..
+
+	# Scrub the modules directory.
+	#
+	CL_logcom "Scrub the modules directory; remove these:"
+	CL_logcom "=> ${_bDir}/lib/modules/${kver}/build"
+	CL_logcom "=> ${_bDir}/lib/modules/${kver}/source"
+	rm --force "${_bDir}/lib/modules/${kver}/build"
+	rm --force "${_bDir}/lib/modules/${kver}/source"
+
+	# Make the kernel modules binary package in ${TTYLINUX_BUILD_DIR}/kpkgs
+	#
+	_uTarBall="${_pDir}/kmodules-${kver}-${CONFIG_CPU_ARCH}.tar"
+	_cTarBall="${_pDir}/kmodules-${kver}-${CONFIG_CPU_ARCH}.tbz"
+	_cmd1="tar --directory ${_bDir} --create --file=\"${_uTarBall}\" lib"
+	_cmd2="bzip2 --force \"${_uTarBall}\""
+	_cmd3="mv --force \"${_uTarBall}.bz2\" \"${_cTarBall}\""
+	_cmd4="cp \"${_cTarBall}\" \"${TARGET_PKGBIN_DIR}\""
+	CL_logcmd "${_cmd1}"
+	CL_logcmd "${_cmd2}"
+	CL_logcmd "${_cmd3}"
+	CL_logcmd "${_cmd4}"
+	unset _cmd1
+	unset _cmd2
+	unset _cmd3
+	unset _cmd4
+	unset _uTarBall
+	unset _cTarBall
+
+        unset _bDir
+        unset _pDir
+
+fi
+
+return 0
+
+}
+
+
+# *****************************************************************************
+# Clean stuffs.
+# *****************************************************************************
+
+kernel_clean() {
+
+echo -n "c" >&${CONSOLE_FD}
+
+CL_logcom "Removing build directory ${K_KERNEL_SOURCE_NAME}"
+rm --force --recursive "${K_KERNEL_SOURCE_NAME}/"
+rm --force --recursive "linux/"
+
+return 0
+
+}
+
+
+# *************************************************************************** #
+#                                                                             #
+# M A I N   P R O G R A M                                                     #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Set up the shell functions and environment variables.
+# *****************************************************************************
+
+declare K_KERNEL_SOURCE_PATH="" # rooted dirname
+declare K_KERNEL_SOURCE_NAME="" # like "linux-2.6.32.60"
+declare K_KERNEL_SOURCE_EXTN="" # like ".tar.xz"
+declare K_KERNEL_CONFIG=""      # rooted pathname
+declare K_KERNEL_MODULES="no"
+
+source ./crosslinux-config.sh # target build configuration
+source ${cl_libdir}/scripts/_constants.sh # build support
+source ${cl_libdir}/scripts/_functions.sh # build support
+
+CL_config_setup || exit 1
+
+
+# *****************************************************************************
+# Main Program
+# *****************************************************************************
+
+echo ""
+echo "##### START cross-building the kernel"
+echo "g. - getting the kernel source and configuration"
+echo "b. - building the kernel"
+echo "i. - installing the kernel into the build directory"
+echo "f. - finding installed files"
+echo "c. - cleaning"
+echo ""
+
+# Find the kernel path, either from the site configuration given in the project
+# config file or from the cross-tool chain which should export it.  This shell
+# function is required to set K_KERNEL_SOURCE_PATH, K_KERNEL_SOURCE_NAME, and
+# K_KERNEL_SOURCE_EXTN.
+#
+kernel_src_find || exit 1
+
+pushd "${TARGET_BUILD_DIR}" >/dev/null 2>&1
+
+t1=${SECONDS}
+
+_msgstr="${CONFIG_CPU_ARCH} ${K_KERNEL_SOURCE_NAME} "
+echo -n "${_msgstr}";
+for ((i=(30-${#_msgstr}) ; i > 0 ; i--)); do echo -n "."; done
+echo -n " ";
+unset _msgstr
+
+exec 4>&1    # Save stdout at fd 4.
+CONSOLE_FD=4 #
+
+# Even with 'set +e' the trap handler will run if a command or shell function
+# returns non-zero, and in that case the trap handler also will run when the
+# subshell completes.  Set 'CL_exitOnSigErr' to zero to not let the trap
+# handler exit the shell when the subsell returns an error so the return value
+# can be checked and a message printed before exiting the shell; also don't
+# print the backtrace info because it did that in the subshell.
+#
+set +e ; # Let a build step fail without exiting this script.
+CL_infoOnSigErr=0
+CL_exitOnSigErr=0
+(
+# The subshell's 'CL_infoOnSigErr' needs to be set so the trap handler will
+# print a backtrace for the subshell, if a command or shell function returns
+# non-zero.
+CL_infoOnSigErr=1
+rm --force "${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
+kernel_src_get >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_xbuild  >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_collect >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_clean   >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+)
+if [[ $? -ne 0 ]]; then
+	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
+	echo "Check the build log file."
+	echo "=> ${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
+	exit 1
+fi
+
+exec >&4     # Set fd 1 back to stdout.
+CONSOLE_FD=1 #
+
+echo -n " ... DONE ["
+t2=${SECONDS}
+mins=$(((${t2}-${t1})/60))
+secs=$(((${t2}-${t1})%60))
+[[ ${#mins} -eq 1 ]] && echo -n " "; echo -n "${mins} minutes "
+[[ ${#secs} -eq 1 ]] && echo -n " "; echo    "${secs} seconds]"
+
+popd >/dev/null 2>&1
+
+echo "##### DONE cross-building the kernel"
+
+
+# *****************************************************************************
+# Exit with Status
+# *****************************************************************************
+
+exit 0
+
+
+# end of file

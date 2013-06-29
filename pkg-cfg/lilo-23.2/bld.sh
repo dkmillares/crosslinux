@@ -80,14 +80,14 @@ cd "${PKG_DIR}"
 [[ "$(uname -m)" == "x86_64" ]] && HOST_CC="gcc -m64"
 
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	BUILD_CC="${HOST_CC}" \
-	CC="${CONFIG_XBT_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+	CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
 	CONFIG="-DBDATA         -DDSECS=3    -DDEVMAPPER=\"\" -DEVMS  \
 		-DIGNORECASE    -DLVM        -DONE_SHOT       -DPASS160 \
 		-DREWRITE_TABLE -DSOLO_CHAIN -DVERSION" \
-	CROSS_COMPILE=${CONFIG_XBT_NAME}- \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	OPT="${CONFIG_CFLAGS}" \
 	all || return 1
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"

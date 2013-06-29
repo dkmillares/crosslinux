@@ -285,7 +285,7 @@ rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
 
 # Strip when possible.
 #
-_strip="${CONFIG_XBT_DIR}/${CONFIG_XBT_NAME}-strip"
+_strip="${CONFIG_XTOOL_BIN_DIR}/${CONFIG_XTOOL_NAME}-strip"
 if [[ x"${CONFIG_STRIP_BINS:-}" == x"y" ]]; then
 	CL_logcom "***** stripping"
 	for f in $(<FILES); do

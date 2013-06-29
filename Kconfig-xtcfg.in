@@ -1,6 +1,6 @@
 # vim: syntax=kconfig
 
-config XBT_NAME
+config XTOOL_NAME
 	string
 	default ""
 	prompt "Cross-tool Chain Name Prefix (Tuple)"
@@ -21,19 +21,29 @@ config XBT_NAME
 	  ***** NOTICE do NOT put a "-" on the end of the name; do NOT enter
 		something like "fubar-".
 
-config XBT_DIR
+config XTOOL_BIN_DIR
 	string
 	default ""
 	prompt "Path to Cross-tool Chain"
 	---help---
 	  This is the path to the cross-tool chain directory.
 
-config XBT_SYSROOT_DIR
+config XTOOL_SYSROOT_DIR
 	string
 	default ""
 	prompt "Path to Cross-tool Chain Sysroot"
 	---help---
 	  This is the path to the cross-tool chain sysroot directory.
+
+config XTOOL_TARGET_MANIFEST_DIR
+	string
+	default ""
+	prompt "Path to Cross-tool Chain Target Manifest"
+	---help---
+	  This is the path to the cross-tool chain directory that has the
+	  target components' source packages and text manifest file.  The
+	  source code packages for the Linux kernel and libc should be in
+	  this directory, along with any patches applies those.
 
 config DOWNLOAD_DIR
 	string
@@ -87,6 +97,19 @@ config SITE_KERNEL_CFG
 	---help---
 	  Select this to use the site Kernel configuration.
 
+config SITE_KERNEL_CFG_PNAME
+	string
+	default ""
+	depends on SITE_KERNEL_CFG
+	prompt "Location in site directory of kernel config"
+	---help---
+	  This is the path FROM THE SITE DIRECTORY to the kernel configuration
+	  file.
+
+	  For instances, if you want to use linux-3.8.1.config, and it is in a
+	  directory named "kernel" in the site directory, then enter
+	  "kernel/linux-3.8.1.config" here.
+
 config SITE_KERNEL
 	bool
 	default n
@@ -94,3 +117,20 @@ config SITE_KERNEL
 	default ""
 	---help---
 	  Select this to use the site Kernel tarball and configuration.
+
+config SITE_KERNEL_PNAME
+	string
+	default ""
+	depends on SITE_KERNEL
+	prompt "Location in site directory of the kernel"
+	---help---
+	  This is the path FROM THE SITE DIRECTORY to the kernel, including it
+	  complete starball name.
+
+	  For instances, if you want to use linux-3.8.1.tar.xz, and it is in a
+	  directory named "kernel" in the site directory, then enter
+	  "kernel/linux-3.8.1.tar.xz" here.
+
+config FORCE_SITE_KERNEL_CFG
+        def_bool y
+        select SITE_KERNEL_CFG if SITE_KERNEL

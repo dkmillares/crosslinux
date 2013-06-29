@@ -57,7 +57,7 @@ cl_libdir="@@CL_LIBDIR@@"
 # Function Arguments:
 #      $1 ... Package name, like "glibc-2.19".
 
-package_xbuild() {
+pkg_xbuild() {
 
 echo -n "g." >&${CONSOLE_FD}
 
@@ -252,8 +252,8 @@ for p in ${K_PACKAGE[@]}; do
 	for ((i=(30-${#p}) ; i > 0 ; i--)); do echo -n "."; done
 	echo -n " ";
 
-	exec 4>&1    # Save stdout at fd 4.
-	export CONSOLE_FD=4 #
+	exec 4>&1           # Save stdout at fd 4.
+	export CONSOLE_FD=4 # Export for the subshell.
 
 	# Even with 'set +e' the trap handler will run if a command or shell
 	# function returns non-zero, and in that case the trap handler also
@@ -272,7 +272,7 @@ for p in ${K_PACKAGE[@]}; do
 	# function returns non-zero.
 	CL_infoOnSigErr=1
 	rm --force "${TARGET_VAR_DIR}/log/${p}.log"
-	package_xbuild "${p}"	>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
+	pkg_xbuild "${p}" >>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
 	fakeroot -- "${CROSSLINUX_SCRIPT_DIR}/bld-pkgs-install.sh" "${p}" \
 					>>"${TARGET_VAR_DIR}/log/${p}.log" 2>&1
 	pkg_clean

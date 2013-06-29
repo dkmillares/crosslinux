@@ -84,10 +84,10 @@ cp "${cfg}" .config
 
 PKG_STATUS="make error"
 CFLAGS="${CONFIG_CFLAGS} --sysroot=${TARGET_SYSROOT_DIR}" \
-PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	ARCH="${CONFIG_CPU_ARCH}" \
-	CROSS_COMPILE="${CONFIG_XBT_NAME}-" \
+	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
 	SKIP_STRIP=${SKIP_STRIP_FLAG} \
 	V=1 || return 1
@@ -105,10 +105,10 @@ cp "${cfg}" .config
 
 PKG_STATUS="make error"
 CFLAGS="${CONFIG_CFLAGS} --sysroot=${TARGET_SYSROOT_DIR}" \
-PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	ARCH="${CONFIG_CPU_ARCH}" \
-	CROSS_COMPILE="${CONFIG_XBT_NAME}-" \
+	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
 	SKIP_STRIP=${SKIP_STRIP_FLAG} \
 	V=1 || return 1
@@ -139,9 +139,9 @@ PKG_STATUS="make install error"
 # Change the location of awk.
 #
 CFLAGS="${CONFIG_CFLAGS}  --sysroot=${TARGET_SYSROOT_DIR}" \
-PATH="${CONFIG_XBT_DIR}:${PATH}" make \
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	ARCH="${CONFIG_CPU_ARCH}" \
-	CROSS_COMPILE="${CONFIG_XBT_NAME}-" \
+	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
 	install || return 1
 mv "${TARGET_SYSROOT_DIR}/usr/bin/awk" "${TARGET_SYSROOT_DIR}/bin/awk"
