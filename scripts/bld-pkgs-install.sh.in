@@ -197,7 +197,7 @@ fi
 #			NOTE -- Post-configuration patches might be applied.
 #
 #	pkg_make	This function builds the source package in place in the
-#			${TARGET_BUILD_DIR}/packages/ directory
+#			${TARGET_BUILD_DIR}/pkgs/ directory
 #
 #	pkg_install	This function installs any built items into the build
 #			root ${TARGET_SYSROOT_DIR}/ directory tree.
@@ -353,7 +353,7 @@ for f in $(<FILES); do
 #                               rm --force "${lFile}"
 #                               ln --force --symbolic "${mFile}.gz" "${lFile}"
 #                       fi
-#                       sed --in-place "${TARGET_BUILD_DIR}/packages/FILES" \
+#                       sed --in-place "${TARGET_BUILD_DIR}/pkgs/FILES" \
 #                               --expression="s|${mFile}$|${mFile}.gz|"
 #               fi
 #               popd >/dev/null 2>&1
@@ -456,11 +456,11 @@ source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
 
 CL_config_setup || {
-	cd "build/packages"
+	cd "build/pkgs"
 	exit 1
 }
 
-cd "build/packages"
+cd "build/pkgs"
 
 
 # *****************************************************************************
@@ -474,7 +474,7 @@ cd "build/packages"
 # This script is design to run in a particular context; it is expected to be
 # running under fakeroot and in the build/package/ directory; this script's job
 # is to complete the installation part of a package build process.  This means
-# the package build directory is in build/packages/ and has been built and is
+# the package build directory is in build/pkgs/ and has been built and is
 # waiting for 'make install'.
 #
 # Standard output, and stderr, are being directed to a log file and the

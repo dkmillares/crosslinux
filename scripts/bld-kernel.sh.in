@@ -51,6 +51,34 @@ cl_libdir="@@CL_LIBDIR@@"
 
 
 # *****************************************************************************
+# Cleanup any built and in-progress kernel build.
+# *****************************************************************************
+
+kernel_clean() {
+
+echo "=> Removing kernel modules package, if any."
+rm --force --recursive "${TARGET_BUILD_DIR}/kpkgs/"*
+
+echo "=> Removing kernel and module tree, if any."
+rm --force --recursive "${TARGET_BUILD_DIR}/kroot/"*
+
+echo "=> Removing kernel source tree, if any."
+rm --force --recursive "${TARGET_BUILD_DIR}/linux-"*
+
+echo "=> Removing kernel build log, if any."
+for _file in ${TARGET_VAR_DIR}/log/*; do
+	[[ ! -f "${_file}" ]] && continue || true
+	if [[ ${_file##*/} =~ ^linux- ]]; then
+		echo "   -> ${_file##*/}."
+		rm --force ${_file}
+	fi
+done
+unset _file
+
+}
+
+
+# *****************************************************************************
 # Find the Linux kernel source package.
 # *****************************************************************************
 
@@ -408,7 +436,7 @@ return 0
 # Clean stuffs.
 # *****************************************************************************
 
-kernel_clean() {
+kernel_cleanup() {
 
 echo -n "c" >&${CONSOLE_FD}
 
@@ -448,6 +476,21 @@ CL_config_setup || exit 1
 # *****************************************************************************
 # Main Program
 # *****************************************************************************
+
+# Check for a script argument:
+#
+# $1 == "clean" ...... This means to clean any kernel build artifacts and any
+#                      in-progress kernel build artifacts, maybe leftover from
+#                      kernel build problem.
+
+if [[ $# -gt 0 && -n "$1" ]]; then
+	# "$1" may be unbound so hide it in this if statement.
+	# Clean if so asked.
+	if [[ "$1" == "clean" ]]; then
+		kernel_clean
+		exit 0
+	fi
+fi
 
 echo ""
 echo "##### START cross-building the kernel"
@@ -497,7 +540,7 @@ rm --force "${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
 kernel_src_get >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
 kernel_xbuild  >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
 kernel_collect >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
-kernel_clean   >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_cleanup >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
 )
 if [[ $? -ne 0 ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"

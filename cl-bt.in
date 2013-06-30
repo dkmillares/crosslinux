@@ -134,7 +134,6 @@ help:
 	@echo "dload      - download source packages"
 	@echo ""
 	@echo "Build Targets:"
-	@echo "init   - initialize for building from the build config file"
 	@echo "clean  - remove the entire build"
 	@echo "kclean - remove the kernel build"
 	@echo "pclean - remove the packages build"
@@ -345,14 +344,7 @@ dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
 # -- Build Status Support
 # -----------------------------------------------------------------------------
 
-.PHONY:	check_init ok_to_build
-
-var/run/init:
-	@if [[ ! -f var/run/init ]]; then				\
-		echo "E> Not initialized for building.";		\
-		echo "=> Maybe '${PROGRAM_NAME} init' first.";		\
-		exit 1;							\
-	fi
+.PHONY:	ok_to_build
 
 var/run/packages:
 	@if [[ ! -f var/run/packages ]]; then				\
@@ -360,25 +352,16 @@ var/run/packages:
 		exit 1;							\
 	fi
 
-check_init:
-	@if [[ -f .bt-init ]]; then					\
-		if [[ ! -f var/run/init ]]; then			\
-			(${PROGRAM_NAME} init);				\
-		fi;							\
-	else								\
-		echo "E> Not initialized for building.";		\
-		echo "=> Maybe '${PROGRAM_NAME} bt-init' first.";	\
+var/run/kernel:
+	@if [[ ! -f var/run/kernel ]]; then				\
+		echo "E> The kernel is not built.";			\
 		exit 1;							\
 	fi
 
-ok_to_build:	check_init crosslinux-config.sh
-	@source ./crosslinux-config.sh;					\
-	t=`cat var/run/init`;						\
-	if [[ x"$${t}" != x"$${CONFIG_BOARD}" ]]; then			\
-		echo "E> Build already in progress for \"$${t}\".";	\
-		echo "E> Build MISMATCH.";				\
-		echo "=> Did you change crosslinux-config.sh?";		\
-		echo "=> Maybe '${PROGRAM_NAME} clean' first.";		\
+ok_to_build:	crosslinux-config.sh
+	@if [[ ! -f .bt-init ]]; then					\
+		echo "E> Not initialized for building.";		\
+		echo "=> Maybe '${PROGRAM_NAME} bt-init' first.";	\
 		exit 1;							\
 	fi
 
@@ -386,57 +369,28 @@ ok_to_build:	check_init crosslinux-config.sh
 # -- Build Targets
 # -----------------------------------------------------------------------------
 
-.PHONY:	init _clean clean kclean pclean pkgs pkgs_
+.PHONY:	_clean clean kclean pclean pkgs pkgs_ kernel
 
-init:	.bt-init crosslinux-config.sh $(libdir)/scripts/bld-init.sh
-	@if [[ `id -u` -eq 0 ]]; then					\
-		echo "E> Do not do this as root";			\
-		exit 1;							\
-	fi
-	@if [[ -f var/run/init ]]; then					\
-		echo "E> Already building for `cat var/run/init`";	\
-		echo "=> Maybe '${PROGRAM_NAME} clean' first.";		\
-		exit 1;							\
-	fi
-	@source ./crosslinux-config.sh;					\
-	echo "i> Initialize building for:";				\
-	sysName="'$${CONFIG_BRAND_NAME}' ";				\
-	sysName+="$${CONFIG_RELEASE_VERS} ";				\
-	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
-	echo "=> $${sysName}";						\
-	echo "=> $${CONFIG_BOARD}";					\
-	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-init-0.sh ]]; then			\
-			(site/bld-init-0.sh);				\
-		fi							\
-	fi;								\
-	($(libdir)/scripts/bld-init.sh);				\
-	mystat=$$?;							\
-	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-init-1.sh ]]; then			\
-			(site/bld-init-1.sh $${mystat});		\
-		fi							\
-	fi;								\
-	if [[ $${mystat} != 0 ]]; then					\
-		echo "E> Initialize FAILED.";				\
-		exit 1;							\
-	fi;								\
-	echo "$${CONFIG_BOARD}" >var/run/init
-
-_clean:	crosslinux-config.sh $(libdir)/scripts/bld-clean.sh
-	@if [[ -f var/run/init ]]; then					\
-		echo "Remove the `cat var/run/init` ${CMD_PARAM}.";	\
-	else								\
-		echo "Remove the ${CMD_PARAM}.";			\
-	fi
+_clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/bld-pkgs.sh
 	@source ./crosslinux-config.sh;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-0.sh ]]; then			\
 			(site/bld-clean-0.sh ${CMD_PARAM});		\
 		fi							\
 	fi;								\
-	($(libdir)/scripts/bld-clean.sh ${CMD_PARAM});			\
-	mystat=$$?;							\
+	declare -i mystat=0;						\
+	if [[	x"${CMD_PARAM}" == x"build" ||				\
+		x"${CMD_PARAM}" == x"kernel" ]];			\
+	then								\
+		($(libdir)/scripts/bld-kernel.sh clean);		\
+		mystat=$$(($${mystat} + $$?));				\
+	fi;								\
+	if [[	x"${CMD_PARAM}" == x"build" ||				\
+		x"${CMD_PARAM}" == x"packages" ]];			\
+	then								\
+		($(libdir)/scripts/bld-pkgs.sh clean);			\
+		mystat=$$(($${mystat} + $$?));				\
+	fi;								\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-1.sh ]]; then			\
 			(site/bld-clean-1.sh ${CMD_PARAM});		\
@@ -446,7 +400,6 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-clean.sh
 		echo "Clean FAILED.";					\
 		exit 1;							\
 	fi
-	@[[ x"${CMD_PARAM}" == x"build" ]] && rm --force var/run/init || true
 	@rm --force var/run/${CMD_PARAM}
 	@rm --force var/run/fsys
 	@rm --force var/run/distdir
