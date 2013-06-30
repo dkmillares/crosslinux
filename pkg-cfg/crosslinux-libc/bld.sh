@@ -69,7 +69,7 @@ return 0
 
 pkg_install() {
 
-local    srcdir="${CONFIG_XTOOL_SYSROOT_DIR}"
+local    srcdir=""
 local    srcname=""
 local    dstfile=""
 local    dstpath=""
@@ -78,6 +78,8 @@ local -i pitchit=0
 PKG_STATUS="install error"
 
 CL_logcom "Copying cross-tool target components to sysroot."
+
+srcdir=$("${CONFIG_XTOOL_BIN_DIR}/${CONFIG_XTOOL_NAME}-cc" -print-sysroot)
 
 # What a pain.  I want this:
 # cp --no-dereference --recursive "${srcdir}"/* "${TARGET_SYSROOT_DIR}"

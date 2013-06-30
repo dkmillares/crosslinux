@@ -77,6 +77,9 @@ source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 cd "${PKG_DIR}"
 
 cfg="${cfgDir}/_bbox-stnd.cfg"
+if [[ -f "site/pkg-cfg-$1/_bbox-stnd.cfg" ]]; then
+	cfg="site/pkg-cfg-$1/_bbox-stnd.cfg"
+fi
 if [[ x"${CONFIG_BUSYBOX_HAS_LOSETUP:-}" == x"" ]]; then
 	sed -i ${cfg} -e 's/CONFIG_LOSETUP=y/# CONFIG_LOSETUP is not set/'
 fi
@@ -101,6 +104,9 @@ cd ".."
 cd "${PKG_DIR}-suid"
 
 cfg="${cfgDir}/_bbox-suid.cfg"
+if [[ -f "site/pkg-cfg-$1/_bbox-suid.cfg" ]]; then
+	cfg="site/pkg-cfg-$1/_bbox-suid.cfg"
+fi
 cp "${cfg}" .config
 
 PKG_STATUS="make error"

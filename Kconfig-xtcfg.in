@@ -28,13 +28,6 @@ config XTOOL_BIN_DIR
 	---help---
 	  This is the path to the cross-tool chain directory.
 
-config XTOOL_SYSROOT_DIR
-	string
-	default ""
-	prompt "Path to Cross-tool Chain Sysroot"
-	---help---
-	  This is the path to the cross-tool chain sysroot directory.
-
 config XTOOL_TARGET_MANIFEST_DIR
 	string
 	default ""
@@ -81,13 +74,6 @@ config SITE_SCRIPTS
 	prompt "Site Scripts"
 	---help---
 	  Run the site scripts during the build process.
-
-config SITE_BUSYBOX_CFG
-	bool
-	default n
-	prompt "Site BusyBox Configuration"
-	---help---
-	  Select this to use the site BusyBox configuration.
 
 config SITE_KERNEL_CFG
 	bool
