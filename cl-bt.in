@@ -95,7 +95,7 @@ CMD_PARAM=""
 #
 SHELL=@@CL_BASH@@
 
-BLD_DIRS=build/{kpkgs,kroot,pkgs} img mnt pkg{-bin,-src} sysroot var/{log,run}
+BLD_DIRS=build/{loader,kpkgs,kroot,pkgs} img mnt pkg{-bin,-src} sysroot var/{log,run}
 
 # GREP_OPTIONS=--color=always breaks the generated .in files, so clear it.
 #
@@ -346,6 +346,12 @@ dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
 
 .PHONY:	ok_to_build
 
+var/run/loader:
+	@if [[ ! -f var/run/loader ]]; then				\
+		echo "E> The loader is not built.";			\
+		exit 1;							\
+	fi
+
 var/run/packages:
 	@if [[ ! -f var/run/packages ]]; then				\
 		echo "E> Packages are not all built.";			\
@@ -369,7 +375,7 @@ ok_to_build:	crosslinux-config.sh
 # -- Build Targets
 # -----------------------------------------------------------------------------
 
-.PHONY:	_clean clean kclean pclean pkgs pkgs_ kernel
+.PHONY:	_clean clean lclean kclean pclean loader pkgs pkgs_ kernel
 
 _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/bld-pkgs.sh
 	@source ./crosslinux-config.sh;					\
@@ -379,6 +385,12 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 		fi							\
 	fi;								\
 	declare -i mystat=0;						\
+	if [[	x"${CMD_PARAM}" == x"build" ||				\
+		x"${CMD_PARAM}" == x"loader" ]];			\
+	then								\
+		($(libdir)/scripts/bld-loader.sh clean);		\
+		mystat=$$(($${mystat} + $$?));				\
+	fi;								\
 	if [[	x"${CMD_PARAM}" == x"build" ||				\
 		x"${CMD_PARAM}" == x"kernel" ]];			\
 	then								\
@@ -408,11 +420,45 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 clean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=build
 
+lclean:
+	@${PROGRAM_NAME} _clean CMD_PARAM=loader
+
 kclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=kernel
 
 pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
+
+loader:	ok_to_build $(libdir)/scripts/bld-loader.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make the crosslinux loader for:";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm --force var/run/loader;					\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-loader-0.sh ]]; then			\
+			(site/bld-loader-0.sh);				\
+		fi							\
+	fi;								\
+	($(libdir)/scripts/bld-loader.sh);				\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-loader-1.sh ]]; then			\
+			(site/bld-loader-1.sh $${mystat});		\
+		fi							\
+	fi;								\
+	if [[ $${mystat} != 0 ]]; then					\
+		echo "E> Build loader FAILED.";				\
+		exit 1;							\
+	fi
+	@>var/run/loader
 
 pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
@@ -440,7 +486,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
-		echo "E> Build FAILED.";				\
+		echo "E> Build packages FAILED.";			\
 		exit 1;							\
 	fi
 	@>var/run/packages
@@ -452,7 +498,7 @@ pkgs_:
 	fi
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
 
-kernel:	ok_to_build $(libdir)/scripts/bld-kernel.sh
+kernel:	ok_to_build var/run/loader $(libdir)/scripts/bld-kernel.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
 		echo "E> Do not do this as root";			\
 		exit 1;							\

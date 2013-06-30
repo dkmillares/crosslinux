@@ -316,7 +316,7 @@ install-bin:	$(bindir)
 	@echo "INST  setenv.sh"
 	@$(install) -m 755 setenv.sh "$(bindir)/setenv.sh"
 
-LIB_SUB_DIR := boards pkg-cfg scripts
+LIB_SUB_DIR := boards loaders pkg-cfg scripts
 install-lib:	$(libdir)
 	@for kconfig_file in $(KCONFIG_FILES); do			\
 		echo "INST  $${kconfig_file}";				\

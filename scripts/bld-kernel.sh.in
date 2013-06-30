@@ -548,6 +548,9 @@ if [[ $? -ne 0 ]]; then
 	echo "=> ${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
 	exit 1
 fi
+set -e ; # All done with build steps; enable exit on a non-zero status.
+CL_infoOnSigErr=1
+CL_exitOnSigErr=1
 
 exec >&4     # Set fd 1 back to stdout.
 CONSOLE_FD=1 #

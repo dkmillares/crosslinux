@@ -1,0 +1,107 @@
+#!@@CL_BASH@@
+
+
+# This file is part of the crosslinux software.
+# The license which this software falls under is GPLv2 as follows:
+#
+# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+# Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+# *****************************************************************************
+#
+# PROGRAM DESCRIPTION
+#
+#      This script builds the crosslinux loader.
+#
+# CHANGE LOG
+#
+#      2013-06-22  drj  Adapted to crosslinux from the ttylinux build system.
+#
+# *****************************************************************************
+
+
+# *************************************************************************** #
+#                                                                             #
+# F I L T E R E D   C O N S T A N T S                                         #
+#                                                                             #
+# *************************************************************************** #
+
+cl_libdir="@@CL_LIBDIR@@"
+
+
+# *************************************************************************** #
+#                                                                             #
+# M A I N   P R O G R A M                                                     #
+#                                                                             #
+# *************************************************************************** #
+
+
+# *****************************************************************************
+# Set up the shell functions and environment variables.
+# *****************************************************************************
+
+source ./crosslinux-config.sh # target build configuration
+source ${cl_libdir}/scripts/_constants.sh # build support
+source ${cl_libdir}/scripts/_functions.sh # build support
+
+CL_config_setup || exit 1
+
+
+# *****************************************************************************
+# Main Program
+# *****************************************************************************
+
+# Check for a script argument:
+#
+# $1 == "clean" ...... This means to clean any loader build artifacts and any
+#                      in-progress loader build artifacts, maybe leftover from
+#                      loader build problem.
+
+pushd "${TARGET_BUILD_DIR}/loader" >/dev/null 2>&1
+
+# Even with 'set +e' the trap handler will run if a command or shell function
+# returns non-zero, and in that case the trap handler also will run when the
+# subshell completes.  Set 'CL_exitOnSigErr' to zero to not let the trap
+# handler exit the shell when the subsell returns an error so the return value
+# can be checked and a message printed before exiting the shell; also don't
+# print the backtrace info because it did that in the subshell.
+#
+set +e ; # Let a build step fail without exiting this script.
+CL_infoOnSigErr=0
+CL_exitOnSigErr=0
+(
+# The subshell's 'CL_infoOnSigErr' needs to be set so the trap handler will
+# print a backtrace for the subshell, if a command or shell function returns
+# non-zero.
+CL_infoOnSigErr=1
+source "${CROSSLINUX_LOADER_DIR}/bld.sh" "${1:-}"
+)
+set -e ; # All done with build steps; enable exit on a non-zero status.
+CL_infoOnSigErr=1
+CL_exitOnSigErr=1
+
+popd >/dev/null 2>&1
+
+
+# *****************************************************************************
+# Exit with Status
+# *****************************************************************************
+
+exit 0
+
+
+# end of file
