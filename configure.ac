@@ -2,7 +2,7 @@
 # a Makefile.
 
 # Inspired by configure.ac from crosstool-NG
-# (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 # (C) 2013 crosstool-NG authors. See complete list at:
 #     http://crosstool-ng.org/hg/crosstool-ng/log/tip/configure.ac
 
@@ -55,7 +55,6 @@ if test x$enable_local = "xYES"; then enable_local=yes; fi
 
 ACX_PATH_PROG_REQ([bzip2],    [bzip2])
 ACX_PATH_PROG_REQ([gzip],     [gzip])
-ACX_PATH_PROG_REQ([fakeroot], [fakeroot])
 ACX_PATH_PROG_REQ([find],     [find])
 ACX_PATH_PROG_REQ([install],  [install])
 ACX_PATH_PROG_REQ([ln],       [ln])
@@ -66,7 +65,6 @@ ACX_PATH_PROG_REQ([wget],     [wget])
 ACX_PATH_PROG_REQ([xz],       [xz])
 
 AC_SUBST([BZIP2],    [$ac_cv_path_bzip2])
-AC_SUBST([FAKEROOT], [$ac_cv_path_fakeroot])
 AC_SUBST([FIND],     [$ac_cv_path_find])
 AC_SUBST([GZIP],     [$ac_cv_path_gzip])
 AC_SUBST([INSTALL],  [$ac_cv_path_install])
@@ -160,7 +158,6 @@ AC_SUBST([BASH], [$ac_cv_path_bash])
 # -----------------------------------------------------------------------------
 
 AC_CHECK_PROGS([genisoimage], [genisoimage])
-AC_CHECK_PROGS([as86],        [as86])
 
 # -----------------------------------------------------------------------------
 # Miscellaneous variables are handled here.

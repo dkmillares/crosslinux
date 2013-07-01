@@ -6,7 +6,7 @@
 # The license which this software falls under is GPLv2 as follows:
 #
 # Inspired by ct-ng.in from crosstool-NG
-# (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -95,9 +95,9 @@ CMD_PARAM=""
 #
 SHELL=@@CL_BASH@@
 
-BLD_DIRS=build/{loader,kpkgs,kroot,pkgs} img mnt pkg{-bin,-src} sysroot var/{log,run}
+BLDDIRS=build/{bld,log,run} dload mnt sysroot target/{image,kroot,loader,pkgbin}
 
-# GREP_OPTIONS=--color=always breaks the generated .in files, so clear it.
+# 'GREP_OPTIONS=--color=always' breaks the generated .in files, so clear it.
 #
 export GREP_OPTIONS=
 
@@ -114,7 +114,7 @@ export GREP_OPTIONS=
 help:
 	@echo "crosslinux-buildtool ${PROGRAM_NAME}-@@CL_VERSION@@"
 	@echo ""
-	@echo "Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>"
+	@echo "Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>"
 	@echo "This is free software; see the source for copying conditions."
 	@echo "There is NO warranty; not even for MERCHANTABILITY or FITNESS"
 	@echo "FOR A PARTICULAR PURPOSE."
@@ -151,18 +151,18 @@ help:
 .bt-init bt-init:
 	@echo "i> Initialize for building."
 	@echo "i> Making build directories."
-	@for d in $(BLD_DIRS); do					\
+	@for d in $(BLDDIRS); do					\
 		echo "=> making $${d}/";				\
 		mkdir --parents $${d};					\
 	done
-	mkdir --parents bin-link
+	@mkdir --mode=0700 bin-link/
 	@$(libdir)/scripts/bt-init.sh
-	@rm --force --recursive .bt-init
-	@date >>.bt-init
+	@rm --force .bt-init
+	@date >.bt-init
 
 bt-done:
 	@echo "i> Removing build directories."
-	@for d in $(BLD_DIRS); do					\
+	@for d in $(BLDDIRS); do					\
 		if [[ -d $${d%%/*} ]]; then				\
 			echo "=> removing $${d%%/*}/";			\
 			rm --force --recursive $${d%%/*};		\
@@ -194,11 +194,14 @@ bt-showcfg:
 	@echo "mandir: $(mandir)"
 	@echo ""
 
+bt-man:
+	man "$(mandir)/man1/cl-bt.1.gz"
+
 # -----------------------------------------------------------------------------
 # -- Housekeeping Targets
 # -----------------------------------------------------------------------------
 
-.PHONY: getcfg config menuconfig nconfig pkglist dload
+.PHONY: getcfg config menuconfig nconfig ldrlist pkglist dload
 
 getcfg:
 	@(								\
@@ -226,6 +229,7 @@ getcfg:
 	echo "";							\
 	echo "=> using $${bc}";						\
 	rm --force crosslinux-config.sh;				\
+	rm --force crosslinux-loader.txt;				\
 	rm --force crosslinux-pkglst.txt;				\
 	cp $(libdir)/boards/$${bc%-*}/$${bc} crosslinux-config.sh;      \
 	)
@@ -301,6 +305,37 @@ nconfig:
 	@chmod 666 crosslinux-config.sh
 	@ls --color -Fl crosslinux-config.sh
 
+crosslinux-loader.txt ldrlist: crosslinux-config.sh
+	@echo "i> Regenerating crosslinux-loader.txt:"
+	@(								\
+	rm --force .ldrlst;						\
+	$(grep) "^CONFIG_LOADER_" crosslinux-config.sh >.ldrlst;	\
+	$(sed) -i .ldrlst						\
+		-e "s/^CONFIG_LOADER_//"				\
+		-e "s/=y//"						\
+		-e "s/p/./g"						\
+		-e "s/_/-/g"						\
+		-e "s/\(.*\)/\L\1/g";					\
+	rm --force crosslinux-loader.txt;				\
+	>crosslinux-loader.txt;						\
+	for dir in $$(<.ldrlst); do					\
+		echo -n "$${dir} " >> crosslinux-loader.txt;		\
+		for ((i=35 ; $${i}>$${#dir} ; i--)); do			\
+			echo -n "." >>crosslinux-loader.txt;		\
+		done;							\
+		source $(libdir)/loaders/$${dir}/bld.sh;		\
+		echo -n " $${PKG_ZIP} " >>crosslinux-loader.txt;	\
+		for ((i=35 ; $${i}>$${#PKG_ZIP} ; i--)); do		\
+			echo -n "." >>crosslinux-loader.txt;		\
+		done;							\
+		echo -n " $${PKG_URL}" >>crosslinux-loader.txt;		\
+		echo "" >>crosslinux-loader.txt;			\
+	done;								\
+	rm --force .ldrlst;						\
+	)
+	@chmod 666 crosslinux-loader.txt
+	@ls --color -Fl crosslinux-loader.txt
+
 crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 	@echo "i> Regenerating crosslinux-pkglst.txt:"
 	@(								\
@@ -332,9 +367,17 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 	@chmod 666 crosslinux-pkglst.txt
 	@ls --color -Fl crosslinux-pkglst.txt
 
-dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
+dload:	crosslinux-loader.txt crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
+	@if [[ -z "$(PACKAGE)" ]]; then					\
+		echo "i> Download loader source package.";		\
+		($(libdir)/scripts/utl-dload.sh crosslinux-loader.txt);	\
+		if [[ $$? != 0 ]]; then					\
+			echo "E> Download FAILED.";			\
+			false;						\
+		fi							\
+	fi
 	@echo "i> Download source packages."
-	@($(libdir)/scripts/utl-dload.sh $(PACKAGE))
+	@($(libdir)/scripts/utl-dload.sh crosslinux-pkglst.txt $(PACKAGE))
 	@if [[ $$? != 0 ]]; then					\
 		echo "E> Download FAILED.";				\
 		false;							\
@@ -346,20 +389,20 @@ dload:	crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
 
 .PHONY:	ok_to_build
 
-var/run/loader:
-	@if [[ ! -f var/run/loader ]]; then				\
+build/run/loader:
+	@if [[ ! -f build/run/loader ]]; then				\
 		echo "E> The loader is not built.";			\
 		exit 1;							\
 	fi
 
-var/run/packages:
-	@if [[ ! -f var/run/packages ]]; then				\
+build/run/packages:
+	@if [[ ! -f build/run/packages ]]; then				\
 		echo "E> Packages are not all built.";			\
 		exit 1;							\
 	fi
 
-var/run/kernel:
-	@if [[ ! -f var/run/kernel ]]; then				\
+build/run/kernel:
+	@if [[ ! -f build/run/kernel ]]; then				\
 		echo "E> The kernel is not built.";			\
 		exit 1;							\
 	fi
@@ -412,10 +455,10 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 		echo "Clean FAILED.";					\
 		exit 1;							\
 	fi
-	@rm --force var/run/${CMD_PARAM}
-	@rm --force var/run/fsys
-	@rm --force var/run/distdir
-	@rm --force var/run/distimg
+	@rm --force build/run/${CMD_PARAM}
+	@rm --force build/run/fsys
+	@rm --force build/run/distdir
+	@rm --force build/run/distimg
 
 clean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=build
@@ -429,7 +472,7 @@ kclean:
 pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
 
-loader:	ok_to_build $(libdir)/scripts/bld-loader.sh
+loader:	ok_to_build cross-linux-loader.txt $(libdir)/scripts/bld-loader.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
 		echo "E> Do not do this as root";			\
 		exit 1;							\
@@ -441,7 +484,7 @@ loader:	ok_to_build $(libdir)/scripts/bld-loader.sh
 	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
 	echo "=> $${sysName}";						\
 	echo "=> $${CONFIG_BOARD}";					\
-	rm --force var/run/loader;					\
+	rm --force build/run/loader;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-0.sh ]]; then			\
 			(site/bld-loader-0.sh);				\
@@ -458,7 +501,7 @@ loader:	ok_to_build $(libdir)/scripts/bld-loader.sh
 		echo "E> Build loader FAILED.";				\
 		exit 1;							\
 	fi
-	@>var/run/loader
+	@>build/run/loader
 
 pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
@@ -472,7 +515,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
 	echo "=> $${sysName}";						\
 	echo "=> $${CONFIG_BOARD}";					\
-	rm --force var/run/packages;					\
+	rm --force build/run/packages;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-0.sh ]]; then			\
 			(site/bld-pkgs-0.sh);				\
@@ -489,7 +532,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 		echo "E> Build packages FAILED.";			\
 		exit 1;							\
 	fi
-	@>var/run/packages
+	@>build/run/packages
 
 pkgs_:
 	@if [[ `id -u` -eq 0 ]]; then					\
@@ -498,7 +541,7 @@ pkgs_:
 	fi
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
 
-kernel:	ok_to_build var/run/loader $(libdir)/scripts/bld-kernel.sh
+kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
 		echo "E> Do not do this as root";			\
 		exit 1;							\
@@ -510,7 +553,7 @@ kernel:	ok_to_build var/run/loader $(libdir)/scripts/bld-kernel.sh
 	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
 	echo "=> $${sysName}";						\
 	echo "=> $${CONFIG_BOARD}";					\
-	rm -f var/run/kernel;						\
+	rm -f build/run/kernel;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-0.sh ]]; then			\
 			(site/bld-kernel-0.sh);				\
@@ -527,7 +570,7 @@ kernel:	ok_to_build var/run/loader $(libdir)/scripts/bld-kernel.sh
 		echo "Kernel FAILED.";					\
 		exit 1;							\
 	fi
-	@>var/run/kernel
+	@>build/run/kernel
 
 
 # end of Makefile

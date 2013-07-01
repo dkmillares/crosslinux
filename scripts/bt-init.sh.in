@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -43,7 +43,8 @@
 # *****************************************************************************
 
 
-rm -f bin-link/*
+rm --force --recursive bin-link/
+mkdir --mode=0700 bin-link/
 
 echo "#!@@CL_BASH@@"            >> bin-link/awk
 echo "exec @@CL_AWK@@ "'"${@}"' >> bin-link/awk
@@ -60,10 +61,6 @@ chmod 700 bin-link/bzip2
 echo "#!@@CL_BASH@@"                           >> bin-link/bunzip2
 echo "exec @@CL_BZIP2@@ --decompress "'"${@}"' >> bin-link/bunzip2
 chmod 700 bin-link/bunzip2
-
-echo "#!@@CL_BASH@@"                 >> bin-link/fakeroot
-echo "exec @@CL_FAKEROOT@@ "'"${@}"' >> bin-link/fakeroot
-chmod 700 bin-link/fakeroot
 
 echo "#!@@CL_BASH@@"             >> bin-link/find
 echo "exec @@CL_FIND@@ "'"${@}"' >> bin-link/find

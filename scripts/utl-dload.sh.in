@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -54,7 +54,7 @@ cl_libdir="@@CL_LIBDIR@@"
 # Set up the shell functions and environment variables.
 # *****************************************************************************
 
-K_PKGLIST="crosslinux-pkglst.txt"
+K_PKGLIST="$1"
 
 G_MISSED_PKG[0]=""
 G_MISSED_URL[0]=""
@@ -86,7 +86,7 @@ if [[ ! -d "${DOWNLOAD_CACHE_DIR}" ]]; then
 fi
 
 _c=0      # Download count.
-_p=${1:-} # See if there is a single package to download.
+_p=${2:-} # See if there is a single package to download.
 while read pname pad1 fname pad2 url; do
 	[[ -z "${pname}"                       ]] && continue || true
 	[[ "${pname:0:1}" == "#"               ]] && continue || true

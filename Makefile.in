@@ -6,7 +6,7 @@
 # The license which this software falls under is GPLv2 as follows:
 #
 # Inspired by Makefile.in from crosstool-NG
-# (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 # (C) 2013 crosstool-NG authors. See complete list at:
 #     http://crosstool-ng.org/hg/crosstool-ng/log/tip/Makefile.in
 #
@@ -111,7 +111,6 @@ export PROG_TXFORM     := @program_transform_name@
 export awk             := @AWK@
 export bash            := @BASH@
 export bzip2           := @BZIP2@
-export fakeroot        := @FAKEROOT@
 export find            := @FIND@
 export grep            := @EGREP@
 export gzip            := @GZIP@
@@ -147,7 +146,7 @@ TARGETS     := kconfig bin lib doc man
 MAN_SECTION := 1
 MAN_SUBDIR  := man$(MAN_SECTION)
 
-KCONFIG_FILES := Kconfig Kconfig-bootcfg Kconfig-xtcfg pkg-cfg/Kconfig-pkgcfg
+KCONFIG_FILES := Kconfig Kconfig-bootcfg loaders/Kconfig-loaders Kconfig-xtcfg pkg-cfg/Kconfig-pkgcfg
 SCRIPT_FILES  := $(shell ls scripts/* | $(sed) -e "s/\.in//")
 
 .PHONY:	default
@@ -232,7 +231,6 @@ define sed_it
 		-e 's,@@CL_AWK@@,$(awk),g;'			\
 		-e 's,@@CL_BASH@@,$(bash),g;'			\
 		-e 's,@@CL_BZIP2@@,$(bzip2),g;'			\
-		-e 's,@@CL_FAKEROOT@@,$(fakeroot),g;'		\
 		-e 's,@@CL_FIND@@,$(find),g;'			\
 		-e 's,@@CL_GREP@@,$(grep),g;'			\
 		-e 's,@@CL_GZIP@@,$(gzip),g;'			\

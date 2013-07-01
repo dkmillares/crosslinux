@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -56,17 +56,11 @@ cl_libdir="@@CL_LIBDIR@@"
 
 kernel_clean() {
 
-echo "=> Removing kernel modules package, if any."
-rm --force --recursive "${TARGET_BUILD_DIR}/kpkgs/"*
-
-echo "=> Removing kernel and module tree, if any."
-rm --force --recursive "${TARGET_BUILD_DIR}/kroot/"*
-
 echo "=> Removing kernel source tree, if any."
-rm --force --recursive "${TARGET_BUILD_DIR}/linux-"*
+rm --force --recursive "${TARGET_BLD_DIR}/linux-"*
 
 echo "=> Removing kernel build log, if any."
-for _file in ${TARGET_VAR_DIR}/log/*; do
+for _file in ${TARGET_LOG_DIR}/*; do
 	[[ ! -f "${_file}" ]] && continue || true
 	if [[ ${_file##*/} =~ ^linux- ]]; then
 		echo "   -> ${_file##*/}."
@@ -74,6 +68,12 @@ for _file in ${TARGET_VAR_DIR}/log/*; do
 	fi
 done
 unset _file
+
+echo "=> Removing kernel modules package, if any."
+rm --force --recursive "${TARGET_K_PKGS_DIR}/"*
+
+echo "=> Removing kernel and module tree, if any."
+rm --force --recursive "${TARGET_K_ROOT_DIR}/"*
 
 }
 
@@ -323,12 +323,11 @@ local NJOBS=""
 
 # Setup kernel directories.
 #
-CL_logcmd "rm --force --recursive kroot"
-CL_logcmd "mkdir --parents kroot/boot"
-CL_logcmd "mkdir --parents kroot/boot"
-CL_logcmd "mkdir --parents kroot/etc"
-CL_logcmd "mkdir --parents kroot/lib"
-CL_logcmd "mkdir --parents kroot/lib/modules"
+CL_logcmd "rm --force --recursive ${TARGET_K_ROOT_DIR}/*"
+CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/boot"
+CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/etc"
+CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/lib"
+CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/lib/modules"
 
 # $ make vmlinux
 # $ mipsel-linux-strip vmlinux
@@ -349,7 +348,7 @@ esac
 
 # Get the kernel and its system map.
 #
-_bDir="kroot/boot"
+_bDir="${TARGET_K_ROOT_DIR}/boot"
 _cmd1="cp \"${K_KERNEL_SOURCE_NAME}/System.map\" \"${_bDir}/System.map\""
 _cmd2="cp \"${K_KERNEL_SOURCE_NAME}/vmlinux\"    \"${_bDir}/vmlinux\""
 _cmd3="cp \"${K_KERNEL_SOURCE_NAME}/${vmlinuz}\" \"${_bDir}/${vmlinuz##*/}\""
@@ -373,10 +372,10 @@ if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
 	unset _bitch
 	[[ x"${CONFIG_PARALLEL_JOBS:-}" == x"y" ]] || NJOBS=1
 
-	_bDir="${TARGET_BUILD_DIR}/kroot"
-	_pDir="${TARGET_BUILD_DIR}/kpkgs"
+	_bDir="${TARGET_K_ROOT_DIR}"
+	_pDir="${TARGET_K_PKGS_DIR}"
 
-	# Install the kernel modules into ${TTYLINUX_BUILD_DIR}/kroot
+	# Install the kernel modules into ${TTYLINUX_K_ROOT_DIR}
 	#
 	CL_logcom "Install the kernel modules into:"
 	CL_logcom "=> ${_bDir}"
@@ -403,7 +402,7 @@ if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
 	rm --force "${_bDir}/lib/modules/${kver}/build"
 	rm --force "${_bDir}/lib/modules/${kver}/source"
 
-	# Make the kernel modules binary package in ${TTYLINUX_BUILD_DIR}/kpkgs
+	# Make the kernel modules binary package in ${TTYLINUX_K_PKGS_DIR}
 	#
 	_uTarBall="${_pDir}/kmodules-${kver}-${CONFIG_CPU_ARCH}.tar"
 	_cTarBall="${_pDir}/kmodules-${kver}-${CONFIG_CPU_ARCH}.tbz"
@@ -508,7 +507,7 @@ echo ""
 #
 kernel_src_find || exit 1
 
-pushd "${TARGET_BUILD_DIR}" >/dev/null 2>&1
+pushd "${TARGET_BLD_DIR}" >/dev/null 2>&1
 
 t1=${SECONDS}
 
@@ -536,16 +535,16 @@ CL_exitOnSigErr=0
 # print a backtrace for the subshell, if a command or shell function returns
 # non-zero.
 CL_infoOnSigErr=1
-rm --force "${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
-kernel_src_get >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
-kernel_xbuild  >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
-kernel_collect >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
-kernel_cleanup >>"${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+rm --force "${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log"
+kernel_src_get >>"${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_xbuild  >>"${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_collect >>"${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log" 2>&1
+kernel_cleanup >>"${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log" 2>&1
 )
 if [[ $? -ne 0 ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
 	echo "Check the build log file."
-	echo "=> ${TARGET_VAR_DIR}/log/${K_KERNEL_SOURCE_NAME}.log"
+	echo "=> ${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log"
 	exit 1
 fi
 set -e ; # All done with build steps; enable exit on a non-zero status.

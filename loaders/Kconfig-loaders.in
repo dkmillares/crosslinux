@@ -1,0 +1,37 @@
+# *****************************************************************************
+# PC Boot Loader 
+# *****************************************************************************
+
+if BOARD_PC_486 || BOARD_PC_686 || BOARD_PC_X86_64
+
+config LOADER_SYSLINUX_6p00
+	bool
+	default y
+	prompt "Use the syslinux-6.00 'isolinux.bin' boot loader"
+	---help---
+	  This is the available boot loader.
+
+config FORCE_SYSLINUX
+	def_bool y
+	select LOADER_SYSLINUX_6p00
+
+endif
+
+# *****************************************************************************
+# BeagleBone Boot Loader 
+# *****************************************************************************
+
+if BOARD_BEAGLEBONE
+
+config LOADER_UBOOT_2012p10
+	bool
+	default y
+	prompt "Use the u-boot-2012.10 boot loader"
+	---help---
+	  This is the available boot loader.
+
+config FORCE_UBOOT
+	def_bool y
+	select LOADER_UBOOT_2012p10
+
+endif

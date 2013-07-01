@@ -1,7 +1,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -44,33 +44,37 @@
 
 CL_config_setup() {
 
-	TARGET_CPU=${CONFIG_CPU_ARCH}
-	TARGET_TAG="${CONFIG_RELEASE_VERS}-${TARGET_CPU}-${CONFIG_BOARD}"
-
 	CROSSLINUX_BOARDC_DIR="@@CL_LIBDIR@@/boards/${CONFIG_BOARD}"
-	CROSSLINUX_LOADER_DIR="@@CL_LIBDIR@@/loaders/${CONFIG_LOADER}"
+	CROSSLINUX_LOADER_DIR="@@CL_LIBDIR@@/loaders"
 	CROSSLINUX_PKGCFG_DIR="@@CL_LIBDIR@@/pkg-cfg"
 	CROSSLINUX_SCRIPT_DIR="@@CL_LIBDIR@@/scripts"
 
 	TARGET_PROJ_DIR="$(pwd)"
-	TARGET_BUILD_DIR="${TARGET_PROJ_DIR}/build"
-	TARGET_IMG_DIR="${TARGET_PROJ_DIR}/img"
+	TARGET_BLD_DIR="${TARGET_PROJ_DIR}/build/bld"
+	TARGET_LOG_DIR="${TARGET_PROJ_DIR}/build/log"
+	TARGET_RUN_DIR="${TARGET_PROJ_DIR}/build/run"
+	TARGET_DOWNLOAD_DIR="${TARGET_PROJ_DIR}/dload"
 	TARGET_MNT_DIR="${TARGET_PROJ_DIR}/mnt"
-	TARGET_PKGBIN_DIR="${TARGET_PROJ_DIR}/pkg-bin"
-	TARGET_PKGSRC_DIR="${TARGET_PROJ_DIR}/pkg-src"
 	TARGET_SITE_DIR="${TARGET_PROJ_DIR}/site"
 	TARGET_SYSROOT_DIR="${TARGET_PROJ_DIR}/sysroot"
-	TARGET_VAR_DIR="${TARGET_PROJ_DIR}/var"
+	TARGET_IMGAGE_DIR="${TARGET_PROJ_DIR}/target/image"
+	TARGET_K_PKGS_DIR="${TARGET_PROJ_DIR}/target/kpkgs"
+	TARGET_K_ROOT_DIR="${TARGET_PROJ_DIR}/target/kroot"
+	TARGET_LOADER_DIR="${TARGET_PROJ_DIR}/target/loader"
+	TARGET_PKGBIN_DIR="${TARGET_PROJ_DIR}/target/pkgbin"
 
+	_name="${CONFIG_BRAND_NAME}"
 	_nameTag="${CONFIG_BOARD}-${CONFIG_RELEASE_VERS}"
-	TARGET_IMG_NAME="${TARGET_PROJ_DIR}/img/file_sys-${_nameTag}.img"
-	TARGET_IRD_NAME="${TARGET_PROJ_DIR}/img/initrd-${_nameTag}"
-	TARGET_TAR_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}.tar.bz2"
-	TARGET_SRC_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}-src.iso"
-	TARGET_ISO_NAME="${TARGET_PROJ_DIR}/img/crosslinux-${_nameTag}.iso"
+	TARGET_IMG_NAME="${TARGET_IMGAGE_DIR}/file_sys-${_nameTag}.img"
+	TARGET_IFS_NAME="${TARGET_IMGAGE_DIR}/initfs-${_nameTag}"
+	TARGET_IRD_NAME="${TARGET_IMGAGE_DIR}/initrd-${_nameTag}"
+	TARGET_TAR_NAME="${TARGET_IMGAGE_DIR}/${_name}-${_nameTag}.tar.bz2"
+	TARGET_SRC_NAME="${TARGET_IMGAGE_DIR}/${_name}-${_nameTag}-src.iso"
+	TARGET_ISO_NAME="${TARGET_IMGAGE_DIR}/${_name}-${_nameTag}.iso"
+	unset _name
 	unset _nameTag
 
-	DOWNLOAD_CACHE_DIR="${CONFIG_DOWNLOAD_DIR:-${TARGET_PKGSRC_DIR}}"
+	DOWNLOAD_CACHE_DIR="${CONFIG_DOWNLOAD_DIR:-${TARGET_DOWNLOAD_DIR}}"
 
 return 0
 
@@ -426,7 +430,7 @@ K_SP=$' '
 
 export IFS="${K_SP}${K_TB}${K_NL}" # Relies upon constants above.
 export LC_ALL=POSIX
-export PATH=$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
+export PATH=@@CL_LIBDIR@@/host/usr/bin:$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
 
 K_BANG='!'
 K_NCPU=$(grep "^processor" /proc/cpuinfo | wc -l) # Relies upon PATH above.

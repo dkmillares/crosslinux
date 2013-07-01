@@ -43,6 +43,7 @@ endmenu
 
 menu "System Architecture and Boot Configuration"
 source @@CL_LIBDIR@@/Kconfig-bootcfg
+source @@CL_LIBDIR@@/loaders/Kconfig-loaders
 endmenu
 
 # ------------------------------------ Cross-tool Chain and Build Configuration

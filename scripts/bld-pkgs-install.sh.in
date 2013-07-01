@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <douglas@crosslinux.org>
+# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,7 +25,7 @@
 #
 # PROGRAM DESCRIPTION
 #
-#      This script installes the crosslinux target packages under fakeroot.
+#      This script installs the crosslinux target packages under fakeroot.
 #
 # CHANGE LOG
 #
@@ -63,7 +63,7 @@ package_list_make() {
 # the binary package; it can have some scripting that interprets variables to
 # enable the selection of package files, so the file list needs some special
 # processing.  It is filtered, honoring any embedded scripting, and the actual
-# list of binary package files is created as ${TARGET_VAR_DIR}/files
+# list of binary package files is created as ${TARGET_RUN_DIR}/files
 
 local cfgPkgFiles="$1"
 local pathname=""
@@ -76,8 +76,8 @@ local -i retStat=0
 
 CL_logcom "***** Making Package File List"
 
-rm --force "${TARGET_VAR_DIR}/files"
->"${TARGET_VAR_DIR}/files"
+rm --force "${TARGET_RUN_DIR}/files"
+>"${TARGET_RUN_DIR}/files"
 while read; do
 	lineNum=$((${lineNum}+1))
 	if [[ "${REPLY}" =~ ^if\  ]]; then
@@ -121,7 +121,7 @@ CL_logcom "Start 'glob' \"$2\""
 			for pathname in ${TARGET_SYSROOT_DIR}/$2; do
 				if [[ -f ${pathname} ]]; then
 					_p=${pathname#${TARGET_SYSROOT_DIR}/}
-					echo ${_p} >>"${TARGET_VAR_DIR}/files"
+					echo ${_p} >>"${TARGET_RUN_DIR}/files"
 				fi
 			done
 			unset _p
@@ -129,7 +129,7 @@ CL_logcom "End 'glob' \"$2\""
 		else
 		# ....................................... Interpret file names.
 			eval "pathname=${REPLY}"
-			echo ${pathname} >>"${TARGET_VAR_DIR}/files"
+			echo ${pathname} >>"${TARGET_RUN_DIR}/files"
 		fi
 	fi
 done <"${cfgPkgFiles}"
@@ -140,7 +140,7 @@ while read; do
 		CL_logcom "=> from ${cfgPkgFiles}"
 		retStat=1
 	fi
-done <"${TARGET_VAR_DIR}/files"
+done <"${TARGET_RUN_DIR}/files"
 
 if [[ ${retStat} -eq 1 ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"         >&${CONSOLE_FD}
@@ -197,10 +197,10 @@ fi
 #			NOTE -- Post-configuration patches might be applied.
 #
 #	pkg_make	This function builds the source package in place in the
-#			${TARGET_BUILD_DIR}/pkgs/ directory
+#			${TARGET_BLD_DIR} directory
 #
 #	pkg_install	This function installs any built items into the build
-#			root ${TARGET_SYSROOT_DIR}/ directory tree.
+#			root ${TARGET_SYSROOT_DIR} directory tree.
 #
 #	pkg_clean	This function is responsible for cleaning-up; notice
 #			it is not called if one of the other functions
@@ -413,8 +413,8 @@ if [[ -z "${fileList}" ]]; then
 	exit 1 # Bust out of shell.
 fi
 
-# This is tricky.  First make a ${TARGET_VAR_DIR}/files from ${fileList}; then
-# make a binary package from the list in ${TARGET_VAR_DIR}/files
+# This is tricky.  First make a ${TARGET_RUN_DIR}/files from ${fileList}; then
+# make a binary package from the list in ${TARGET_RUN_DIR}/files
 #
 package_list_make "${fileList}" || exit 1 # Bust out of sub-shell.
 _uTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tar"
@@ -422,13 +422,13 @@ _cTarBall="${TARGET_PKGBIN_DIR}/$1-${CONFIG_CPU_ARCH}.tbz"
 tar --create \
 	--directory="${TARGET_SYSROOT_DIR}" \
 	--file="${_uTarBall}" \
-	--files-from="${TARGET_VAR_DIR}/files" \
+	--files-from="${TARGET_RUN_DIR}/files" \
 	--no-recursion
 bzip2 --force "${_uTarBall}"
 mv --force "${_uTarBall}.bz2" "${_cTarBall}"
 unset _uTarBall
 unset _cTarBall
-rm --force "${TARGET_VAR_DIR}/files" # Remove the temporary file.
+rm --force "${TARGET_RUN_DIR}/files" # Remove the temporary file.
 
 return 0
 
@@ -447,8 +447,8 @@ return 0
 # *****************************************************************************
 
 # This script is expected to be invoked in the build/package/ directory.  Go up
-# to the project directory and setup the evironment; do this with hard-coded
-# paths.
+# to the project directory and setup the environment; do this with a hard-coded
+# path because there is no symbol yet.
 
 cd "../.."
 source ./crosslinux-config.sh # target build configuration
@@ -456,11 +456,11 @@ source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
 
 CL_config_setup || {
-	cd "build/pkgs"
+	cd "${TARGET_BLD_DIR}"
 	exit 1
 }
 
-cd "build/pkgs"
+cd "${TARGET_BLD_DIR}"
 
 
 # *****************************************************************************
@@ -472,12 +472,12 @@ cd "build/pkgs"
 # $1 ... Package name, like "glibc-2.19".
 
 # This script is design to run in a particular context; it is expected to be
-# running under fakeroot and in the build/package/ directory; this script's job
-# is to complete the installation part of a package build process.  This means
-# the package build directory is in build/pkgs/ and has been built and is
-# waiting for 'make install'.
+# running under fakeroot and in the ${TARGET_BLD_DIR} directory; this script's
+# job is to complete the installation part of a package build process.  This
+# means the package build directory is in ${TARGET_BLD_DIR} and has been built
+# and is waiting for 'make install'.
 #
-# Standard output, and stderr, are being directed to a log file and the
+# Standard output and standard error are being directed to a log file and the
 # variable CONSOLE_FD is the standard output file descriptor.
 #
 # These indicators are expected to be printed to standard output without a
