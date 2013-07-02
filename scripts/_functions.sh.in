@@ -430,7 +430,7 @@ K_SP=$' '
 
 export IFS="${K_SP}${K_TB}${K_NL}" # Relies upon constants above.
 export LC_ALL=POSIX
-export PATH=@@CL_LIBDIR@@/host/usr/bin:$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
+export PATH=@@CL_LIBDIR@@/host-tools/usr/bin:$(pwd)/bin-link:/bin:/sbin:/usr/bin:/usr/sbin
 
 K_BANG='!'
 K_NCPU=$(grep "^processor" /proc/cpuinfo | wc -l) # Relies upon PATH above.

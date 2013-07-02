@@ -158,6 +158,7 @@ AC_SUBST([BASH], [$ac_cv_path_bash])
 # -----------------------------------------------------------------------------
 
 AC_CHECK_PROGS([genisoimage], [genisoimage])
+AC_CHECK_PROGS([as86],        [as86])
 
 # -----------------------------------------------------------------------------
 # Miscellaneous variables are handled here.
@@ -193,6 +194,7 @@ AS_IF(
 # -----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([host-tools/Makefile])
 (
 echo ""
 echo "Configuring kconfig..."
