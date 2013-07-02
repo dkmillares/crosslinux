@@ -472,7 +472,7 @@ kclean:
 pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
 
-loader:	ok_to_build cross-linux-loader.txt $(libdir)/scripts/bld-loader.sh
+loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
 		echo "E> Do not do this as root";			\
 		exit 1;							\

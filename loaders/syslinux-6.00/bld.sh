@@ -32,49 +32,78 @@ PKG_SUM=""
 PKG_TAR="syslinux-6.00.tar"
 PKG_DIR="syslinux-6.00"
 
+
+# ******************************************************************************
+# pkg_patch
+# ******************************************************************************
+
+pkg_patch() {
+
+local patchDir="${CROSSLINUX_LOADER_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}"
+for patchFile in "${patchDir}"/*; do
+	[[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
+done
+cd ..
+
+PKG_STATUS=""
 return 0
 
-# *****************************************************************************
-# Remove any left-over previous build things.  Then untar loader source.
-# *****************************************************************************
-
-echo "=> Removing old build products, if any."
-rm --force --recursive "extlinux"
-rm --force --recursive "isolinux.bin"
-rm --force --recursive "syslinux-6.00/"
-
-if [[ $# -gt 0 && -n "$1" ]]; then
-	# "$1" may be unbound so hide it in this if statement.
-	[[ x"$1" == x"clean" ]] && return 0 || true
-fi
-
-echo "=> Untarring ..."
-tar --extract --file="${CROSSLINUX_LOADER_DIR}/syslinux-6.00.tar.xz"
+}
 
 
-# *****************************************************************************
-# Build syslinux
-# *****************************************************************************
+# ******************************************************************************
+# pkg_configure
+# ******************************************************************************
 
-cp "syslinux-6.00/bios/extlinux/extlinux" extlinux
-cp "syslinux-6.00/bios/core/isolinux.bin" isolinux.bin
+pkg_configure() {
+PKG_STATUS=""
+return 0
+}
+
+
+# ******************************************************************************
+# pkg_make
+# ******************************************************************************
+
+pkg_make() {
+PKG_STATUS=""
+return 0
+}
+
+
+# ******************************************************************************
+# pkg_install
+# ******************************************************************************
+
+pkg_install() {
+
+PKG_STATUS="install error"
+
+cp "${PKG_DIR}/bios/extlinux/extlinux" extlinux
+cp "${PKG_DIR}/bios/core/isolinux.bin" isolinux.bin
 
 echo "=> New files:"
 ls --color -lh extlinux isolinux.bin || true
 
-
-# *****************************************************************************
-# Cleanup
-# *****************************************************************************
-
-rm --force --recursive "syslinux-6.00/"
-
-
-# *****************************************************************************
-# Exit OK
-# *****************************************************************************
-
+PKG_STATUS=""
 return 0
+
+}
+
+
+# ******************************************************************************
+# pkg_clean
+# ******************************************************************************
+
+pkg_clean() {
+PKG_STATUS=""
+return 0
+}
 
 
 # end of file
