@@ -134,12 +134,17 @@ Makefile:	Makefile.in
 
 .PHONY:	build clean install uninstall
 
-build:	bld-prefix make-dirs get-tools make-fakeroot make-genext2fs bld-postfix
+build:	make-dirs make-fakeroot make-genext2fs
 
 clean:
 	@echo "RM    host-tools subdirectories"
 	@rm --force --recursive bld
 	@rm --force --recursive log
+
+distclean:	clean
+	@echo "RM    host-tools downloads and makefile"
+	@rm --force Makefile
+	@rm --force --recursive src
 
 install:	build real-install
 
@@ -150,7 +155,7 @@ uninstall:	real-uninstall
 # Internal build Targets                                                      #
 # *************************************************************************** #
 
-.PHONY:	bld-prefix make-dirs get-tools make-fakeroot make-genext2fs bld-postfix
+.PHONY:	bld-prefix make-dirs make-fakeroot make-genext2fs bld-postfix
 
 bld-prefix:
 	@echo "========================="
@@ -162,94 +167,141 @@ bld-postfix:
 	@echo "Done Making Host Tools   "
 	@echo "========================="
 
-src/$(FAKEROOT_ZIP):
-	@echo -n "=> Downloading $(FAKEROOT_ZIP) ..."
-	@rm --force log/fakeroot-dl.log
-	@if $(wget) -T 15 -nc --passive-ftp				\
-		--progress=dot:binary --tries=3				\
-		$(FAKEROOT_URL)/$(FAKEROOT_ZIP) >>log/fakeroot-dl.log 2>&1;\
-	then								\
-		echo " DONE";						\
-		mv $(FAKEROOT_ZIP) src;					\
-	else								\
-		echo " ERROR";						\
-		echo "***** Download failed";				\
-		echo "***** See 'host-tools/log/fakeroot-dl.log'";	\
-		exit 1;							\
-	fi
-	
-
-src/$(GENEXT2FS_ZIP):
-	@echo -n "=> Downloading $(GENEXT2FS_ZIP) ..."
-	@rm --force log/genext2fs-dl.log
-	@if $(wget) -T 15 -nc --passive-ftp				\
-		--progress=dot:binary --tries=3				\
-		$(GENEXT2FS_URL)/$(GENEXT2FS_ZIP) >>log/genext2fs-dl.log 2>&1;\
-	then								\
-		echo " DONE";						\
-		mv $(GENEXT2FS_ZIP) src;				\
-	else								\
-		echo " ERROR";						\
-		echo "***** Download failed";				\
-		echo "***** See 'host-tools/log/genext2fs-dl.log'";	\
-		exit 1;							\
-	fi
+bld:
+	@echo "=> Make host-tools/bld directory"
+	@mkdir --mode=0700 bld
 
 log:
 	@echo "=> Make host-tools/log directory"
 	@mkdir --mode=0700 log
 
-bld:
-	@echo "=> Make host-tools/bld directory"
-	@mkdir --mode=0700 bld
-
 src:
 	@echo "=> Make host-tools/src directory"
 	@mkdir --mode=0700 src
 
-make-dirs:	log bld src
+make-dirs:	bld log src
 
-get-tools:	src/$(FAKEROOT_ZIP) src/$(GENEXT2FS_ZIP)
-
-make-fakeroot:
-	@rm --force log/fakeroot-build.log
-	@echo "=> Making fakeroot <="
-	@echo "-> If error see log file 'host-tools/log/fakeroot-build.log'"
-	@echo -n "-> Extracting $(FAKEROOT_ZIP) ... "
-	@cd bld;							\
-	if [ ! -d $(FAKEROOT_DIR) ]; then				\
-		$(tar) --extract --file ../src/$(FAKEROOT_ZIP)		\
-			>>../log/fakeroot-build.log 2>&1;		\
+src/$(FAKEROOT_ZIP):
+	@rm --force log/fakeroot-dl.log
+	@echo -n "=> Downloading $(FAKEROOT_ZIP) ... "
+	@cd src;							\
+	if $(wget) -T 15 -nc --passive-ftp				\
+		--progress=dot:binary --tries=3				\
+		$(FAKEROOT_URL)/$(FAKEROOT_ZIP)				\
+		>../log/fakeroot-dl.log 2>&1;				\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** Download failed";				\
+		echo "***** See 'host-tools/log/fakeroot-dl.log'";	\
+		exit 1;							\
 	fi
-	@echo "DONE"
-	@echo -n "-> ./configure fakeroot ... "
+
+bld/$(FAKEROOT_DIR):	src/$(FAKEROOT_ZIP)
+	@rm --force log/fakeroot-tar.log
+	@echo -n "=> Extracting $(FAKEROOT_ZIP) ... "
+	@cd bld;							\
+	if $(tar) --verbose --extract --file				\
+		../src/$(FAKEROOT_ZIP) >../log/fakeroot-tar.log 2>&1;	\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** tar extract failed";			\
+		echo "***** See 'host-tools/log/fakeroot-tar.log'";	\
+		exit 1;							\
+	fi
+
+bld/$(FAKEROOT_DIR)/config.log:	src/$(FAKEROOT_ZIP)
+	@rm --force log/fakeroot-cfg.log
+	@echo -n "=> ./configure fakeroot ... "
 	@cd bld/$(FAKEROOT_DIR);					\
-	./configure --prefix=$(libdir)/host-tools/usr			\
-		>>../../log/fakeroot-build.log 2>&1
-	@echo "DONE"
-	@echo -n "-> Making fakeroot ... "
-	@make -C bld/$(FAKEROOT_DIR) >>log/fakeroot-build.log 2>&1
-	@echo "DONE"
-
-make-genext2fs:
-	@rm --force log/genext2fs-build.log
-	@echo "=> Making genext2fs <="
-	@echo "-> If error see log file 'host-tools/log/genext2fs-build.log'"
-	@echo -n "-> Extracting $(GENEXT2FS_ZIP) ... "
-	@cd bld;							\
-	if [ ! -d $(GENEXT2FS_DIR) ]; then				\
-		$(tar) --extract --file ../src/$(GENEXT2FS_ZIP)		\
-			>>../log/genext2fs-build.log 2>&1;		\
+	if ./configure --prefix=$(libdir)/host-tools/usr		\
+		>/dev/null 2>&1;					\
+	then								\
+		cp config.log ../../log/fakeroot-cfg.log;		\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** configure failed";				\
+		echo "***** See 'host-tools/log/fakeroot-cfg.log'";	\
+		exit 1;							\
 	fi
-	@echo "DONE"
-	@echo -n "-> ./configure genext2fs ... "
+
+make-fakeroot:	bld/$(FAKEROOT_DIR) bld/$(FAKEROOT_DIR)/config.log
+	@rm --force log/fakeroot-make.log
+	@echo -n "=> Making fakeroot ... "
+	@if make -C bld/$(FAKEROOT_DIR) >log/fakeroot-make.log 2>&1;	\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** make failed";				\
+		echo "***** See 'host-tools/log/fakeroot-make.log'";	\
+		exit 1;							\
+	fi
+
+src/$(GENEXT2FS_ZIP):
+	@rm --force log/genext2fs-dl.log
+	@echo -n "=> Downloading $(GENEXT2FS_ZIP) ... "
+	@cd src;							\
+	if $(wget) -T 15 -nc --passive-ftp				\
+		--progress=dot:binary --tries=3				\
+		$(GENEXT2FS_URL)/$(GENEXT2FS_ZIP)			\
+		>../log/genext2fs-dl.log 2>&1;				\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** Download failed";				\
+		echo "***** See 'host-tools/log/genext2fs-dl.log'";	\
+		exit 1;							\
+	fi
+
+bld/$(GENEXT2FS_DIR):	src/$(GENEXT2FS_ZIP)
+	@rm --force log/genext2fs-tar.log
+	@echo -n "=> Extracting $(GENEXT2FS_ZIP) ... "
+	@cd bld;							\
+	if $(tar) --verbose --extract --file				\
+		../src/$(GENEXT2FS_ZIP)	>../log/genext2fs-tar.log 2>&1;	\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** tar extract failed";			\
+		echo "***** See 'host-tools/log/genext2fs-tar.log'";	\
+		exit 1;							\
+	fi
+
+bld/$(GENEXT2FS_DIR)/config.log:	src/$(GENEXT2FS_ZIP)
+	@rm --force log/genext2fs-cfg.log
+	@echo -n "=> ./configure genext2fs ... "
 	@cd bld/$(GENEXT2FS_DIR);					\
-	./configure --prefix=$(libdir)/host-tools/usr			\
-		>>../../log/genext2fs-build.log 2>&1
-	@echo "DONE"
-	@echo -n "-> Making genext2fs ... "
-	@make -C bld/$(GENEXT2FS_DIR) >>log/genext2fs-build.log 2>&1
-	@echo "DONE"
+	if ./configure --prefix=$(libdir)/host-tools/usr		\
+		>/dev/null 2>&1;					\
+	then								\
+		cp config.log ../../log/genext2fs-cfg.log;		\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** configure failed";				\
+		echo "***** See 'host-tools/log/genext2fs-cfg.log'";	\
+		exit 1;							\
+	fi
+
+make-genext2fs:	bld/$(GENEXT2FS_DIR) bld/$(GENEXT2FS_DIR)/config.log
+	@rm --force log/genext2fs-make.log
+	@echo -n "=> Making genext2fs ... "
+	@if make -C bld/$(GENEXT2FS_DIR) >log/genext2fs-make.log 2>&1;	\
+	then								\
+		echo "DONE";						\
+	else								\
+		echo "ERROR";						\
+		echo "***** make failed";				\
+		echo "***** See 'host-tools/log/genext2fs-make.log'";	\
+		exit 1;							\
+	fi
 
 
 # *************************************************************************** #
@@ -275,7 +327,11 @@ real-install:
 
 real-uninstall:
 	@echo "RM    $(libdir)/host-tools contents"
-	@rm --force --recursive $(libdir)/host-tools/*
+	@rm --force --recursive $(libdir)/host-tools/bin
+	@rm --force --recursive $(libdir)/host-tools/etc
+	@rm --force --recursive $(libdir)/host-tools/lib
+	@rm --force --recursive $(libdir)/host-tools/libexec
+	@rm --force --recursive $(libdir)/host-tools/usr
 
 
 # end of Makefile

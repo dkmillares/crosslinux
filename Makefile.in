@@ -142,7 +142,7 @@ export SHELL=@BASH@
 export GREP_OPTIONS=
 
 PROG_NAME   := $(shell echo 'cl-bt' | $(sed) -r -e '$(PROG_TXFORM)' )
-TARGETS     := kconfig bin lib doc man
+TARGETS     := kconfig bin lib host-tools doc man
 MAN_SECTION := 1
 MAN_SUBDIR  := man$(MAN_SECTION)
 
@@ -173,6 +173,9 @@ distclean:	clean
 	@if [[ -f kconfig/Makefile ]]; then	\
 		$(MAKE) -C kconfig distclean;	\
 	fi
+	@if [[ -f host-tools/Makefile ]]; then	\
+		$(MAKE) -C host-tools distclean;\
+	fi
 	@echo "RM    Makefile"
 	@rm -f Makefile
 	@echo ""
@@ -182,6 +185,9 @@ distclean:	clean
 mrproper:	clean
 	@if [[ -f kconfig/Makefile ]]; then	\
 		$(MAKE) -C kconfig distclean;	\
+	fi
+	@if [[ -f host-tools/Makefile ]]; then	\
+		$(MAKE) -C host-tools distclean;\
 	fi
 	@echo "RM    Makefile"
 	@rm -f Makefile
@@ -212,6 +218,9 @@ build-bin:	$(PROG_NAME) setenv.sh
 
 build-lib:	$(KCONFIG_FILES) $(SCRIPT_FILES)
 	@chmod 755 $(SCRIPT_FILES)
+
+build-host-tools:
+	@$(MAKE) -C host-tools build
 
 build-doc:
 
@@ -279,6 +288,9 @@ clean-lib:
 	@echo "RM    scripts/*.sh"
 	@rm -f scripts/*.sh
 
+clean-host-tools:
+	@$(MAKE) -C host-tools clean
+
 clean-doc:
 
 clean-man:
@@ -297,7 +309,8 @@ ifeq ($(strip $(LOCAL)),yes)
 real-install:
 	@echo "INST  kconfig"
 	@mkdir -p "$(libdir)/kconfig-exec"
-	@(cd kconfig; make install-exec)
+	@$(MAKE) -C kconfig install-exec
+	@$(MAKE) -C host-tools install
 
 else
 
@@ -306,7 +319,7 @@ real-install:	$(patsubst %,install-%,$(TARGETS))
 install-kconfig:	$(libdir)
 	@echo "INST  kconfig"
 	@mkdir -p "$(libdir)/kconfig-exec"
-	@(cd kconfig; make install-exec)
+	@$(MAKE) -C kconfig install-exec
 
 install-bin:	$(bindir)
 	@echo "INST  $(PROG_NAME)"
@@ -325,6 +338,9 @@ install-lib:	$(libdir)
 		$(tar) cf - --exclude='*.in' $${dir}/ 			\
 			| (cd "$(libdir)"; $(tar) xf -);		\
 	done
+
+install-host-tools:	$(libdir)
+	@$(MAKE) -C host-tools install
 
 install-doc:	$(docdir)
 	@echo "INST  doc/*.txt"
@@ -358,6 +374,7 @@ real-uninstall:
 	@true
 	@echo "RM    kconfig installation"
 	@rm -rf kconfig-exec
+	@$(MAKE) -C host-tools uninstall
 
 else
 
@@ -375,6 +392,9 @@ uninstall-bin:
 uninstall-lib:
 	@echo "RMDIR $(libdir)/"
 	@rm -rf "$(libdir)"
+
+uninstall-host-tools:
+	@$(MAKE) -C host-tools uninstall
 
 uninstall-doc:
 	@echo "RMDIR $(docdir)/"
