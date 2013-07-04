@@ -25,11 +25,12 @@
 #
 # PROGRAM DESCRIPTION
 #
-#      This script builds the crosslinux loader.
+#      This script makes the crosslinux target bootable file system staging
+#      dirctory.
 #
 # CHANGE LOG
 #
-#      2013-06-22  drj  Adapted to crosslinux from the ttylinux build system.
+#      2013-07-03  drj  Adapted to crosslinux from the ttylinux build system.
 #
 # *****************************************************************************
 
@@ -51,58 +52,64 @@ cl_libdir="@@CL_LIBDIR@@"
 
 
 # *****************************************************************************
-# Cleanup any built and in-progress loader build.
+# Build a root file system image to use for an init RAM Disk.
 # *****************************************************************************
 
-loader_clean() {
+rootfs_initrd() {
 
-echo "=> Removing the loader:"
-rm --verbose --force --recursive "${TARGET_LOADER_DIR}/"*
+local -i nblocks=$((${CONFIG_ROOTFS_SIZE_MB} * 1024))
+
+echo -n "i> Making root file system image for an init RAM Disk ... "
+>${TARGET_MNT_DIR}/etc/.norootfsck
+rm --force "${TARGET_IMG_NAME}"
+genext2fs				\
+	--root "${TARGET_MNT_DIR}"	\
+	--size-in-blocks ${nblocks}	\
+	"${TARGET_IMG_NAME}"
+echo "DONE"
+ls -hl ${TARGET_IMG_NAME} | sed --expression="s|${TARGET_PROJ_DIR}/||"
+echo "i> Root file system image ${TARGET_IMG_NAME##*/} is ready."
 
 }
 
 
 # *****************************************************************************
-# Build a loader package from source.
+# Make a CPIO archive to use for an initramfs.
 # *****************************************************************************
 
-# Function Arguments:
-#      $1 ... Package name, like "glibc-2.19".
+rootfs_initramfs() {
 
-loader_xbuild() {
+echo -n "i> Making a CPIO Archive for an initramfs ... "
+>${TARGET_MNT_DIR}/etc/.norootfsck
+pushd "${TARGET_MNT_DIR}" >/dev/null 2>&1
+rm --force "${TARGET_IFS_NAME}"
+find . | cpio		\
+	--create	\
+	--format=newc	\
+	--no-absolute-filenames >${TARGET_IFS_NAME}
+popd >/dev/null 2>&1
+echo "DONE"
+ls -hl ${TARGET_IFS_NAME} | sed --expression="s|${TARGET_PROJ_DIR}/||"
+echo "i> File system CPIO archive ${TARGET_IFS_NAME##*/} is ready."
 
-unset pkg_patch
-unset pkg_configure
-unset pkg_make
-unset pkg_install
-unset pkg_clean
-source "${CROSSLINUX_LOADER_DIR}/$1/bld.sh"
+}
 
-# Get the source package.  This function will unzip and untar the source
-# package.
-#
-echo -n "i> Getting loader source package ... "
-CL_package_get ${PKG_ZIP}
-echo    "DONE"
 
-# Patch, configure, and build.
-#
-PKG_STATUS=""
-[[ -z "${PKG_STATUS}" ]] && pkg_patch     $1
-[[ -z "${PKG_STATUS}" ]] && pkg_configure $1
-[[ -z "${PKG_STATUS}" ]] && pkg_make      $1
-[[ -z "${PKG_STATUS}" ]] && pkg_install   $1
-[[ -z "${PKG_STATUS}" ]] && pkg_clean     $1
-if [[ -n "${PKG_STATUS}" ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}" >&${CONSOLE_FD}
-	echo    "E> ${PKG_STATUS}"              >&${CONSOLE_FD}
-	exit 1 # Bust out of sub-shell.
-fi
-unset PKG_STATUS
+# *****************************************************************************
+# Make a tarball for installing onto some disk partition(s).
+# *****************************************************************************
 
-# Remove the un-tarred loader source package directory.
-#
-[[ -d "${PKG_DIR}" ]] && rm --force --recursive "${PKG_DIR}" || true
+rootfs_tarball() {
+
+echo -n "i> Making a bzip'd tarball of the root file system ... "
+rm --force "${TARGET_TAR_NAME}"
+tar	--directory="${TARGET_MNT_DIR}"	\
+	--create			\
+	--file="${TARGET_TAR_NAME%.bz2}" .
+bzip2 "${TARGET_TAR_NAME%.bz2}"
+echo "DONE"
+ls -hl ${TARGET_TAR_NAME} | sed --expression="s|${TARGET_PROJ_DIR}/||"
+echo "i> File system tarball ${TARGET_TAR_NAME##*/} is ready."
 
 }
 
@@ -118,10 +125,6 @@ unset PKG_STATUS
 # Set up the shell functions and environment variables.
 # *****************************************************************************
 
-declare K_LOADER=""
-
-K_LDRLIST="crosslinux-loader.txt"
-
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
@@ -133,46 +136,8 @@ CL_config_setup || exit 1
 # Main Program
 # *****************************************************************************
 
-# Check for a script argument:
-#
-# $1 == "clean" ...... This means to clean any loader build artifacts and any
-#                      in-progress loader build artifacts, maybe leftover from
-#                      loader build problem.
-
-if [[ $# -gt 0 && -n "$1" ]]; then
-	# "$1" may be unbound so hide it in this if statement.
-	# Clean if so asked.
-	if [[ "$1" == "clean" ]]; then
-		loader_clean
-		exit 0
-	fi
-fi
-
-_c=0  # Package count.
-
-# Need to get the loader package from the ${K_LDRLIST} file.
-while read pname pad; do
-	[[ -z "${pname}"         ]] && continue || true
-	[[ "${pname:0:1}" == "#" ]] && continue || true
-	K_LOADER=${pname}
-	_c=$((${_c} + 1))
-done <${K_LDRLIST}
-
-unset _c
-
-if [[ -z "${K_LOADER}" ]]; then
-	echo "E> No loader package to build.  How did you do that?"
-	exit 1
-fi
-
-# -----------------------------------------------------------------------------
-# Build Loader
-# -----------------------------------------------------------------------------
-
 echo ""
-echo "##### START building loader"
-
-pushd "${TARGET_LOADER_DIR}" >/dev/null 2>&1
+echo "##### START making bootable file system directory"
 
 # Even with 'set +e' the trap handler will run if a command or shell function
 # returns non-zero, and in that case the trap handler also will run when the
@@ -189,15 +154,13 @@ CL_exitOnSigErr=0
 # print a backtrace for the subshell, if a command or shell function returns
 # non-zero.
 CL_infoOnSigErr=1
-loader_xbuild "${K_LOADER}"
+source ${CROSSLINUX_BOARDC_DIR}/bld-bootfs.sh
 )
 set -e ; # All done with build steps; enable exit on a non-zero status.
 CL_infoOnSigErr=1
 CL_exitOnSigErr=1
 
-popd >/dev/null 2>&1
-
-echo "##### DONE building loader"
+echo "##### DONE making bootable file system directory"
 
 
 # *****************************************************************************

@@ -125,12 +125,32 @@ config FORCE_BOOT_PERSISTENT
 	select BOOT_PERSISTENT if BOARD_BEAGLEBONE
 
 if ! BOOT_PERSISTENT
+
 comment "'Boot to Persistent Storage Device' NOT selected"
+
+config BOOT_INITRDISK
+	bool
+	default y
+	prompt "Boot to Ephemeral RAM Disk"
+	---help---
+	  Your target system will be configured to boot to RAM disk as the root
+	  file system.
+
+config BOOT_INITRAMFS
+	bool
+	default n
+	prompt "Boot to Ephemeral initramfs (CPIO Archive)"
+	---help---
+	  Your target system will be configured to boot to a pseudo-filesystem
+	  initramfs CPIO Archive as the root file system.
+
 endif
 
 # *****************************************************************************
 # Choices for the root file system and its size.
 # *****************************************************************************
+
+if BOOT_INITRDISK
 
 choice
 	bool
@@ -171,6 +191,8 @@ config ROOTFS_SIZE_MB
 	  'Root File System Type' to ext2; other file system types may not be
 	  able to format such a small file system, at least not without
 	  forgoing file system journalling.
+
+endif
 
 # *****************************************************************************
 # These are the options for the ephemeral RAM Disk.

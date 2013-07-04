@@ -204,8 +204,7 @@ bt-man:
 .PHONY: getcfg config menuconfig nconfig ldrlist pkglist dload
 
 getcfg:
-	@(								\
-	dlist=`cd $(libdir)/boards/;for d in *; do echo $${d}; done`;	\
+	@dlist=`cd $(libdir)/boards/;for d in *; do echo $${d}; done`;	\
 	for d in $${dlist}; do						\
 		for f in $(libdir)/boards/$${d}/$${d}-*config; do	\
 			[[ -f $${f} ]] && llist+="$${f##*/} " || true;	\
@@ -231,8 +230,7 @@ getcfg:
 	rm --force crosslinux-config.sh;				\
 	rm --force crosslinux-loader.txt;				\
 	rm --force crosslinux-pkglst.txt;				\
-	cp $(libdir)/boards/$${bc%-*}/$${bc} crosslinux-config.sh;      \
-	)
+	cp $(libdir)/boards/$${bc%-*}/$${bc} crosslinux-config.sh
 	@chmod 666 crosslinux-config.sh
 	@ls --color -Fl crosslinux-config.sh
 	@echo ""
@@ -307,8 +305,7 @@ nconfig:
 
 crosslinux-loader.txt ldrlist: crosslinux-config.sh
 	@echo "i> Regenerating crosslinux-loader.txt:"
-	@(								\
-	rm --force .ldrlst;						\
+	@rm --force .ldrlst;						\
 	$(grep) "^CONFIG_LOADER_" crosslinux-config.sh >.ldrlst;	\
 	$(sed) -i .ldrlst						\
 		-e "s/^CONFIG_LOADER_//"				\
@@ -331,15 +328,13 @@ crosslinux-loader.txt ldrlist: crosslinux-config.sh
 		echo -n " $${PKG_URL}" >>crosslinux-loader.txt;		\
 		echo "" >>crosslinux-loader.txt;			\
 	done;								\
-	rm --force .ldrlst;						\
-	)
+	rm --force .ldrlst
 	@chmod 666 crosslinux-loader.txt
 	@ls --color -Fl crosslinux-loader.txt
 
 crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 	@echo "i> Regenerating crosslinux-pkglst.txt:"
-	@(								\
-	rm --force .pkglst;						\
+	@rm --force .pkglst;						\
 	$(grep) "^CONFIG_BLD_" crosslinux-config.sh >.pkglst;		\
 	$(sed) -i .pkglst						\
 		-e "s/^CONFIG_BLD_//"					\
@@ -362,22 +357,21 @@ crosslinux-pkglst.txt pkglist: crosslinux-config.sh
 		echo -n " $${PKG_URL}" >>crosslinux-pkglst.txt;		\
 		echo "" >>crosslinux-pkglst.txt;			\
 	done;								\
-	rm --force .pkglst;						\
-	)
+	rm --force .pkglst
 	@chmod 666 crosslinux-pkglst.txt
 	@ls --color -Fl crosslinux-pkglst.txt
 
 dload:	crosslinux-loader.txt crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.sh
 	@if [[ -z "$(PACKAGE)" ]]; then					\
 		echo "i> Download loader source package.";		\
-		($(libdir)/scripts/utl-dload.sh crosslinux-loader.txt);	\
+		$(libdir)/scripts/utl-dload.sh crosslinux-loader.txt;	\
 		if [[ $$? != 0 ]]; then					\
 			echo "E> Download FAILED.";			\
 			false;						\
 		fi							\
 	fi
 	@echo "i> Download source packages."
-	@($(libdir)/scripts/utl-dload.sh crosslinux-pkglst.txt $(PACKAGE))
+	@$(libdir)/scripts/utl-dload.sh crosslinux-pkglst.txt $(PACKAGE)
 	@if [[ $$? != 0 ]]; then					\
 		echo "E> Download FAILED.";				\
 		false;							\
@@ -407,6 +401,24 @@ build/run/kernel:
 		exit 1;							\
 	fi
 
+build/run/rootfs:
+	@if [[ ! -f build/run/rootfs ]]; then				\
+		echo "E> The root filesystem is not built.";		\
+		exit 1;							\
+	fi
+
+build/run/bootfs:
+	@if [[ ! -f build/run/bootfs ]]; then				\
+		echo "E> The boot filesystem is not built.";		\
+		exit 1;							\
+	fi
+
+build/run/bootimg:
+	@if [[ ! -f build/run/bootimg ]]; then				\
+		echo "E> The boot image is not built.";			\
+		exit 1;							\
+	fi
+
 ok_to_build:	crosslinux-config.sh
 	@if [[ ! -f .bt-init ]]; then					\
 		echo "E> Not initialized for building.";		\
@@ -418,37 +430,43 @@ ok_to_build:	crosslinux-config.sh
 # -- Build Targets
 # -----------------------------------------------------------------------------
 
-.PHONY:	_clean clean lclean kclean pclean loader pkgs pkgs_ kernel
+.PHONY:	_clean clean lclean kclean pclean
+.PHONY:	loader pkgs pkgs_ kernel rootfs bootfs bootimg
 
 _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/bld-pkgs.sh
 	@source ./crosslinux-config.sh;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-0.sh ]]; then			\
-			(site/bld-clean-0.sh ${CMD_PARAM});		\
+			site/bld-clean-0.sh ${CMD_PARAM};		\
 		fi							\
 	fi;								\
 	declare -i mystat=0;						\
 	if [[	x"${CMD_PARAM}" == x"build" ||				\
 		x"${CMD_PARAM}" == x"loader" ]];			\
 	then								\
-		($(libdir)/scripts/bld-loader.sh clean);		\
+		$(libdir)/scripts/bld-loader.sh clean;			\
 		mystat=$$(($${mystat} + $$?));				\
 	fi;								\
 	if [[	x"${CMD_PARAM}" == x"build" ||				\
 		x"${CMD_PARAM}" == x"kernel" ]];			\
 	then								\
-		($(libdir)/scripts/bld-kernel.sh clean);		\
+		$(libdir)/scripts/bld-kernel.sh clean;			\
 		mystat=$$(($${mystat} + $$?));				\
 	fi;								\
 	if [[	x"${CMD_PARAM}" == x"build" ||				\
 		x"${CMD_PARAM}" == x"packages" ]];			\
 	then								\
-		($(libdir)/scripts/bld-pkgs.sh clean);			\
+		$(libdir)/scripts/bld-pkgs.sh clean;			\
 		mystat=$$(($${mystat} + $$?));				\
+	fi;								\
+	if [[	x"${CMD_PARAM}" == x"build" ]];				\
+	then								\
+		echo "=> Removing files from target/image.";		\
+		rm --force target/image/*;				\
 	fi;								\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-1.sh ]]; then			\
-			(site/bld-clean-1.sh ${CMD_PARAM});		\
+			site/bld-clean-1.sh ${CMD_PARAM};		\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -456,9 +474,9 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 		exit 1;							\
 	fi
 	@rm --force build/run/${CMD_PARAM}
-	@rm --force build/run/fsys
-	@rm --force build/run/distdir
-	@rm --force build/run/distimg
+	@rm --force build/run/rootfs
+	@rm --force build/run/bootfs
+	@rm --force build/run/bootimg
 
 clean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=build
@@ -487,14 +505,14 @@ loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
 	rm --force build/run/loader;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-0.sh ]]; then			\
-			(site/bld-loader-0.sh);				\
+			site/bld-loader-0.sh;				\
 		fi							\
 	fi;								\
-	($(libdir)/scripts/bld-loader.sh);				\
+	$(libdir)/scripts/bld-loader.sh;				\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-1.sh ]]; then			\
-			(site/bld-loader-1.sh $${mystat});		\
+			site/bld-loader-1.sh $${mystat};		\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -518,14 +536,14 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	rm --force build/run/packages;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-0.sh ]]; then			\
-			(site/bld-pkgs-0.sh);				\
+			site/bld-pkgs-0.sh;				\
 		fi							\
 	fi;								\
-	($(libdir)/scripts/bld-pkgs.sh ${PACKAGE});			\
+	$(libdir)/scripts/bld-pkgs.sh ${PACKAGE};			\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-1.sh ]]; then			\
-			(site/bld-pkgs-1.sh $${mystat});		\
+			site/bld-pkgs-1.sh $${mystat};			\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -556,14 +574,14 @@ kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 	rm -f build/run/kernel;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-0.sh ]]; then			\
-			(site/bld-kernel-0.sh);				\
+			site/bld-kernel-0.sh;				\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-kernel.sh;				\
 	mystat=$$?;							\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-1.sh ]]; then			\
-			(site/bld-kernel-1.sh $${mystat});		\
+			site/bld-kernel-1.sh $${mystat};		\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -571,6 +589,100 @@ kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 		exit 1;							\
 	fi
 	@>build/run/kernel
+
+rootfs:	ok_to_build build/run/packages $(libdir)/scripts/bld-rootfs.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make the root file system image.";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm -f build/run/rootfs;						\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-rootfs-0.sh ]]; then			\
+			site/bld-rootfs-0.sh;				\
+		fi							\
+	fi;								\
+	$(libdir)/host-tools/usr/bin/fakeroot --			\
+		$(libdir)/scripts/bld-rootfs.sh;			\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-rootfs-1.sh ]]; then			\
+			site/bld-rootfs-1.sh $${mystat};		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "Root file system FAILED.";			\
+		exit 1;							\
+	fi
+	@>build/run/rootfs
+
+bootfs:	ok_to_build build/run/rootfs build/run/kernel $(libdir)/scripts/bld-bootfs.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make boot directory structure.";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm -f build/run/bootfs
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-bootfs-0.sh ]]; then			\
+			site/bld-bootfs-0.sh;				\
+		fi							\
+	fi;								\
+	$(libdir)/scripts/bld-bootfs.sh;				\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-bootfs-1.sh ]]; then			\
+			site/bld-bootfs-1.sh $${mystat};		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "Boot file system directory FAILED.";		\
+		exit 1;							\
+	fi
+	@>build/run/bootfs
+
+bootimg:	ok_to_build build/run/bootfs $(libdir)/scripts/bld-bootimg.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make bootable file system image.";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm -f build/run/bootimg
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-bootimg-0.sh ]]; then			\
+			site/bld-bootimg-0.sh;				\
+		fi							\
+	fi;								\
+	$(libdir)/scripts/bld-bootimg.sh;				\
+	mystat=$$?;							\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-bootimg-1.sh ]]; then			\
+			site/bld-bootimg-1.sh $${mystat};		\
+		fi							\
+	fi;								\
+	if [[ $$mystat != 0 ]]; then					\
+		echo "Boot file system image FAILED.";			\
+		exit 1;							\
+	fi
+	@>build/run/bootimg
 
 
 # end of Makefile

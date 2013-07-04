@@ -491,6 +491,10 @@ if [[ $# -gt 0 && -n "$1" ]]; then
 	fi
 fi
 
+# -----------------------------------------------------------------------------
+# Build Kernel
+# -----------------------------------------------------------------------------
+
 echo ""
 echo "##### START cross-building the kernel"
 echo "g. - getting the kernel source and configuration"
