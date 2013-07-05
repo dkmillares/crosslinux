@@ -125,28 +125,38 @@ help:
 	@echo "bt-reinit  - remove the build tool system, then initialize"
 	@echo "bt-done    - remove the build tool system"
 	@echo "bt-showcfg - show the configuration of the crosslinux build tool"
+	@echo "bt-man     - show the crosslinux build tool man page"
 	@echo ""
 	@echo "Housekeeping Targets:"
 	@echo "getcfg     - get a default build config file"
+	@echo "config     - make or change the build config file"
 	@echo "menuconfig - make or change the build config file"
 	@echo "nconfig    - make or change the build config file"
+	@echo "ldrlist    - make list of loader packages from config file"
 	@echo "pkglist    - make list of source packages using the config file"
-	@echo "dload      - download source packages"
+	@echo "dload      - download source packages; do this after menuconfig"
 	@echo ""
 	@echo "Build Targets:"
-	@echo "clean  - remove the entire build"
-	@echo "kclean - remove the kernel build"
-	@echo "pclean - remove the packages build"
-	@echo "pkgs   - build the packages listed in the build config file"
-	@echo "pkgs_  - continue building the packages"
-	@echo "kernel - build the target kernel"
+	@echo "dist    - do the entire build"
+	@echo "stat    - report the status of the build process"
+	@echo "clean   - remove the entire build"
+	@echo "kclean  - remove the kernel build"
+	@echo "lclean  - remove the loader build"
+	@echo "pclean  - remove the packages build"
+	@echo "pkgs    - build the packages listed in the build config file"
+	@echo "pkgs_   - continue building the packages"
+	@echo "loader  - build the target loader; do this before kernel"
+	@echo "kernel  - build the target kernel"
+	@echo "rootfs  - build root file system: initrd or initramfs or tarball"
+	@echo "bootfs  - build bootable staging directory: iso9660 or tarball"
+	@echo "bootimg - build bootable file system image: iso9660 or tarball"
 	@echo ""
 
 # -----------------------------------------------------------------------------
 # -- Build Tool System Targets
 # -----------------------------------------------------------------------------
 
-.PHONY: bt-init bt-done bt-reinit bt-showcfg
+.PHONY: bt-init bt-done bt-reinit bt-showcfg bt-man
 
 .bt-init bt-init:
 	@echo "i> Initialize for building."
@@ -262,7 +272,6 @@ config:
 	fi
 	@chmod 666 crosslinux-config.sh
 	@ls --color -Fl crosslinux-config.sh
-
 
 menuconfig:
 	@if [[ -f crosslinux-config.sh && -f .config ]]; then		\
@@ -432,7 +441,37 @@ ok_to_build:	crosslinux-config.sh
 # -----------------------------------------------------------------------------
 
 .PHONY:	_clean clean lclean kclean pclean
+.PHONY:	dist stat
 .PHONY:	loader pkgs pkgs_ kernel rootfs bootfs bootimg
+
+dist:	dload clean pkgs loader kernel rootfs bootfs bootimg
+
+stat:
+	@source ./crosslinux-config.sh;					\
+	echo "Report status of the build.";				\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}"
+	@(echo -n "> Packages ";					\
+	[[ ! -f build/run/packages ]] && echo -n "NOT ";		\
+	echo "Built")
+	@(echo -n "> Loader ";						\
+	[[ ! -f build/run/loader ]] && echo -n "NOT ";			\
+	echo "Built")
+	@(echo -n "> Kernel ";						\
+	[[ ! -f build/run/kernel ]] && echo -n "NOT ";			\
+	echo "Built")
+	@(echo -n "> Root File System ";				\
+	[[ ! -f build/run/rootfs ]] && echo -n "NOT ";			\
+	echo "Built")
+	@(echo -n "> Boot Staging Directory Structure";			\
+	[[ ! -f build/run/bootfs ]] && echo -n "NOT ";			\
+	echo "Built")
+	@(echo -n "> Boot Image ";					\
+	[[ ! -f build/run/bootimg ]] && echo -n "NOT ";			\
+	echo "Built")
 
 _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/bld-pkgs.sh
 	@source ./crosslinux-config.sh;					\
@@ -463,7 +502,7 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 	if [[	x"${CMD_PARAM}" == x"build" ]];				\
 	then								\
 		echo "=> Removing target/cdrom, if any.";		\
-		rm --force target/cdrom;				\
+		rm --force --recursive target/cdrom;			\
 		echo "=> Removing files from target/image.";		\
 		rm --force target/image/*;				\
 	fi;								\
@@ -492,37 +531,6 @@ kclean:
 
 pclean:
 	@${PROGRAM_NAME} _clean CMD_PARAM=packages
-
-loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
-	@if [[ `id -u` -eq 0 ]]; then					\
-		echo "E> Do not do this as root";			\
-		exit 1;							\
-	fi
-	@source ./crosslinux-config.sh;					\
-	echo "i> Make the crosslinux loader for:";			\
-	sysName="'$${CONFIG_BRAND_NAME}' ";				\
-	sysName+="$${CONFIG_RELEASE_VERS} ";				\
-	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
-	echo "=> $${sysName}";						\
-	echo "=> $${CONFIG_BOARD}";					\
-	rm --force build/run/loader;					\
-	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-loader-0.sh ]]; then			\
-			site/bld-loader-0.sh;				\
-		fi							\
-	fi;								\
-	$(libdir)/scripts/bld-loader.sh;				\
-	declare -i mystat=$$?;						\
-	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
-		if [[ -x site/bld-loader-1.sh ]]; then			\
-			site/bld-loader-1.sh $${mystat};		\
-		fi							\
-	fi;								\
-	if [[ $${mystat} != 0 ]]; then					\
-		echo "E> Build loader FAILED.";				\
-		exit 1;							\
-	fi
-	@>build/run/loader
 
 pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
@@ -561,6 +569,37 @@ pkgs_:
 		exit 1;							\
 	fi
 	@${PROGRAM_NAME} pkgs PACKAGE=continue 
+
+loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
+	@if [[ `id -u` -eq 0 ]]; then					\
+		echo "E> Do not do this as root";			\
+		exit 1;							\
+	fi
+	@source ./crosslinux-config.sh;					\
+	echo "i> Make the crosslinux loader for:";			\
+	sysName="'$${CONFIG_BRAND_NAME}' ";				\
+	sysName+="$${CONFIG_RELEASE_VERS} ";				\
+	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
+	echo "=> $${sysName}";						\
+	echo "=> $${CONFIG_BOARD}";					\
+	rm --force build/run/loader;					\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-loader-0.sh ]]; then			\
+			site/bld-loader-0.sh;				\
+		fi							\
+	fi;								\
+	$(libdir)/scripts/bld-loader.sh;				\
+	declare -i mystat=$$?;						\
+	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
+		if [[ -x site/bld-loader-1.sh ]]; then			\
+			site/bld-loader-1.sh $${mystat};		\
+		fi							\
+	fi;								\
+	if [[ $${mystat} != 0 ]]; then					\
+		echo "E> Build loader FAILED.";				\
+		exit 1;							\
+	fi
+	@>build/run/loader
 
 kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 	@if [[ `id -u` -eq 0 ]]; then					\
