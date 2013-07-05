@@ -325,9 +325,13 @@ local NJOBS=""
 #
 CL_logcmd "rm --force --recursive ${TARGET_K_ROOT_DIR}/*"
 CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/boot"
-CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/etc"
+CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/config"
 CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/lib"
 CL_logcmd "mkdir --parents ${TARGET_K_ROOT_DIR}/lib/modules"
+
+_kname="${K_KERNEL_SOURCE_NAME}"
+cp "${_kname}/.config" "${TARGET_K_ROOT_DIR}/config/${_kname}.cfg"
+unset _kname
 
 # $ make vmlinux
 # $ mipsel-linux-strip vmlinux

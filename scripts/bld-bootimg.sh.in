@@ -76,6 +76,7 @@ echo "SOURCE_BRAND=\"${CONFIG_BRAND_NAME}\""     >>cdrom/LABEL
 echo "SOURCE_NAME=\"${CONFIG_RELEASE_NAME}\""    >>cdrom/LABEL
 echo "SOURCE_VERSION=\"${CONFIG_RELEASE_VERS}\"" >>cdrom/LABEL
 echo "SOURCE_ARCH=\"${CONFIG_CPU_ARCH}\""        >>cdrom/LABEL
+#echo "SOURCE_KVER=\"${kver}\""                   >>cdrom/LABEL
 chmod 644 cdrom/LABEL
 if [[ x"${CONFIG_INCLUDE_MEDIA_ROOT_DOCS:-}" == x"y" ]]; then
 	for _f in ${TARGET_SITE_DIR}/root-doc/*; do
@@ -97,10 +98,7 @@ echo "DONE"
 iso9660_extra_files() {
 
 if [[ x"${CONFIG_INCLUDE_MEDIA_CONFIG_FILES:-}" == x"y" ]]; then
-	echo -n "i> Getting the kernel configuration file ............. "
 	cp "${TARGET_K_ROOT_DIR}/config/"*.cfg cdrom/config/
-	chmod 644 cdrom/config/*
-	echo "DONE"
 fi
 
 if [[ x"${CONFIG_INCLUDE_MEDIA_DOCS:-}" == x"y" ]]; then
@@ -174,7 +172,7 @@ CL_config_setup || exit 1
 # *****************************************************************************
 
 echo ""
-echo "##### START making bootable file system directory"
+echo "##### START making boot image file"
 
 pushd "${TARGET_PROJ_DIR}/target/" >/dev/null 2>&1
 
@@ -194,15 +192,7 @@ CL_exitOnSigErr=0
 # non-zero.
 CL_infoOnSigErr=1
 if [[ x"${CONFIG_MEDIA_ISO9660:-}" == x"y" ]]; then
-	# This will make a new directory structure:
-	# ${TARGET_PROJ_DIR}/target/cdrom/
-	iso9660_root
-	source ${CROSSLINUX_BOARDC_DIR}/bld-iso9660-dir.sh
-	iso9660_extra_files
-fi
-if [[ x"${CONFIG_ROOTFS_TARBALL:-}" == x"y" ]]; then
-	# Remake the root file system tarbal with any optional extra items.
-	fakeroot -- "${CROSSLINUX_SCRIPT_DIR}/bld-bootfs-tarball.sh"
+	source ${CROSSLINUX_BOARDC_DIR}/bld-iso9660-img.sh
 fi
 )
 set -e ; # All done with build steps; enable exit on a non-zero status.
@@ -211,7 +201,7 @@ CL_exitOnSigErr=1
 
 popd >/dev/null 2>&1
 
-echo "##### DONE making bootable file system directory"
+echo "##### DONE making boot image file"
 
 
 # *****************************************************************************

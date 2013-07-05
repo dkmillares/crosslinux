@@ -263,6 +263,7 @@ config:
 	@chmod 666 crosslinux-config.sh
 	@ls --color -Fl crosslinux-config.sh
 
+
 menuconfig:
 	@if [[ -f crosslinux-config.sh && -f .config ]]; then		\
 		echo "E> You have both files:";				\
@@ -461,6 +462,8 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 	fi;								\
 	if [[	x"${CMD_PARAM}" == x"build" ]];				\
 	then								\
+		echo "=> Removing target/cdrom, if any.";		\
+		rm --force target/cdrom;				\
 		echo "=> Removing files from target/image.";		\
 		rm --force target/image/*;				\
 	fi;								\
@@ -509,7 +512,7 @@ loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-loader.sh;				\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-1.sh ]]; then			\
 			site/bld-loader-1.sh $${mystat};		\
@@ -540,7 +543,7 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-pkgs.sh ${PACKAGE};			\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-1.sh ]]; then			\
 			site/bld-pkgs-1.sh $${mystat};			\
@@ -578,7 +581,7 @@ kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-kernel.sh;				\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-1.sh ]]; then			\
 			site/bld-kernel-1.sh $${mystat};		\
@@ -610,7 +613,7 @@ rootfs:	ok_to_build build/run/packages $(libdir)/scripts/bld-rootfs.sh
 	fi;								\
 	$(libdir)/host-tools/usr/bin/fakeroot --			\
 		$(libdir)/scripts/bld-rootfs.sh;			\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-rootfs-1.sh ]]; then			\
 			site/bld-rootfs-1.sh $${mystat};		\
@@ -634,14 +637,14 @@ bootfs:	ok_to_build build/run/rootfs build/run/kernel $(libdir)/scripts/bld-boot
 	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
 	echo "=> $${sysName}";						\
 	echo "=> $${CONFIG_BOARD}";					\
-	rm -f build/run/bootfs
+	rm -f build/run/bootfs;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootfs-0.sh ]]; then			\
 			site/bld-bootfs-0.sh;				\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-bootfs.sh;				\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootfs-1.sh ]]; then			\
 			site/bld-bootfs-1.sh $${mystat};		\
@@ -665,14 +668,14 @@ bootimg:	ok_to_build build/run/bootfs $(libdir)/scripts/bld-bootimg.sh
 	sysName+="[$${CONFIG_RELEASE_NAME}]";				\
 	echo "=> $${sysName}";						\
 	echo "=> $${CONFIG_BOARD}";					\
-	rm -f build/run/bootimg
+	rm -f build/run/bootimg;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootimg-0.sh ]]; then			\
 			site/bld-bootimg-0.sh;				\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-bootimg.sh;				\
-	mystat=$$?;							\
+	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootimg-1.sh ]]; then			\
 			site/bld-bootimg-1.sh $${mystat};		\

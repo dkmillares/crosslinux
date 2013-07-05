@@ -26,11 +26,11 @@
 # ******************************************************************************
 
 PKG_URL="http://www.kernel.org/pub/linux/utils/boot/syslinux/"
-PKG_ZIP="syslinux-6.00.tar.xz"
+PKG_ZIP="syslinux-6.01.tar.xz"
 PKG_SUM=""
 
-PKG_TAR="syslinux-6.00.tar"
-PKG_DIR="syslinux-6.00"
+PKG_TAR="syslinux-6.01.tar"
+PKG_DIR="syslinux-6.01"
 
 
 # ******************************************************************************
@@ -84,11 +84,28 @@ pkg_install() {
 
 PKG_STATUS="install error"
 
-cp "${PKG_DIR}/bios/extlinux/extlinux" extlinux
-cp "${PKG_DIR}/bios/core/isolinux.bin" isolinux.bin
+cp "${PKG_DIR}/bios/extlinux/extlinux"                 extlinux
+cp "${PKG_DIR}/bios/core/isolinux.bin"                 isolinux.bin
+cp "${PKG_DIR}/bios/com32/elflink/ldlinux/ldlinux.c32" ldlinux.c32
+
+cp "${CROSSLINUX_LOADER_DIR}/"*.msg .
+cp "${CROSSLINUX_LOADER_DIR}/"*.cfg .
+
+for _f in *.msg; do
+	if [[ -f "${_f}" ]]; then
+		sed -i ${_f} -e "s?www\.crosslinux\.org?${CONFIG_BRAND_URL}?g"
+		sed -i ${_f} -e "s?crosslinux?${CONFIG_BRAND_NAME}?g"
+	fi
+done
+
+for _f in *.cfg; do
+	if [[ -f "${_f}" ]]; then
+		sed -i ${_f} -e "s?crosslinux?${CONFIG_BRAND_NAME}?g"
+	fi
+done
 
 echo "=> New files:"
-ls --color -lh extlinux isolinux.bin || true
+ls --color -lh extlinux isolinux.bin ldlinux.c32 || true
 
 PKG_STATUS=""
 return 0

@@ -45,7 +45,7 @@
 CL_config_setup() {
 
 	CROSSLINUX_BOARDC_DIR="@@CL_LIBDIR@@/boards/${CONFIG_BOARD}"
-	CROSSLINUX_LOADER_DIR="@@CL_LIBDIR@@/loaders"
+	CROSSLINUX_LOADER_DIR="@@CL_LIBDIR@@/loaders/${CONFIG_LOADERSUBDIR}"
 	CROSSLINUX_PKGCFG_DIR="@@CL_LIBDIR@@/pkg-cfg"
 	CROSSLINUX_SCRIPT_DIR="@@CL_LIBDIR@@/scripts"
 
@@ -65,7 +65,6 @@ CL_config_setup() {
 
 	_name="${CONFIG_BRAND_NAME}"
 	_nameTag="${CONFIG_BOARD}-${CONFIG_RELEASE_VERS}"
-	TARGET_IMG_NAME="${TARGET_IMGAGE_DIR}/file_sys-${_nameTag}.img"
 	TARGET_IFS_NAME="${TARGET_IMGAGE_DIR}/initfs-${_nameTag}"
 	TARGET_IRD_NAME="${TARGET_IMGAGE_DIR}/initrd-${_nameTag}"
 	TARGET_TAR_NAME="${TARGET_IMGAGE_DIR}/${_name}-${_nameTag}.tar.bz2"
