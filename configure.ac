@@ -190,7 +190,7 @@ AS_IF(
     kconfig_prefix="${prefix}"])
 
 # -----------------------------------------------------------------------------
-# Generate files from the *.in files.  Configure in the Kconfig directory.
+# Generate files from the *.in files.  Configure in the kconfig directory.
 # -----------------------------------------------------------------------------
 
 AC_CONFIG_FILES([Makefile])

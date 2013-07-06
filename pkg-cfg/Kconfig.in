@@ -42,14 +42,14 @@ endmenu
 # ---------------------------------- System Architecture and Boot Configuration
 
 menu "System Architecture and Boot Configuration"
-source @@CL_LIBDIR@@/Kconfig-bootcfg
-source @@CL_LIBDIR@@/loaders/Kconfig-loaders
+source @@CL_LIBDIR@@/pkg-cfg/Kconfig-bootcfg
+source @@CL_LIBDIR@@/pkg-cfg/Kconfig-loaders
 endmenu
 
 # ------------------------------------ Cross-tool Chain and Build Configuration
 
 menu "Cross-tool Chain and Build Configuration"
-source @@CL_LIBDIR@@/Kconfig-xtcfg
+source @@CL_LIBDIR@@/pkg-cfg/Kconfig-xtcfg
 endmenu
 
 # -------------------------------------------------------------------- Packages

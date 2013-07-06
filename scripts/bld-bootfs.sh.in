@@ -78,7 +78,7 @@ echo "SOURCE_VERSION=\"${CONFIG_RELEASE_VERS}\"" >>cdrom/LABEL
 echo "SOURCE_ARCH=\"${CONFIG_CPU_ARCH}\""        >>cdrom/LABEL
 chmod 644 cdrom/LABEL
 if [[ x"${CONFIG_INCLUDE_MEDIA_ROOT_DOCS:-}" == x"y" ]]; then
-	for _f in ${TARGET_SITE_DIR}/root-doc/*; do
+	for _f in ${TARGET_SITE_DIR}/doc-root/*; do
 		if [[ -f "${_f}" ]]; then
 			cp "${_f}" "cdrom/"
 			chmod 644 "cdrom/${_f##*/}"
@@ -212,6 +212,7 @@ CL_exitOnSigErr=1
 popd >/dev/null 2>&1
 
 echo "##### DONE making bootable file system directory"
+echo ""
 
 
 # *****************************************************************************

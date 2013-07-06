@@ -265,7 +265,7 @@ config:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig-exec/kconfig-conf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-conf $(libdir)/pkg-cfg/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
@@ -285,7 +285,7 @@ menuconfig:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig-exec/kconfig-mconf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-mconf $(libdir)/pkg-cfg/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
@@ -305,7 +305,7 @@ nconfig:
 	@if [[ -f crosslinux-config.sh ]]; then				\
 		cp crosslinux-config.sh .config;			\
 	fi
-	@$(libdir)/kconfig-exec/kconfig-nconf $(libdir)/Kconfig
+	@$(libdir)/kconfig-exec/kconfig-nconf $(libdir)/pkg-cfg/Kconfig
 	@if [[ -f .config ]]; then					\
 		rm --force crosslinux-config.sh;			\
 		mv .config crosslinux-config.sh;			\
@@ -330,7 +330,7 @@ crosslinux-loader.txt ldrlist: crosslinux-config.sh
 		for ((i=35 ; $${i}>$${#dir} ; i--)); do			\
 			echo -n "." >>crosslinux-loader.txt;		\
 		done;							\
-		source $(libdir)/loaders/$${dir}/bld.sh;		\
+		source $(libdir)/pkg-cfg/$${dir}/bld.sh;		\
 		echo -n " $${PKG_ZIP} " >>crosslinux-loader.txt;	\
 		for ((i=35 ; $${i}>$${#PKG_ZIP} ; i--)); do		\
 			echo -n "." >>crosslinux-loader.txt;		\
@@ -477,7 +477,7 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 	@source ./crosslinux-config.sh;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-0.sh ]]; then			\
-			site/bld-clean-0.sh ${CMD_PARAM};		\
+			site/bld-clean-0.sh "$(libdir)" ${CMD_PARAM};	\
 		fi							\
 	fi;								\
 	declare -i mystat=0;						\
@@ -508,7 +508,7 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 	fi;								\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-1.sh ]]; then			\
-			site/bld-clean-1.sh ${CMD_PARAM};		\
+			site/bld-clean-1.sh "$(libdir)" ${CMD_PARAM};	\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -547,14 +547,14 @@ pkgs:	ok_to_build crosslinux-pkglst.txt $(libdir)/scripts/bld-pkgs.sh
 	rm --force build/run/packages;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-0.sh ]]; then			\
-			site/bld-pkgs-0.sh;				\
+			site/bld-pkgs-0.sh "$(libdir)";			\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-pkgs.sh ${PACKAGE};			\
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-pkgs-1.sh ]]; then			\
-			site/bld-pkgs-1.sh $${mystat};			\
+			site/bld-pkgs-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -585,14 +585,14 @@ loader:	ok_to_build crosslinux-loader.txt $(libdir)/scripts/bld-loader.sh
 	rm --force build/run/loader;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-0.sh ]]; then			\
-			site/bld-loader-0.sh;				\
+			site/bld-loader-0.sh "$(libdir)";		\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-loader.sh;				\
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-loader-1.sh ]]; then			\
-			site/bld-loader-1.sh $${mystat};		\
+			site/bld-loader-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -616,14 +616,14 @@ kernel:	ok_to_build build/run/loader $(libdir)/scripts/bld-kernel.sh
 	rm -f build/run/kernel;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-0.sh ]]; then			\
-			site/bld-kernel-0.sh;				\
+			site/bld-kernel-0.sh "$(libdir)";		\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-kernel.sh;				\
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-kernel-1.sh ]]; then			\
-			site/bld-kernel-1.sh $${mystat};		\
+			site/bld-kernel-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $${mystat} != 0 ]]; then					\
@@ -647,7 +647,7 @@ rootfs:	ok_to_build build/run/packages $(libdir)/scripts/bld-rootfs.sh
 	rm -f build/run/rootfs;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-rootfs-0.sh ]]; then			\
-			site/bld-rootfs-0.sh;				\
+			site/bld-rootfs-0.sh "$(libdir)";		\
 		fi							\
 	fi;								\
 	$(libdir)/host-tools/usr/bin/fakeroot --			\
@@ -655,7 +655,7 @@ rootfs:	ok_to_build build/run/packages $(libdir)/scripts/bld-rootfs.sh
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-rootfs-1.sh ]]; then			\
-			site/bld-rootfs-1.sh $${mystat};		\
+			site/bld-rootfs-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $$mystat != 0 ]]; then					\
@@ -679,14 +679,14 @@ bootfs:	ok_to_build build/run/rootfs build/run/kernel $(libdir)/scripts/bld-boot
 	rm -f build/run/bootfs;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootfs-0.sh ]]; then			\
-			site/bld-bootfs-0.sh;				\
+			site/bld-bootfs-0.sh "$(libdir)";		\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-bootfs.sh;				\
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootfs-1.sh ]]; then			\
-			site/bld-bootfs-1.sh $${mystat};		\
+			site/bld-bootfs-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $$mystat != 0 ]]; then					\
@@ -710,14 +710,14 @@ bootimg:	ok_to_build build/run/bootfs $(libdir)/scripts/bld-bootimg.sh
 	rm -f build/run/bootimg;					\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootimg-0.sh ]]; then			\
-			site/bld-bootimg-0.sh;				\
+			site/bld-bootimg-0.sh "$(libdir)";		\
 		fi							\
 	fi;								\
 	$(libdir)/scripts/bld-bootimg.sh;				\
 	declare -i mystat=$$?;						\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-bootimg-1.sh ]]; then			\
-			site/bld-bootimg-1.sh $${mystat};		\
+			site/bld-bootimg-1.sh "$(libdir)" $${mystat};	\
 		fi							\
 	fi;								\
 	if [[ $$mystat != 0 ]]; then					\

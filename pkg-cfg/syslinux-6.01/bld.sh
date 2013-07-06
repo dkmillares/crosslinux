@@ -85,6 +85,7 @@ pkg_install() {
 PKG_STATUS="install error"
 
 cp "${PKG_DIR}/bios/extlinux/extlinux"                 extlinux
+cp "${PKG_DIR}/bios/linux/syslinux"                    syslinux
 cp "${PKG_DIR}/bios/core/isolinux.bin"                 isolinux.bin
 cp "${PKG_DIR}/bios/com32/elflink/ldlinux/ldlinux.c32" ldlinux.c32
 
@@ -105,7 +106,7 @@ for _f in *.cfg; do
 done
 
 echo "=> New files:"
-ls --color -lh extlinux isolinux.bin ldlinux.c32 || true
+ls --color -lh extlinux syslinux isolinux.bin ldlinux.c32 || true
 
 PKG_STATUS=""
 return 0

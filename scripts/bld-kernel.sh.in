@@ -137,10 +137,11 @@ unset _ext
 # Figure the kernel configuration file pathname.
 #
 if [[ x"${CONFIG_SITE_KERNEL_CFG:-}" == x"y" ]]; then
-	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${SITE_KERNEL_CFG_PNAME}"
+	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_CFG_PNAME}/"
 else
-	K_KERNEL_CONFIG="${CROSSLINUX_BOARDC_DIR}/${K_KERNEL_SOURCE_NAME}.cfg"
+	K_KERNEL_CONFIG="${CROSSLINUX_BOARDC_DIR}/"
 fi
+K_KERNEL_CONFIG+="${K_KERNEL_SOURCE_NAME}.cfg"
 
 # Bail if kernel configuration file name not found.
 #
@@ -572,6 +573,7 @@ secs=$(((${t2}-${t1})%60))
 popd >/dev/null 2>&1
 
 echo "##### DONE cross-building the kernel"
+echo ""
 
 
 # *****************************************************************************

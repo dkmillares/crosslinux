@@ -2812,7 +2812,7 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Generate files from the *.in files.  Configure in the Kconfig directory.
+# Generate files from the *.in files.  Configure in the kconfig directory.
 # -----------------------------------------------------------------------------
 
 ac_config_files="$ac_config_files Makefile"

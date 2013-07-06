@@ -181,7 +181,9 @@ for _p in ${_pkglst}; do
 	cp "${TARGET_PKGBIN_DIR}/${_p}-${CONFIG_CPU_ARCH}.tbz" "${_p}.tar.bz2"
 	bunzip2 --force "${_p}.tar.bz2"
 	tar --extract --file="${_p}.tar" --directory=${TARGET_MNT_DIR}
-	tar --list --file="${_p}.tar" >"${_shareDir}/pkg-${_p}-FILES"
+	if [[ x"${_p#*-}" != x"nopackage" ]]; then
+		tar --list --file="${_p}.tar" >"${_shareDir}/pkg-${_p}-FILES"
+	fi
 	rm --force "${_p}.tar"
 done;
 unset _p
@@ -212,6 +214,7 @@ rm --force TIME_STAMP
 popd >/dev/null 2>&1
 
 echo "##### DONE making root file system image"
+echo ""
 
 
 # *****************************************************************************

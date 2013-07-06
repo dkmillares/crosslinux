@@ -228,9 +228,9 @@ if ! BOOT_EPHEMERAL || MEDIA_ISO9660
 config INCLUDE_MEDIA_ROOT_DOCS
 	bool
 	default y
-	prompt "Copy files from ./site/root-doc to boot media."
+	prompt "Copy files from ./site/doc-root to boot media."
 	---help---
-	  Copy files from ./site/root-doc to the top-level ISO9660 directory,
+	  Copy files from ./site/doc-root to the top-level ISO9660 directory,
 	  or to the root file system in '/usr/share/${BRAND_NAME}/doc',
 	  depending upon the MEDIA_ISO9660 selection above.
 

@@ -52,101 +52,10 @@ cl_libdir="@@CL_LIBDIR@@"
 
 
 # *****************************************************************************
-# Make and initialize an ISO9660 staging directory.
+#
 # *****************************************************************************
 
-iso9660_root() {
-
-echo -n "i> Recreating ISO staging directory structure ........ "
-rm --force --recursive "cdrom/"
-mkdir --mode=755 --parents "cdrom/"
-mkdir --mode=755 --parents "cdrom/boot/"
-mkdir --mode=755 --parents "cdrom/boot/isolinux/"
-mkdir --mode=755 --parents "cdrom/config/"
-mkdir --mode=755 --parents "cdrom/doc/"
-mkdir --mode=755 --parents "cdrom/log/"
-mkdir --mode=755 --parents "cdrom/pkgbin/"
-echo "DONE"
-
-echo -n "i> Gathering top-level document files ................ "
->cdrom/LABEL
-echo "SOURCE_TIMESTAMP=\"$(date)\""              >>cdrom/LABEL
-echo "SOURCE_MEDIA=\"CDROM\""                    >>cdrom/LABEL
-echo "SOURCE_BRAND=\"${CONFIG_BRAND_NAME}\""     >>cdrom/LABEL
-echo "SOURCE_NAME=\"${CONFIG_RELEASE_NAME}\""    >>cdrom/LABEL
-echo "SOURCE_VERSION=\"${CONFIG_RELEASE_VERS}\"" >>cdrom/LABEL
-echo "SOURCE_ARCH=\"${CONFIG_CPU_ARCH}\""        >>cdrom/LABEL
-#echo "SOURCE_KVER=\"${kver}\""                   >>cdrom/LABEL
-chmod 644 cdrom/LABEL
-if [[ x"${CONFIG_INCLUDE_MEDIA_ROOT_DOCS:-}" == x"y" ]]; then
-	for _f in ${TARGET_SITE_DIR}/root-doc/*; do
-		if [[ -f "${_f}" ]]; then
-			cp "${_f}" "cdrom/"
-			chmod 644 "cdrom/${_f##*/}"
-		fi
-	done
-fi
-echo "DONE"
-
-}
-
-
-# *****************************************************************************
-# Add any optional extra items to the ISO9660 staging directory.
-# *****************************************************************************
-
-iso9660_extra_files() {
-
-if [[ x"${CONFIG_INCLUDE_MEDIA_CONFIG_FILES:-}" == x"y" ]]; then
-	cp "${TARGET_K_ROOT_DIR}/config/"*.cfg cdrom/config/
-fi
-
-if [[ x"${CONFIG_INCLUDE_MEDIA_DOCS:-}" == x"y" ]]; then
-	echo -n "i> Getting the site documents ........................ "
-	_needChmod=""
-	for _f in ${TARGET_SITE_DIR}/doc/*; do
-		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/doc/
-			_needChmod="y"
-		fi
-	done
-	if [[ -n "${_needChmod}" ]]; then chmod 644 cdrom/doc/*; fi
-	unset _needChmod
-	echo "DONE"
-fi
-
-if [[ x"${CONFIG_INCLUDE_BUILD_LOGS:-}" == x"y" ]]; then
-	echo -n "i> Getting the build logs ............................ "
-	_needChmod=""
-	for _f in ${TARGET_LOG_DIR}/*; do
-		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/log/
-			_needChmod="y"
-		fi
-	done
-	if [[ -n "${_needChmod}" ]]; then
-		bzip2 --compress cdrom/log/*
-		chmod 644 cdrom/log/*
-	fi
-	unset _needChmod
-	echo "DONE"
-fi
-
-if [[ x"${CONFIG_INCLUDE_BIN_PKGS:-}" == x"y" ]]; then
-	echo -n "i> Copying packages to Boot CD ....................... "
-	_needChmod=""
-	for _f in ${TARGET_PKGBIN_DIR}/*; do
-		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/pkgbin/
-			_needChmod="y"
-		fi
-	done
-	if [[ -n "${_needChmod}" ]]; then chmod 644 cdrom/pkgbin/*; fi
-	unset _needChmod
-	echo "DONE"
-fi
-
-}
+# none
 
 
 # *************************************************************************** #
@@ -202,6 +111,7 @@ CL_exitOnSigErr=1
 popd >/dev/null 2>&1
 
 echo "##### DONE making boot image file"
+echo ""
 
 
 # *****************************************************************************

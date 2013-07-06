@@ -146,7 +146,13 @@ TARGETS     := kconfig bin lib host-tools doc man
 MAN_SECTION := 1
 MAN_SUBDIR  := man$(MAN_SECTION)
 
-KCONFIG_FILES := Kconfig Kconfig-bootcfg loaders/Kconfig-loaders Kconfig-xtcfg pkg-cfg/Kconfig-pkgcfg
+KCONFIG_FILES :=		\
+	pkg-cfg/Kconfig		\
+	pkg-cfg/Kconfig-bootcfg	\
+	pkg-cfg/Kconfig-loaders	\
+	pkg-cfg/Kconfig-pkgcfg	\
+	pkg-cfg/Kconfig-xtcfg	\
+
 SCRIPT_FILES  := $(shell ls scripts/* | $(sed) -e "s/\.in//")
 
 .PHONY:	default
@@ -327,12 +333,8 @@ install-bin:	$(bindir)
 	@echo "INST  setenv.sh"
 	@$(install) -m 755 setenv.sh "$(bindir)/setenv.sh"
 
-LIB_SUB_DIR := boards loaders pkg-cfg scripts
+LIB_SUB_DIR := boards pkg-cfg scripts
 install-lib:	$(libdir)
-	@for kconfig_file in $(KCONFIG_FILES); do			\
-		echo "INST  $${kconfig_file}";				\
-		$(install) -m 644 "$${kconfig_file}" "$(libdir)/";	\
-	done
 	@for dir in $(LIB_SUB_DIR); do					\
 		echo "INST  $${dir}/";					\
 		$(tar) cf - --exclude='*.in' $${dir}/ 			\

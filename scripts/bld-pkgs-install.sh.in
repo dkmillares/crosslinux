@@ -390,7 +390,7 @@ rm --force FILES # All done with the FILES file.
 # Look for a package configuration file list.  There does not need to be one.
 #
 _fname1="${CROSSLINUX_PKGCFG_DIR}/$1/files"
-_fname2="site/pkg-cfg-$1/files"
+_fname2="${TARGET_SITE_DIR}/pkg-cfg-$1/files"
 if [[ -f "${_fname1}" ]]; then
 	fileList="${_fname1}"
 fi
