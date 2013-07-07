@@ -72,8 +72,12 @@ cl_libdir="@@CL_LIBDIR@@"
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -118,6 +122,7 @@ echo ""
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

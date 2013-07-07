@@ -127,8 +127,12 @@ echo "i> File system tarball ${TARGET_TAR_NAME##*/} is ready."
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -158,6 +162,7 @@ CL_exitOnSigErr=0
 # non-zero.
 CL_infoOnSigErr=1
 
+_shareDir="${TARGET_MNT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
 _pkglst=""
 _p=""
 
@@ -171,7 +176,6 @@ for _p in $(ls ${TARGET_PKGBIN_DIR}); do
 done
 echo "DONE"
 
-_shareDir="${TARGET_MNT_DIR}/usr/share/${CONFIG_BRAND_NAME}"
 echo -n "i> Installing packages into staging area ..."
 rm --force --recursive "${TARGET_MNT_DIR}/"*
 echo ""
@@ -221,6 +225,7 @@ echo ""
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

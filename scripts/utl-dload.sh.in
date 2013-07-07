@@ -63,8 +63,12 @@ G_NMISSING=0
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -82,6 +86,7 @@ if [[ ! -d "${DOWNLOAD_CACHE_DIR}" ]]; then
 	else
 		echo "=> Maybe your Download Cache Directory doesn't exist."
 	fi
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 
@@ -91,7 +96,7 @@ while read pname pad1 fname pad2 url; do
 	[[ -z "${pname}"                       ]] && continue || true
 	[[ "${pname:0:1}" == "#"               ]] && continue || true
 	[[ -n "${_p}" && "${pname}" != "${_p}" ]] && continue || true
-	CL_dload_get_file ${pname} ${fname} ${url}
+	CL_dload_get_file ${pname} ${fname} ${url} || false
 	_c=$((${_c} + 1))
 done <${K_PKGLIST}
 echo "i> Fetched ${_c} packages."
@@ -126,6 +131,7 @@ if [[ ${G_NMISSING} != 0 ]]; then
 		fi
 	done
 	echo ""
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 
@@ -134,6 +140,7 @@ fi
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

@@ -85,7 +85,7 @@ CFLAGS="${CONFIG_CFLAGS} -DLTC_NO_BSWAP"
 	--prefix=/usr \
 	--enable-shadow \
 	--disable-pam \
-	--disable-zlib || return 1
+	--disable-zlib || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
@@ -111,7 +111,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make --jobs=${NJOBS} \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	PROGRAMS="dropbear dbclient dropbearkey dropbearconvert scp" \
 	MULTI=1 \
-	SCPPROGRESS=1 || return 1
+	SCPPROGRESS=1 || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 

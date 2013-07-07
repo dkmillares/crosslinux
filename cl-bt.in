@@ -125,7 +125,7 @@ help:
 	@echo "bt-reinit  - remove the build tool system, then initialize"
 	@echo "bt-done    - remove the build tool system"
 	@echo "bt-showcfg - show the configuration of the crosslinux build tool"
-	@echo "bt-man     - show the crosslinux build tool man page"
+	@echo "bt-showman - show the crosslinux build tool man page"
 	@echo ""
 	@echo "Housekeeping Targets:"
 	@echo "getcfg     - get a default build config file"
@@ -165,10 +165,14 @@ help:
 		echo "=> making $${d}/";				\
 		mkdir --parents $${d};					\
 	done
-	@mkdir --mode=0700 bin-link/
-	@$(libdir)/scripts/bt-init.sh
+	@mkdir --mode=0700 --parents bin-link/
+	@echo "=> making bin-link/"
+	@$(libdir)/scripts/bt-init.sh # See note [1] below.
 	@rm --force .bt-init
 	@date >.bt-init
+#
+# [1] - The script is not called in a subshell; on error the following lines in
+#       the rule are not executed purposely, and make aborts.
 
 bt-done:
 	@echo "i> Removing build directories."
@@ -204,7 +208,7 @@ bt-showcfg:
 	@echo "mandir: $(mandir)"
 	@echo ""
 
-bt-man:
+bt-showman:
 	man "$(mandir)/man1/cl-bt.1.gz"
 
 # -----------------------------------------------------------------------------
@@ -381,8 +385,8 @@ dload:	crosslinux-loader.txt crosslinux-pkglst.txt $(libdir)/scripts/utl-dload.s
 		fi							\
 	fi
 	@echo "i> Download source packages."
-	@$(libdir)/scripts/utl-dload.sh crosslinux-pkglst.txt $(PACKAGE)
-	@if [[ $$? != 0 ]]; then					\
+	@$(libdir)/scripts/utl-dload.sh crosslinux-pkglst.txt $(PACKAGE); \
+	if [[ $$? != 0 ]]; then						\
 		echo "E> Download FAILED.";				\
 		false;							\
 	fi

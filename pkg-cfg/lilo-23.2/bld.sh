@@ -89,7 +89,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 		-DREWRITE_TABLE -DSOLO_CHAIN -DVERSION" \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	OPT="${CONFIG_CFLAGS}" \
-	all || return 1
+	all || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..

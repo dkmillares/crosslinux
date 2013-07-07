@@ -81,7 +81,7 @@ CFLAGS="${CONFIG_CFLAGS}" \
 ./configure \
 	--build=${MACHTYPE} \
 	--host=${CONFIG_XTOOL_NAME} \
-	--prefix=/usr || return 1
+	--prefix=/usr || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
@@ -106,7 +106,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	AR="${CONFIG_XTOOL_NAME}-ar" \
 	CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
 	COPTS="${CONFIG_CFLAGS}" \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 1
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 

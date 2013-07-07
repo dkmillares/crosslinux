@@ -93,7 +93,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
 	SKIP_STRIP=${SKIP_STRIP_FLAG} \
-	V=1 || return 1
+	V=1 || return 0
 
 cd ".."
 
@@ -117,7 +117,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
 	SKIP_STRIP=${SKIP_STRIP_FLAG} \
-	V=1 || return 1
+	V=1 || return 0
 
 cd ..
 
@@ -149,7 +149,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	ARCH="${CONFIG_CPU_ARCH}" \
 	CROSS_COMPILE="${CONFIG_XTOOL_NAME}-" \
 	CONFIG_PREFIX=${TARGET_SYSROOT_DIR} \
-	install || return 1
+	install || return 0
 mv "${TARGET_SYSROOT_DIR}/usr/bin/awk" "${TARGET_SYSROOT_DIR}/bin/awk"
 cd ..
 

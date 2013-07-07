@@ -473,8 +473,12 @@ declare K_KERNEL_MODULES="no"
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -492,6 +496,7 @@ if [[ $# -gt 0 && -n "$1" ]]; then
 	# Clean if so asked.
 	if [[ "$1" == "clean" ]]; then
 		kernel_clean
+		CL_infoSigExit=0 # No info needed, because exit now is expected.
 		exit 0
 	fi
 fi
@@ -554,6 +559,7 @@ if [[ $? -ne 0 ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
 	echo "Check the build log file."
 	echo "=> ${TARGET_LOG_DIR}/${K_KERNEL_SOURCE_NAME}.log"
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 set -e ; # All done with build steps; enable exit on a non-zero status.
@@ -580,6 +586,7 @@ echo ""
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

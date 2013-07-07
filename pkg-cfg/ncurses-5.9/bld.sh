@@ -94,7 +94,7 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--without-ada \
 	--without-debug \
 	--without-gpm \
-	--without-normal || return 1
+	--without-normal || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
@@ -117,7 +117,7 @@ cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 1
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 

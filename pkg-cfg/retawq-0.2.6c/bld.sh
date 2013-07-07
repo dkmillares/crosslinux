@@ -77,7 +77,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	OPTION_TEXTMODEMOUSE=0 \
 	OPTION_TG=bicurses \
 	OPTION_THREADING=${THREADING} \
-	devel || return 1
+	devel || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 

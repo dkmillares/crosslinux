@@ -166,9 +166,9 @@ unset _bitch
 #
 PKG_STATUS=""
 echo -n "b." >&${CONSOLE_FD}
-[[ -z "${PKG_STATUS}" ]] && pkg_patch     $1
-[[ -z "${PKG_STATUS}" ]] && pkg_configure $1
-[[ -z "${PKG_STATUS}" ]] && pkg_make      $1
+[[ -z "${PKG_STATUS}" ]] && pkg_patch     "$1"
+[[ -z "${PKG_STATUS}" ]] && pkg_configure "$1"
+[[ -z "${PKG_STATUS}" ]] && pkg_make      "$1"
 unset NJOBS
 if [[ -n "${PKG_STATUS}" ]]; then
 	CL_logcom "ERROR ***** ${PKG_STATUS}"
@@ -200,8 +200,12 @@ K_ZIPP="" # This is a mechanism to skip already-built packages.
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -229,6 +233,7 @@ if [[ $# -gt 0 && -n "$1" ]]; then
 	# otherwise reset the package list.
 	if [[ "$1" == "clean" ]]; then
 		package_clean
+		CL_infoSigExit=0 # No info needed, because exit now is expected.
 		exit 0
 	fi
 	[[ "$1" == "continue" ]] && K_ZIPP="y" || _p=$1
@@ -245,6 +250,7 @@ done <${K_PKGLIST}
 
 if [[ ${_c} -eq 0 && -n "${_p}" ]]; then
 	echo "E> No package named \"${_p}\""
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 
@@ -253,6 +259,7 @@ unset _p
 
 if [[ -z "${K_PACKAGE}" ]]; then
 	echo "E> No packages to build.  How did you do that?"
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 
@@ -287,6 +294,7 @@ for p in ${K_PACKAGE[@]}; do
 	if [[ ! -d "${CROSSLINUX_PKGCFG_DIR}/${p}" ]]; then
 		echo -e "E> No ${TEXT_RED}pkg-cfg/${p}${TEXT_NORM} directory."
 		echo    "=> crosslinux does not support building '${p}'"
+		CL_infoSigExit=0 # No info needed, because exit now is expected.
 		exit 1
 	fi
 
@@ -325,6 +333,7 @@ for p in ${K_PACKAGE[@]}; do
 		echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
 		echo "Check the build log files.  Probably check:"
 		echo "=> ${TARGET_LOG_DIR}/${p}.log"
+		CL_infoSigExit=0 # No info needed, because exit now is expected.
 		exit 1
 	fi
 	set -e ; # All done with build steps; enable exit on a non-zero status.
@@ -365,6 +374,7 @@ echo ""
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

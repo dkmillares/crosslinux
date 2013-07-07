@@ -125,8 +125,12 @@ K_LDRLIST="crosslinux-loader.txt"
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-CL_config_setup || exit 1
+CL_config_setup || {
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
+	exit 1
+}
 
 
 # *****************************************************************************
@@ -144,6 +148,7 @@ if [[ $# -gt 0 && -n "$1" ]]; then
 	# Clean if so asked.
 	if [[ "$1" == "clean" ]]; then
 		loader_clean
+		CL_infoSigExit=0 # No info needed, because exit now is expected.
 		exit 0
 	fi
 fi
@@ -162,6 +167,7 @@ unset _c
 
 if [[ -z "${K_LOADER}" ]]; then
 	echo "E> No loader package to build.  How did you do that?"
+	CL_infoSigExit=0 # No info needed, because exit now is expected.
 	exit 1
 fi
 
@@ -205,6 +211,7 @@ echo ""
 # Exit with Status
 # *****************************************************************************
 
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 exit 0
 
 

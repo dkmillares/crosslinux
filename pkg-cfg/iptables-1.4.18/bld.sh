@@ -76,7 +76,7 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--enable-static \
 	--disable-devel \
 	--disable-shared \
-	--without-kernel || return 1
+	--without-kernel || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
@@ -99,7 +99,7 @@ cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 1
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
@@ -128,7 +128,7 @@ rm --force ${TARGET_SYSROOT_DIR}/sbin/iptables-save
 rm --force ${TARGET_SYSROOT_DIR}/sbin/xptables-multi
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	DESTDIR=${TARGET_SYSROOT_DIR} \
-	install || return 1
+	install || return 0
 rm --force ${TARGET_SYSROOT_DIR}/bin/iptables-xml
 ln --symbolic ../sbin/xtables-multi ${TARGET_SYSROOT_DIR}/bin/iptables-xml
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"

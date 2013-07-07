@@ -85,20 +85,26 @@ return 0
 # *****************************************************************************
 
 CL_btrace() {
-	echo "command => $BASH_COMMAND"
-	echo ""
-	for ((_d=0 ; ${_d}<${#BASH_LINENO[@]} ; _d++)); do
-		echo "BASH_LINENO[${_d}] ${BASH_LINENO[${_d}]}"
+	local -i btSize=${#BASH_SOURCE[@]}
+	local -i i=0
+	local    prompt=""
+	local    file=""
+	local    line=""
+	local    func=""
+
+	echo "Script Back-trace:"
+	printf "             file name            line  function\n"
+	printf "             -------------------- ----  --------\n"
+	prompt="            "
+	for ((i=1 ; ${i}<${btSize} ; i++)); do
+		file="${BASH_SOURCE[${i}]#@@CL_LIBDIR@@/scripts/}"
+		line="${BASH_LINENO[${i}-1]}"
+		func="${FUNCNAME[${i}]}"
+		[[ "${func}" == "main" ]] && func="<main>" || func+="()"
+		printf "%s %-20s  %3s  %s\n" \
+			"${prompt}" "${file}" "${line}" "${func}"
+		prompt="called from:"
 	done
-	echo ""
-	for ((_d=0 ; ${_d}<${#BASH_SOURCE[@]} ; _d++)); do
-		echo "BASH_SOURCE[${_d}] ${BASH_SOURCE[${_d}]}"
-	done
-	echo ""
-	for ((_d=0 ; ${_d}<${#FUNCNAME[@]} ; _d++)); do
-		echo "FUNCNAME[${_d}] ${FUNCNAME[${_d}]}"
-	done
-	return 0
 }
 
 declare -i CL_infoSigExit=0
@@ -108,8 +114,13 @@ CL_catch_sigexit() {
 	# This is for final exit from the shell.  Enable information printing
 	# by setting 'CL_infoSigExit' to non-zero.
 	#
+	local msg3="last command => ${TEXT_BOLD}${BASH_COMMAND}${TEXT_NORM}"
+	local msg2="${TEXT_BCYAN}[trapped final exit from shell]${TEXT_NORM}"
+	local msg1="${TEXT_BRED}CL_catch_sigexit${TEXT_NORM}"
 	if [[ ${CL_infoSigExit} -ne 0 ]]; then
-		echo -e "${TEXT_BRED}CL_catch_sigexit${TEXT_NORM}"
+		echo -e "${msg1}"
+		echo -e "${msg2}"
+		echo -e "${msg3}"
 		CL_btrace
 	fi
 	return 0
@@ -127,8 +138,13 @@ CL_catch_sigerr() {
 	# backtrace.  It is expected that subsequent invocations happen as
 	# subshells unwind, and the first backtrace is all that is needed.
 	#
+	local msg3="last command => ${TEXT_BOLD}${BASH_COMMAND}${TEXT_NORM}"
+	local msg2="${TEXT_BCYAN}[trapped a non-zero return value]${TEXT_NORM}"
+	local msg1="${TEXT_BRED}CL_catch_sigerr${TEXT_NORM}"
 	if [[ ${CL_infoOnSigErr} -ne 0 ]]; then
-		echo -e "${TEXT_BRED}CL_catch_sigerr${TEXT_NORM}"
+		echo -e "${msg1}"
+		echo -e "${msg2}"
+		echo -e "${msg3}"
 		CL_btrace
 		CL_infoOnSigErr=0
 	fi
@@ -161,6 +177,8 @@ CL_catch_sigint() {
 	# the non-zero will not be in the back-trace.
 	#
 	echo -e "${TEXT_BRED}CL_catch_sigint${TEXT_NORM}"
+	echo -e "${TEXT_BCYAN}[trapped SIGINT]${TEXT_NORM}"
+	echo -e "last command => ${TEXT_BOLD}${BASH_COMMAND}${TEXT_NORM}"
 	CL_btrace
 	if [[ ${CL_exitOnSigInt} -ne 0 ]]; then
 		trap - EXIT	# Remove any shell exit handler and exit the
@@ -283,6 +301,8 @@ CL_fdlogcmd() {
 #           G_NMISSING .................... number of failed downloads
 #           G_MISSED_PKG[${G_NMISSING}] ... file name of failed download
 #           G_MISSED_URL[${G_NMISSING}] ... urls of failed download
+#
+#      This function does NOT return an error value; it always returns 0.
 
 declare -i G_NMISSING   # integer index into the indexed arrays
 declare -a G_MISSED_PKG # indexed array of package names
@@ -396,6 +416,7 @@ CL_package_get() {
 echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"                 >&${CONSOLE_FD}
 echo    "E> Source package ${srcPkg} format not known." >&${CONSOLE_FD}
 echo    "=> Do not know how to decompress that file."   >&${CONSOLE_FD}
+		CL_infoSigExit=0
 		exit 1 # Bust out of sub-shell.
 	fi
 

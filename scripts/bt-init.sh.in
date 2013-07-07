@@ -42,9 +42,10 @@
 #
 # *****************************************************************************
 
+source @@CL_LIBDIR@@/scripts/_functions.sh
+CL_infoSigExit=1 # Print info on unexpected exit.
 
-rm --force --recursive bin-link/
-mkdir --mode=0700 bin-link/
+rm --force --recursive bin-link/*
 
 echo "#!@@CL_BASH@@"            >> bin-link/awk
 echo "exec @@CL_AWK@@ "'"${@}"' >> bin-link/awk
@@ -109,6 +110,8 @@ chmod 700 bin-link/xz
 echo "#!@@CL_BASH@@"                        >> bin-link/unxz
 echo "exec @@CL_XZ@@ --decompress "'"${@}"' >> bin-link/unxz
 chmod 700 bin-link/unxz
+
+CL_infoSigExit=0 # No info needed, because exit now is expected.
 
 
 # end of file
