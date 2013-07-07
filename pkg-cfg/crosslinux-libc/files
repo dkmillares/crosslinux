@@ -7,13 +7,16 @@ etc/${CONFIG_BRAND_NAME}-build
 etc/${CONFIG_BRAND_NAME}-target
 'glob' lib/ld*
 'glob' lib/libanl*
-'glob' lib/libc*
+'glob' lib/libc-*
+'glob' lib/libc\.*
 'glob' lib/libcrypt*
 'glob' lib/libdl*
 'glob' lib/libgcc*
-'glob' lib/libm*
+'glob' lib/libm-*
+'glob' lib/libm\.*
+'glob' lib/libmemusage*
 'glob' lib/libnsl*
-'glob' lib/libnss*
+'glob' lib/libnss_*
 'glob' lib/libpthread*
 'glob' lib/libresolv*
 'glob' lib/librt*

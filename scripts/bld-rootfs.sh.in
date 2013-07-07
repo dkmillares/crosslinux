@@ -62,6 +62,7 @@ echo -n "i> Making root file system image for an init RAM Disk ... "
 >${TARGET_MNT_DIR}/etc/.norootfsck
 rm --force "${TARGET_IRD_NAME}"
 genext2fs				\
+	--reserved-percentage 0		\
 	--root "${TARGET_MNT_DIR}"	\
 	--size-in-blocks ${nblocks}	\
 	"${TARGET_IRD_NAME}"

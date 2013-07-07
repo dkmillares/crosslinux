@@ -93,6 +93,7 @@ srcdir=$("${CONFIG_XTOOL_BIN_DIR}/${CONFIG_XTOOL_NAME}-cc" -print-sysroot)
 # path, copies the file to the project sysroot, then adds group and user write
 # and execute permissions if the file is not a symlink.
 #
+_ts=$(date)
 find "${srcdir}" ! -type d | while read srcname; do
 	CL_logcom "~~~~~ ${srcname#${srcdir}/}"
 	pitchit=0
@@ -106,11 +107,15 @@ find "${srcdir}" ! -type d | while read srcname; do
 			mkdir --mode=755 --parents --verbose "${dstpath}"
 		fi
 		cp --archive --verbose "${srcname}" "${dstpath}"
-		[[ ! -L "${dstfile}" ]] && chmod gu+wx "${dstfile}" || true
+		[[ ! -L "${dstfile}" ]] && {
+			chmod gu+wx "${dstfile}"
+			touch -d "${_ts}" "${dstfile}"
+		} || true
 	else
 		CL_logcom "~~~~~ PITCH IT ^" # (directory symlink)
 	fi
 done
+unset _ts
 
 # Get the typical pkg-cfg rootfs/ files.
 #

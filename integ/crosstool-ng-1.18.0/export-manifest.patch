@@ -244,7 +244,7 @@ diff -Naur crosstool-ng-1.18.0/scripts/functions crosstool-ng-NEW/scripts/functi
      # Do we already have it in *our* tarballs dir?
      if ext="$( CT_GetFileExtension "${basename}" ${first_ext} )"; then
          CT_DoLog DEBUG "Already have '${basename}'"
-+        CT_DoMakeTargetManifestEntry "${basename}${ext}"
++        CT_DoMakeTargetManifestEntry "${CT_TARBALLS_DIR}/${basename}${ext}"
          return 0
      fi
  

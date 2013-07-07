@@ -192,7 +192,7 @@ endchoice
 
 config ROOTFS_SIZE_MB
 	int
-	default 9
+	default 8
 	prompt "Root File System Size, in MB"
 	---help---
 	  This is the size of the root file system.
