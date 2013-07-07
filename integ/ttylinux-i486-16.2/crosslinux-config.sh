@@ -7,7 +7,7 @@
 # System Name and Version
 #
 CONFIG_BRAND_NAME="ttylinux"
-CONFIG_BRAND_URL="www.ttylinux.net"
+CONFIG_BRAND_URL="http://www.ttylinux.net/"
 CONFIG_RELEASE_NAME="aardweevil"
 CONFIG_RELEASE_VERS="16.2"
 
