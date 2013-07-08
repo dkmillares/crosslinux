@@ -58,5 +58,4 @@ Conventions and Nomenclature -- found in the crosslinux files of shell script
 => Example interactive shell commands use "$ " as the prompt e.g.,
    $ ls /lib
 
-
 [eof]

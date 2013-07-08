@@ -1,0 +1,12 @@
+     File: A1_Credits.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+==============
+A1_Credits.txt
+==============
+
+Douglas Jerome <djerome@crosslinux.org>
+     - maintainer, created the crosslinux project in 2013
+
+[eof]

@@ -189,5 +189,4 @@ The crosslinux information documents in the doc/ directory, excluding the
 license files themselves, are licensed under Creative Commons Attribution,
 ShareAlike (by-sa), v2.5, found the doc/CC-by-sa/ directory.
 
-
 [eof]
