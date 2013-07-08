@@ -1,0 +1,62 @@
+     File: 00_Introduction.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+===================
+00_Introduction.txt
+===================
+
+crosslinux is a build tool that makes a bootable Linux distribution, or at
+least the bootloader, kernel, and root file system that can be installed onto
+a bootable medium, such as an SDCard.
+
+crosslinux is a follow-on project from the ttylinux build system; the previous
+ttylinux build system is at end-of-life.  crosslinux now is the build system
+that makes ttylinux.
+
+Apart from making ttylinux, crosslinux can be used to make other custom small
+Linux systems that use busybox.  [ref http://www.busybox.net/]
+
+crosslinux is somewhat similar in concept, and in some operational details, to
+Buildroot.  However, crosslinux is designed to be able concurrently to have
+multiple different Linux systems in development from a single installation of
+the crosslinux build tool.  NOTICE: Buildroot may or may not have a concurrent
+multiply-different Linux build capability; I DO NOT KNOW if this is the case as
+I do not use Buildroot.  [ref http://buildroot.uclibc.org/]
+
+crosslinux uses a cross-tool chain that you supply for cross-building the
+software that comprises the Linux system being developed.  crosslinux is
+developed and tested using cross-tool chains created by crosstool-NG, and
+the various ttylinux distributions are developed with crosslinux using
+cross-tool chains created with crosstool-NG.  Other cross-tool chains may work
+with crosslinux.  Information about using crosslinux describes interfaces to
+cross-tool chains created by crosstool-NG, but this is a simple and general
+interface; other cross-tool chains may work.  [ref http://crosstool-ng.org/]
+
+The crosslinux directory structure includes an integ/ directory that has
+ttylinux project-specific files that can be used to create ttylinux
+distributions.  The integ/ directory also has any files and patches used to
+configure crosstool-NG to generate cross-tool chains that operate effectively
+with crosslinux.
+
+The implementation of crosslinux is hugely influenced by crosstool-NG, based
+from original crosstool by Dan Kegel, written by Yann E. Morin and others.
+
+        ------------------------------------------------------------
+
+Conventions and Nomenclature -- found in the crosslinux files of shell script
+                                source, makefiles, configuration files, and
+                                general documentation
+
+=> crosslinux always is written with all lower case letters.
+
+=> A cross-compiling tool chain is called a "cross-tool chain".
+
+=> A Linux system created by crosslinux is called the "target Linux system",
+   "target system", or "End Product".
+
+=> Example interactive shell commands use "$ " as the prompt e.g.,
+   $ ls /lib
+
+
+[eof]
