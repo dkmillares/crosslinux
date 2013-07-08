@@ -1,0 +1,193 @@
+     File: 01_Licenses.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+===============
+01_Licenses.txt
+===============
+
+This file describes the licenses of the software and documents developed by
+the crosslinux project.
+
+Acronyms:
+     GPL ........ (GNU) General Public License [Version 2]
+     CC-by-sa ... Creative Commons (with attribution) Share Alike [v2.5]
+
+The license documents are in the doc/ directory as these files:
+=> GPL ........ doc/COPYING
+=> CC-by-sa ... doc/CC-by-sa/deed.en, doc/CC-by-sa/legalcode
+
+There are several types of items described in this file:
+0. Special Notices
+1. crosslinux build-tool makefiles and shell scripts
+2. crosslinux build-tool configuration files
+3. crosslinux run-time system scripts and configuration files
+4. crosslinux documentation
+
+        ============================================================
+        All of these software and document files are provided with
+        the hope that they will be useful, but WITHOUT ANY WARRANTY;
+        without even the implied warranty of MERCHANTABILITY or
+        FITNESS FOR A PARTICULAR PURPOSE.
+        ============================================================
+
+0. Special Notices
+
+integ Directory
+---------------
+
+The integ directory contains configuration files and patches to other projects;
+these configuration files and patches each are licensed under a license(es) as
+directed by the other projects' license information.
+
+The integ directory contains configuration files and build scripts that are
+extensions of the crosslinux configuration files and build scripts, and each
+are license according to the following descriptions in this document.
+
+Package Patches
+---------------
+
+There are patches in various "patch" directories in the various directories IN
+the pkg-cfg/ directory i.e., pkg-cfg/*/patch; in the top-level crosslinux
+directory you can find the with an 'ls -d pkg-cfg/*/patch' command.
+
+These directories contain patch(es) that change some part of a software
+package.  These patches each are licensed under the same license as the
+upstream software package to which they apply.
+
+End Product
+-----------
+
+This crosslinux build-tool make a bootable Linux system; this bootable Linux
+system is the End Product referenced in this section of this document.
+
+If you deliver, either as sold or given-away, or otherwise publish a crosslinux
+build-tool End Product, you must treat the crosslinux build-tool used therein
+as being part of the sources needed to rebuild the End Product.  See the file
+doc/COPYING, section 3.  This also PARTLY applies to any patches and extensions
+to the crosslinux build-tool itself, ONLY with the following exceptions:
+
+=> the build scripts in the site/ directory that are directly invoked by the
+   cl-bt makefile; these are explicitly named herein:
+        site/bld-bootfs-0.sh   site/bld-clean-1.sh   site/bld-pkgs-0.sh
+        site/bld-bootfs-1.sh   site/bld-kernel-0.sh  site/bld-pkgs-1.sh
+        site/bld-bootimg-0.sh  site/bld-kernel-1.sh  site/bld-rootfs-0.sh
+        site/bld-bootimg-1.sh  site/bld-loader-0.sh  site/bld-rootfs-1.sh
+        site/bld-clean-0.sh    site/bld-loader-1.sh
+
+=> files in the following directories:
+        site/doc/
+        site/doc-root/
+
+        ==================================================
+
+1. crosslinux build-tool makefiles and shell scripts
+
+These are all the files used to _build_ a crosslinux system that are developed
+by the crosslinux project; these are not the files that are delivered with a
+bootable crosslinux-developed system such as CD-ROM image or other tar-file.
+These files include, but are not limited to:
+
+=> Makefile.in, cl-bt.in, configure.ac
+=> shell script files in the various directories in boards/
+=> host-tools/Makefile.in
+=> the "bld.sh" shell script files in the directories in pkg-cfg/
+=> shell script files in scripts/
+
+These crosslinux build-tool makefiles and scripts are copyrighted by Douglas
+Jerome, and any other people wherein noted, who wrote them.  These files are
+licensed under the GPL Version 2 (June 1991), not version 2.2 or version 3.x or
+any other version, unless explicitly otherwise stated.
+
+        ==================================================
+
+2. crosslinux build-tool configuration files
+
+There are various configuration files used during a crosslinux build process;
+these files are read by the make or bash programs (or any other programs so
+used) under the programming direction of the various crosslinux build scripts.
+These files are not considered to be "executable" as are the build scripts.
+
+These files include, but are not limited to:
+
+=> any file so used in the various directories in boards/
+=> the "files" files in the various directories in pkg-cfg/
+=> the Kconfig files in pkg-cfg/ and in the various directories in pkg-cfg/
+=> crosslinux-config.sh, crosslinux-loader.txt, crosslinux-pkglst.txt
+
+As any non-trivial thing written, these files are copyrighted.  They are
+copyrighted by Douglas Jerome, and any other people wherein noted, who wrote
+them.  These files are licensed under any "do whatever you want with" license
+you can find or create; they are provided without any restriction.
+
+        ==================================================
+
+3. crosslinux run-time system scripts and configuration files
+
+The crosslinux run-time system scripts and configuration files are part of a
+delivered crosslinux-developed system; they are in the bootable CD-ROM image or
+tar-file containing the bootable system.  These files reside in the crosslinux
+build-tool directory structure; they are put into the run-time system during a
+build process.
+
+In the crosslinux build-tool directory structure, these files include, but are
+not limited to:
+
+=> any file so used in the various directories in /pkg-cfg/
+
+NOTICE -> The various crosslinux run-time system scripts and configuration
+          files used as described in this section that are in the various
+          directories in:
+
+          => pkg-cfg/syslinux*
+          => pkg-cfg/u-boot*
+          => pkg-cfg/yaboot*
+
+          are intended to be changed as needed by crosslinux end-users and
+          people making their own custom crosslinux builds.  Although, ANY
+          CHANGES TO THESE FILES MAY RESULT IN A SYSTEM THAT WILL NOT BOOT,
+          OR HAVE SOME OTHER UNDESIRABLE AFFECT and may not be supported, it is
+          the nature of some of these files to be changed to reflect various
+          users' needs.
+
+          As any non-trivial thing written, these files are copyrighted.  They
+          are copyrighted by Douglas Jerome, and any other people wherein
+          noted, who wrote them.
+
+          These files are licensed under any "do whatever you want with"
+          license you can find or create; they are provided without any
+          restriction.
+
+pkg-cfg/ Files
+--------------
+
+In several of the various directories in pkg-cfg/ there are files named
+rootfs.tar.bz2; these each are a compressed tar-file that has one or more
+files that will reside in a bootable crosslinux-developed system (this is
+called the run-time system to distinguish it from the crosslinux build-tool).
+In the run-time system these files are, but not limited to be:
+
+=> configuration files in /etc/ and its subdirectories
+=> (sys init scripts) shell scripts in /etc/rc.d/ and its subdirectories
+=> /sbin/<name>-flash
+=> /sbin/<name>-installer
+=> /usr/bin/pacman
+=> /usr/share/udhcpc/default.script
+
+For the configuration files, see the NOTICE in this section above.
+
+These crosslinux run-time scripts are copyrighted by Douglas Jerome, and any
+other people wherein noted, who wrote them.  These files are licensed under the
+GPL Version 2 (June 1991), not version 2.2 or version 3.x or any other version,
+unless explicitly otherwise stated.
+
+        ==================================================
+
+4. crosslinux documentation
+
+The crosslinux information documents in the doc/ directory, excluding the
+license files themselves, are licensed under Creative Commons Attribution,
+ShareAlike (by-sa), v2.5, found the doc/CC-by-sa/ directory.
+
+
+[eof]
