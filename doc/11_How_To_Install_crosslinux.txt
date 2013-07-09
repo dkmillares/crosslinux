@@ -44,7 +44,7 @@ works right.
 You will need at least 750 MB of free disk space to complete the build of the
 smallest crosslinux configuration; you may end up needing 1.5 to 2 GB.
 
-BEFORE USING crosslinux TO BUILD A TARGET lINUX SYSTEM, YOU WILL NEED A
+BEFORE USING crosslinux TO BUILD A TARGET LINUX SYSTEM, YOU WILL NEED A
 CROSS-TOOL CHAIN.  This does not stop you from installing crosslinux now.
 
 Getting and using crosstool-NG to construct an appropriate cross-tool chain is
