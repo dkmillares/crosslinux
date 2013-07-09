@@ -138,7 +138,7 @@ has three entries that make the interface to a cross-tool chain:
    => etc.
 
 3. Directory to the cross-tool chain's exported source code.  This entry can be
-   set to any other directory wherein you put the appripriate source code
+   set to any other directory wherein you put the appropriate source code
    tarballs.  There is much more description of this in
    "12_How_To_Setup_crosstool-NG.txt".
 
