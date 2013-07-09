@@ -1,0 +1,177 @@
+     File: 11_How_To_Install_crosslinux.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+================================
+11_How_To_Install_crosslinux.txt
+================================
+
+-- Document Outline --
+1. Get crosslinux
+2. Software Requirements
+3. Install Configuration
+   3.1. Install Method
+   3.2. All-in-one Method
+4. Cross-tool Chain
+   4.1 Tool Chain Diversion
+
+-----------------
+1. Get crosslinux
+-----------------
+
+The 'official' crosslinux build tool is hosted in a GitHub repository:
+
+     GitHub repo ...... https://github.com/djerome/crosslinux.git
+     Latest Release ... https://github.com/djerome/crosslinux/tarball/master
+     Latest Release ... https://github.com/djerome/crosslinux/archive/master.zip
+
+crosslinux was started in mid-summer 2013; if your current date is close to
+that, then you are at an early development period and there may be no git
+tag which are the official releases.  In this case, the "Latest Release" links
+above will give you the most recent crosslinux files; otherwise you will get
+the most recent git-tag release.
+
+------------------------
+2. Software Requirements
+------------------------
+
+You do realize that crosslinux is a build tool for constructing an entire,
+though small, Linux system from source code, yes?  Several hundred MB of source
+code will be downloaded and cross-compiled, including a Linux kernel, and a
+root file system image, or tar file thereof, will be constructed, if everything
+works right.
+
+You will need at least 750 MB of free disk space to complete the build of the
+smallest crosslinux configuration; you may end up needing 1.5 to 2 GB.
+
+BEFORE USING crosslinux TO BUILD A TARGET lINUX SYSTEM, YOU WILL NEED A
+CROSS-TOOL CHAIN.  This does not stop you from installing crosslinux now.
+
+Getting and using crosstool-NG to construct an appropriate cross-tool chain is
+describe in "12_How_To_Setup_crosstool-NG.txt".
+
+Your host will need many software tools used to build the target Linux system;
+these are not listed here.  Making such a list would be annoying, and it would
+be cumbersome for you to research your host for each one.  The crosslinux
+installation process uses the autoconf gyrations to check for needed host
+software and reports anything missing.  Don't be surprised if you need to
+install, or even uninstall, a package or two.
+
+------------------------
+3. Install Configuration
+------------------------
+
+There are two ways to install crosslinux, separate install directory or all in
+one directory.
+
+-------------------
+3.1. Install Method
+-------------------
+
+Make then install crosslinux into some directory, then get rid of the sources;
+this is like you do for other programs, such as installing with
+--prefix=/usr/local or --prefix=/usr  Keep in mind that you do NOT need to
+install into a system /usr or /usr/local directory; you CAN install somewhere
+under your login directory without being root, and that is what you should do
+with crosslinux in this case.  In this case you can delete the original build
+directory because crosslinux has been installed elsewhere, hopefully somewhere
+in your home directory structure.
+
+Advantages: Saves disk space if you remove the build directory.  Separates
+            build sources from installed files tending towards less confusion
+            if hacking on crosslinux itself.
+
+Method [you really want to do this with "/some/place" within your home
+        directory structure]:
+
+$ ./configure --disable-local --prefix=/some/place
+$ make install
+
+NOTICE: If you use this method and "/some/place" is a system directory like
+        /usr or /usr/local, then you must be root to do the "make install" and
+        you will have a root-owned crosslinux build tool.  This would be like
+        having some drunken monkey over for dinner and giving it a .45
+        semi-auto handgun, or two.
+
+----------------------
+3.2. All-in-one Method
+----------------------
+
+Make crosslinux and leave it in its build directory.  In this case you still
+must do "make install", but it installs into the build directory.  In this case
+you CANNOT delete the original build directory because it also has the
+installation.
+
+Advantages: ...maybe you avoid the drunken monkey with .45 semi-auto handgun.
+
+Method:
+
+$ ./configure
+$ make
+$ make install
+
+-------------------
+4. Cross-tool Chain
+-------------------
+
+You will need a cross-tool chain to cross-compile the source packages and Linux
+kernel for your target system.  crosslinux does not supply or make a cross-tool
+chain.
+
+crosslinux is developed and tested with cross-tool chains built with
+crosstool-NG.
+http://crosstool-ng.org/
+
+crosslinux builds a target Linux system based upon a configuration file. See
+"21_How_To_Use_crosslinux.txt" for more description on how to make the
+configuration file using 'cl-bt menuconfig'.  The crosslinux configuration file
+has three entries that make the interface to a cross-tool chain:
+
+1. The cross-tool chain name (touple), such as "i486-generic-linux-gnu".  There
+   are default crosslinux configuration files that have this entry set.
+
+2. Directory path to the cross-tool chain bin directory; this directory has
+   programs such as:
+   => i486-generic-linux-gnu-ar
+   => i486-generic-linux-gnu-as
+   => i486-generic-linux-gnu-gcc
+   => etc.
+
+3. Directory to the cross-tool chain's exported source code.  This entry can be
+   set to any other directory wherein you put the appripriate source code
+   tarballs.  There is much more description of this in
+   "12_How_To_Setup_crosstool-NG.txt".
+
+Cross-tool chains derived from other means may work just fine, if you properly
+make these three entries in your crosslinux configuration file.
+
+------------------------
+4.1 Tool Chain Diversion
+------------------------
+
+A GCC-based, Linux-targeted cross-development tool chain is more than a
+compiler, assembler, linker and etc.  A cross-compiling GCC has target CPU
+object code components (C library) that it links with the target application
+software being developed; therefore, a cross-compiling GCC itself must have
+access to an existing target C library that provides the target CPU object
+code components.  For instance, an i486 Linux cross-tool chain has the i486
+cross-built C library and header files.
+
+Also, the C library for Linux systems contains functions that make use of Linux
+kernel system calls; therefore, the cross-built target library needs to have
+been built with Linux Kernel header files.  The version of the Linux kernel
+header files defines the target system's Linux kernel interface version.  When
+you have a running cross-compiled system, do not try to use a Linux kernel
+older than the Linux kernel version that supplied the Linux kernel header files
+used to cross-build the C library.
+
+In order to build a cross-compiling GCC, you need to have an already
+cross-built C library.  How do you get a cross-built C library, built against
+some Linux kernel version's header files, when you don't yet have a
+cross-compiling GCC?
+
+The answer is: I am nightmarishly exhausted from doing the GCC and C library
+cross-build gyrations, so I just use crosstool-NG to make the cross-tool
+chains.
+
+[eof]

@@ -1,0 +1,14 @@
+     File: 12_How_To_Setup_crosstool-NG.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+================================
+12_How_To_Setup_crosstool-NG.txt
+================================
+
+The cross-tool chain provides the source code for some of the target system
+run-time components.  The target system run-time components that come from the
+cross-tool chain are at least the libc binaries.  By default, crosslinux uses
+the Linux kernel souce used by the cross-tool chain; however, this can be...
+
+[eof]

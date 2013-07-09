@@ -1,0 +1,9 @@
+     File: 21_How_To_Use_crosslinux.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+============================
+21_How_To_Use_crosslinux.txt
+============================
+
+[eof]

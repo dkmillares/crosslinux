@@ -11,8 +11,9 @@ least the bootloader, kernel, and root file system that can be installed onto
 a bootable medium, such as an SDCard.
 
 crosslinux is a follow-on project from the ttylinux build system; the previous
-ttylinux build system is at end-of-life.  crosslinux now is the build system
-that makes ttylinux.
+ttylinux build system is at end-of-life.  crosslinux was started midsummer 2013
+and now is the build system that makes ttylinux.  See the "A1_Credits.txt" file
+to see who is responsible for this project.
 
 Apart from making ttylinux, crosslinux can be used to make other custom small
 Linux systems that use busybox.  [ref http://www.busybox.net/]
@@ -55,7 +56,9 @@ Conventions and Nomenclature -- found in the crosslinux files of shell script
 => A Linux system created by crosslinux is called the "target Linux system",
    "target system", or "End Product".
 
-=> Example interactive shell commands use "$ " as the prompt e.g.,
-   $ ls /lib
+=> Example interactive shell commands use "$ " as the prompt; comments to shell
+   commands begin with the shell comment character '#". e.g.,
+
+   $ ls /lib  # This is the 'ls' command.
 
 [eof]

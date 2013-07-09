@@ -7,6 +7,6 @@ A1_Credits.txt
 ==============
 
 Douglas Jerome <djerome@crosslinux.org>
-     - maintainer, created the crosslinux project in 2013
+     - lonely maintainer, created the crosslinux project in 2013
 
 [eof]
