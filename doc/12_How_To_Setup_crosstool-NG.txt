@@ -110,14 +110,14 @@ You've previously downloaded crosslinux and its files are in directory
 common ~/Download directory.  You now want to untar crosstool-ng-1.18.0.tar.bz
 and ~/projects/cl-dev/integ/crosstool-ng-1.18.0/tools-patches.tbz
 
-     $ cd ~/projects
-     $ tar xf ~/Download/crosstool-ng-1.18.0.tar.bz
-     $ tar xf ~/projects/cl-dev/integ/crosstool-ng-1.18.0/tools-patches.tbz
+$ cd ~/projects
+$ tar xf ~/Download/crosstool-ng-1.18.0.tar.bz
+$ tar xf ~/projects/cl-dev/integ/crosstool-ng-1.18.0/tools-patches.tbz
 
 You now have directories:
 
-     ~/projects/crosstool-ng-1.18.0/
-     ~/projects/crosstool-patches/
+~/projects/crosstool-ng-1.18.0/
+~/projects/crosstool-patches/
 
 You need to keep both of these directory trees until any and all cross-tool
 chains have been built.
@@ -141,12 +141,12 @@ NOTE: The patch is necessary only if there actually is a patch to apply; there
       may be no patch (check it first), in which case it already as been
       incorporated into crosstool-NG.
 
-     $ cd ~/Download/crosstool-ng-<version>
-     $ ./bootstrap
-     $ patch -p1 <../cl-dev/integ/crosstool-ng-<version>/export-manifest.patch
-     $ ./configure --enable-local
-     $ make
-     $ ./ct-ng updatetools
+$ cd ~/Download/crosstool-ng-<version>
+$ ./bootstrap
+$ patch -p1 <../cl-dev/integ/crosstool-ng-<version>/export-manifest.patch
+$ ./configure --enable-local
+$ make
+$ ./ct-ng updatetools
 
 The patch gives crosstool-NG the ability to export source code packages of the
 target system C library and Linux kernel, and all patches applied to them.

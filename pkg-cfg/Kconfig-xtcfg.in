@@ -26,7 +26,7 @@ config XTOOL_BIN_DIR
 	default ""
 	prompt "Path to Cross-tool Chain"
 	---help---
-	  This is the path to the cross-tool chain directory.
+	  This is the path to the cross-tool chain bin directory.
 
 config XTOOL_TARGET_MANIFEST_DIR
 	string

@@ -6,4 +6,145 @@ Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
 21_How_To_Use_crosslinux.txt
 ============================
 
+-- Document Outline --
+1. Initial Conditions for These Examples
+2. Start a Project
+3. Make Site-specific Customization
+4. Link to the Cross-tool Chain
+5. Build the Cross-tool Chain
+6. Build the Target Linux System
+
+        ----------------------------------------------------------------
+        This file describes the steps for using crosslinux to make
+        ttylinux-i486; this shows how to use most of the crosslinux
+        build tool capabilities.
+        ----------------------------------------------------------------
+
+----------------------------------------
+1. Initial Conditions for These Examples
+----------------------------------------
+
+In the following example script commands, crosslinux is installed into
+~/projects/crosslinux; this is different from the source directory of
+crosslinux that you downloaded, which also was the crosslinux build directory.
+Remember from "11_How_To_Install_crosslinux.txt" that you have downloaded a
+crosslinux directory tree and you did "./configure <options>" and
+"make install" commands in that directory: in this case you installed
+crosslinux from that build directory into ~/projects/crosslinux, and now you
+want to use the installed crosslinux build tool.
+
+From "12_How_To_Setup_crosstool-NG.txt", the cross-tool chain builder,
+crosstool-NG, is installed in the directory ~/projects/crosstool-1.18.0
+
+So for the examples in this file, you have these directories:
+
+~/projects/cl-dev/ ............. original crosslinux source/build directory
+~/projects/crosslinux/ ......... crosslinux installed in here
+~/projects/crosstool-1.18.0/ ... crosstool-NG installed in here
+
+------------------
+2. Start a Project
+------------------
+
+You make an arbitrary new directory and begin (cross) building your target
+Linux system.  You can make several new empty directories and each have a
+different target Linux system build, each in its own state of build progress.
+
+Go to an empty directory; maybe a new directory named for the kind of target
+Linux system you want to make, like "ttylinux-i486".
+
+You need to have the installed crosslinux bin directory in your PATH so you can
+make crosslinux commands.  crosslinux was installed with a very small script
+you can "source" to add the installed crosslinux path to PATH; this script is
+smart enough to add to PATH only if needed, so you can use it multiple times
+without growing PATH more than needed.
+
+$ mkdir ~/projects/ttylinux-i486
+$ cd ~/projects/ttylinux-i486
+$ source ~/crosslinux/bin/setenv.sh
+
+Now you are ready to give crosslinux build tool commands.  There is one basic
+command: cl-bt.  You can give the command with no arguments and it will give
+you some terse help.
+
+$ cl-bt  # do this to see the terse help text
+
+The command you need to use to initialize the directory for building your
+target Linux system is 'cl-bt bt-init'.  Use this command and then look at the
+directory; there are a number of new directories that will be used while
+building the target system.
+
+Next, you would want to make a configuration file that defines the target Linux
+system to build.  Use the 'cl-bt menuconfig' command and explore the
+configuration options.  When you are done, save the configuration file and
+notice the new "crosslinux-config.sh" file; this is the crosslinux configuration
+file.
+
+Notice that the default configuration when you use 'cl-bt menuconfig' with no
+existing configuration file is a minimal i486 configuration.  It should work.
+
+After you have a crosslinux configuration file, use 'cl-bt dload' to download
+the needed source packages.  You may not want to do this yet because you will
+delete this configuration file in the next step.
+
+-----------------------------------
+3. Make Site-specific Customization
+-----------------------------------
+
+Notive the ~/projects/cl-dev/integ directory has a ttylinux-i486-<version>
+directory.  This directory has the crosslinux configuration for making the
+latest version of ttylinux-i486.
+
+Remove any crosslinux-config.sh file youmay have created in your project
+directory and copy the ttylinux-i486 crosslinux configuration file.  Also,
+untar the site directory that has some build-time customization that makes
+the target Linux system be ttylinux-i486.  Use the actual version number for
+<version> in the example script commands below.
+
+$ rm crosslinux-config.sh
+$ cp ~/projects/cl-dev/integ/ttylinux-i486-<version>/crosslinux-config.sh .
+$ tar xf ~/projects/cl-dev/integ/ttylinux-i486-<version>/site.tbz
+
+You can understand most of the site directory by looking through the menuconfig
+items and the items in the site directory.  An explanation of all the items in
+the site directory is beyond the current scope of this file, but is planned.
+
+-------------------------------
+4. Link to the Cross-tool Chain
+-------------------------------
+
+At this point you need to command 'cl-bt menuconfig' and examine the
+ttylinux-i486 configuration.  Look through each section.  Notice the first
+section has the ttylinux "brand" name and release name and release version.
+The distribution website entry is put into the target system's init script
+and is printed when the target system boots.
+
+See the third section "Cross-tool Chain and Build Configuration".  Look at
+the help for the first four items.  The path to the cross-tool chain bin
+directory is the crosslinux build tool primary link to the cross-tool chain.
+
+You now should be thinking: I don't have an i486 cross-tool chain; all I have
+so far is a cross-tool chan builder.  Now is the time to build the i486
+cross-tool chain, but you need to see the expected location in this crosslinux
+configuration file.
+
+As you see the default for all the actual cross-tool chains is in ~/x-tools,
+and this specific i486 cross-tool chain is expected to be in
+~/x-tools/i486-generic-linux-gnu/; an x86_64 cross-tool chain would be in
+~/x-tools/x86_64-generic-linux-gnu/, and so on.
+
+You can use some other location; but you need to change it in this crosslinux
+configuration file, and in the crosstool-NG configuration file which you are
+about to use.  These must match or the crosslinux build tool won't find the
+cross-tool chain nor the Linux kernel source from the "Path to Cross-tool
+Chain Target Manifest".
+
+-----------------------------
+5. Build the Cross-tool Chain
+-----------------------------
+
+--------------------------------
+6. Build the Target Linux System
+--------------------------------
+
 [eof]
