@@ -13,7 +13,7 @@ Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
    3.1. Install Method
    3.2. All-in-one Method
 4. Cross-tool Chain
-   4.1 Tool Chain Diversion
+   4.1 Tool Chain Digression
 
 -----------------
 1. Get crosslinux
@@ -145,14 +145,14 @@ has three entries that make the interface to a cross-tool chain:
 Cross-tool chains derived from other means may work just fine, if you properly
 make these three entries in your crosslinux configuration file.
 
-------------------------
-4.1 Tool Chain Diversion
-------------------------
+-------------------------
+4.1 Tool Chain Digression
+-------------------------
 
-A GCC-based, Linux-targeted cross-development tool chain is more than a
-compiler, assembler, linker and etc.  A cross-compiling GCC has target CPU
+A gcc-based, Linux-targeted cross-development tool chain is more than a
+compiler, assembler, linker and etc.  A cross-compiling gcc has target CPU
 object code components (C library) that it links with the target application
-software being developed; therefore, a cross-compiling GCC itself must have
+software being developed; therefore, a cross-compiling gcc itself must have
 access to an existing target C library that provides the target CPU object
 code components.  For instance, an i486 Linux cross-tool chain has the i486
 cross-built C library and header files.
@@ -165,12 +165,12 @@ you have a running cross-compiled system, do not try to use a Linux kernel
 older than the Linux kernel version that supplied the Linux kernel header files
 used to cross-build the C library.
 
-In order to build a cross-compiling GCC, you need to have an already
+In order to build a cross-compiling gcc, you need to have an already
 cross-built C library.  How do you get a cross-built C library, built against
 some Linux kernel version's header files, when you don't yet have a
-cross-compiling GCC?
+cross-compiling gcc?
 
-The answer is: I am nightmarishly exhausted from doing the GCC and C library
+The answer is: I am nightmarishly exhausted from doing the gcc and C library
 cross-build gyrations, so I just use crosstool-NG to make the cross-tool
 chains.
 

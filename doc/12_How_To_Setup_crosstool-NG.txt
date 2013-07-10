@@ -6,9 +6,155 @@ Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
 12_How_To_Setup_crosstool-NG.txt
 ================================
 
-The cross-tool chain provides the source code for some of the target system
-run-time components.  The target system run-time components that come from the
-cross-tool chain are at least the libc binaries.  By default, crosslinux uses
-the Linux kernel souce used by the cross-tool chain; however, this can be...
+-- Document Outline --
+1. Overview and Digression
+2. License Awareness
+3. Get crosstool-NG
+4. Install crosstool-NG
+
+--------------------------
+1. Overview and Digression
+--------------------------
+
+You need a cross-tool chain in order to cross-build the source packages and
+Linux kernel.  A Linux-based cross-tool chain used to make other Linux systems
+has several programs; it is made from bintutils, gcc, Linux kernel header
+files, and a C library such as eglibc, glibc, uClibc.
+[info http://en.wikipedia.org/wiki/GNU_Binutils]
+[info http://en.wikipedia.org/wiki/GNU_Compiler_Collection]
+[info http://en.wikipedia.org/wiki/Uclibc]
+[info http://en.wikipedia.org/wiki/Eglibc]
+[info http://en.wikipedia.org/wiki/Glibc]
+
+crosslinux does not supply a cross-tool chain.  crosslinux is developed and
+tested using cross-tool chains created by crosstool-NG.
+[ref http://crosstool-ng.org/]
+
+There are a few points to clearly understand about cross-tool chains used to
+make a Linux system:
+
+=> The compiler and binutils programs are made to run on the build machine like
+   any other program on the build machine; they are not themselves
+   cross-compiled to make the cross-tool chain.  An incomplete list of these
+   cross-tool chain programs for a i486 target might be:
+   i486-generic-linux-gnu-ar
+   i486-generic-linux-gnu-as
+   i486-generic-linux-gnu-c++
+   i486-generic-linux-gnu-cc
+   i486-generic-linux-gnu-cpp
+   i486-generic-linux-gnu-g++
+   i486-generic-linux-gnu-gcc
+   i486-generic-linux-gnu-ld
+   i486-generic-linux-gnu-nm
+   i486-generic-linux-gnu-objcopy
+   i486-generic-linux-gnu-objdump
+   i486-generic-linux-gnu-ranlib
+   i486-generic-linux-gnu-readelf
+   i486-generic-linux-gnu-size
+   i486-generic-linux-gnu-strings
+   i486-generic-linux-gnu-strip
+
+=> The C library files ARE themselves cross-compiled binary libraries that are
+   linked to the software being cross-built by the cross-tool chain.  These C
+   library files are part of the cross-tool chain, but they cannot run on the
+   build machine.
+
+=> A set of Linux kernel header files is needed.  The C library for Linux
+   systems contains functions that make use of Linux kernel system calls;
+   therefore, the cross-built target C library needs to have been built with
+   Linux Kernel header files.  The version of the Linux kernel header files
+   defines the target system's Linux kernel interface version.  When you have a
+   running cross-compiled system, do not try to use a Linux kernel older than
+   the Linux kernel version that supplied the Linux kernel header files used to
+   cross-build the C library.
+
+--------------------
+2. License Awareness
+--------------------
+
+If you deliver, either as sold or given-away, or otherwise publish a crosslinux
+build-tool End Product, you must be aware that you are "delivering" as binary
+files the C library, AND ANY PATCHES THE CROSS-TOOL CHAIN BUILDER USED ON THE
+C LIBRARY SOURCES, that came from the cross-tool chain, as all the cross-built
+packages are linked to it.
+
+The crosslinux build tool tries to help automate the fetching and aggregating
+of all the needed source code files and patches from the cross-tool chain's
+build system, crosstool-NG, to help you and me comply with GPL licensing.
+
+-------------------
+3. Get crosstool-NG
+-------------------
+
+Look in the crosslinux integ/ directory; you will see at least one directory
+with a crosstool-ng-<version> name.  Download the latest crosstool-NG version
+you see in the integ/ directory.
+
+crosstool-NG Web Site ......... http://crosstool-ng.org/
+
+You will download a file named something like "crosstool-ng-1.18.0.tar.bz2".
+Think about where you want to untar this, it will create a corresponding
+top-level directory named something like "crosstool-ng-1.18.0", and you will
+need to keep this directory and another separate directory at the same level
+for a while.
+
+This other separate directory comes from the integ/crosstool-ng-<version>/
+directory; it is named "tools-patches.tbz".  Untar the 
+integ/crosstool-ng-<version>/tools-patches.tbz file to the same directory in
+which you untar the downloaded crosstool-ng-<version>.tar.bz file.
+
+For an example:
+--------------
+You've previously downloaded crosslinux and its files are in directory
+~/projects/cl-dev/ and you have downloaded crosstool-ng-1.18.0.tar.bz into a
+common ~/Download directory.  You now want to untar crosstool-ng-1.18.0.tar.bz
+and ~/projects/cl-dev/integ/crosstool-ng-1.18.0/tools-patches.tbz
+
+     $ cd ~/projects
+     $ tar xf ~/Download/crosstool-ng-1.18.0.tar.bz
+     $ tar xf ~/projects/cl-dev/integ/crosstool-ng-1.18.0/tools-patches.tbz
+
+You now have directories:
+
+     ~/projects/crosstool-ng-1.18.0/
+     ~/projects/crosstool-patches/
+
+You need to keep both of these directory trees until any and all cross-tool
+chains have been built.
+
+-----------------------
+4. Install crosstool-NG
+-----------------------
+
+There are a couple ways to install crosstool-NG for then using to make various
+cross-tool chains.  The instructions here describe the "Hacker's way" which
+actually is the more common way; it also is more tidy and doesn't create yet
+another directory tree.
+
+Do these steps, where <version> is the version of crosstool-NG you've actually
+downloaded and is in the directory name.  In the above example <version> is
+"1.18.0".  You might want to copy these steps into an editor, remove the "$ "
+prompts, replace <version> with the actual version, and then one-at-a-time
+copy-paste each line into a terminal window.
+
+NOTE: The patch is necessary only if there actually is a patch to apply; there
+      may be no patch (check it first), in which case it already as been
+      incorporated into crosstool-NG.
+
+     $ cd ~/Download/crosstool-ng-<version>
+     $ ./bootstrap
+     $ patch -p1 <../cl-dev/integ/crosstool-ng-<version>/export-manifest.patch
+     $ ./configure --enable-local
+     $ make
+     $ ./ct-ng updatetools
+
+The patch gives crosstool-NG the ability to export source code packages of the
+target system C library and Linux kernel, and all patches applied to them.
+This is needed to get the default Linux kernel source code for crosslinux to
+use to build the target system.  This also is needed for GPL compliance when
+delivering target Linux systems created by crosslinux.
+
+You now can make cross-tool chains.  How to do this for crosslinux is explained
+in "21_How_To_Use_crosslinux.txt".
 
 [eof]
