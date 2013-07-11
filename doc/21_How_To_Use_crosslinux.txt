@@ -34,13 +34,13 @@ crosslinux from that build directory into ~/projects/crosslinux, and now you
 want to use the installed crosslinux build tool.
 
 From "12_How_To_Setup_crosstool-NG.txt", the cross-tool chain builder,
-crosstool-NG, is installed in the directory ~/projects/crosstool-1.18.0
+crosstool-NG, is installed in the directory ~/projects/crosstool-ng-1.18.0/
 
 So for the examples in this file, you have these directories:
 
-~/projects/cl-dev/ ............. original crosslinux source/build directory
-~/projects/crosslinux/ ......... crosslinux installed in here
-~/projects/crosstool-1.18.0/ ... crosstool-NG installed in here
+~/projects/cl-dev/ ................ original crosslinux source/build directory
+~/projects/crosslinux/ ............ crosslinux installed in here
+~/projects/crosstool-ng-1.18.0/ ... crosstool-NG installed in here
 
 ------------------
 2. Start a Project
@@ -109,6 +109,13 @@ You can understand most of the site directory by looking through the menuconfig
 items and the items in the site directory.  An explanation of all the items in
 the site directory is beyond the current scope of this file, but is planned.
 
+Make the list of packages and the loader list, and then download the needed
+source packages.
+
+$ cl-bt pkglist
+$ cl-bt ldrlist
+$ cl-bt dload
+
 -------------------------------
 4. Link to the Cross-tool Chain
 -------------------------------
@@ -124,27 +131,62 @@ the help for the first four items.  The path to the cross-tool chain bin
 directory is the crosslinux build tool primary link to the cross-tool chain.
 
 You now should be thinking: I don't have an i486 cross-tool chain; all I have
-so far is a cross-tool chan builder.  Now is the time to build the i486
-cross-tool chain, but you need to see the expected location in this crosslinux
-configuration file.
+is a cross-tool chan builder.  Now is time to build the i486 cross-tool chain,
+but you first needed to see the expected location of the cross-tool chain in
+this crosslinux configuration file.
 
 As you see the default for all the actual cross-tool chains is in ~/x-tools,
 and this specific i486 cross-tool chain is expected to be in
 ~/x-tools/i486-generic-linux-gnu/; an x86_64 cross-tool chain would be in
 ~/x-tools/x86_64-generic-linux-gnu/, and so on.
 
-You can use some other location; but you need to change it in this crosslinux
-configuration file, and in the crosstool-NG configuration file which you are
-about to use.  These must match or the crosslinux build tool won't find the
-cross-tool chain nor the Linux kernel source from the "Path to Cross-tool
-Chain Target Manifest".
+You can use some location other than ~/x-tools, but you need to change it in
+this crosslinux configuration file, and in the crosstool-NG configuration file
+which you are about to use.  These must match or the crosslinux build tool
+won't find the cross-tool chain nor the Linux kernel source from the
+"Path to Cross-tool Chain Target Manifest".
 
 -----------------------------
 5. Build the Cross-tool Chain
 -----------------------------
 
+~/projects/cl-dev/integ/ttylinux-i486-<version>/crosstool-ng.config is the
+crosstool-NG configuration file used to make the i486 cross-tool chain.  Copy
+this file to the crosstool-NG directory and give the command to make the
+cross-tool chain.
+
+$ cd ~/projects/crosstool-ng-1.18.0/
+$ cp ~/projects/cl-dev/integ/ttylinux-i486-<version>/crosstool-ng.config .config
+$ ./ct-ng build
+
+Have a coffee; the cross-tool chain build will take a few minutes.  Maybe go
+back to the crosslinux project directory, ~/projects/ttylinux-i486, and play
+with cl-bt commands, like 'cl-bt bt-showcfg', or maybe play with menuconfig,
+'cl-bt menuconfig'.
+
 --------------------------------
 6. Build the Target Linux System
 --------------------------------
+
+After making the i486 cross-tool chain go to the crosslinux project directory,
+~/projects/ttylinux-i486, and make the bootable target Linux system ISO image.
+
+$ cd  ~/projects/ttylinux-i486
+$ source ~/crosslinux/bin/setenv.sh # if you haven't done this in this terminal
+$ cl-bt dist
+
+Or, make the bootable target Linux system ISO image in several steps.
+
+$ cd  ~/projects/ttylinux-i486
+$ source ~/crosslinux/bin/setenv.sh # if you haven't done this in this terminal
+$ cl-bt clean
+$ cl-bt pkgs
+$ cl-bt loader
+$ cl-bt kernel
+$ cl-bt rootfs
+$ cl-bt bootfs
+$ cl-bt bootimg
+
+Find the ISO image file in the target/image/ directory.
 
 [eof]
