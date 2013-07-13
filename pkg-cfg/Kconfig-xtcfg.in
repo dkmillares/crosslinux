@@ -117,6 +117,15 @@ config SITE_KERNEL_PNAME
 	  directory named "kernel" in the site directory, then enter
 	  "kernel/linux-3.8.1.tar.xz" here.
 
+config SITE_KERNEL_URL
+	string
+	default ""
+	depends on SITE_KERNEL
+	prompt "Originating URL of the site kernel"
+	---help---
+	  This is the URL of the source of the Linux kernel that is in the
+	  site directory.
+
 config FORCE_SITE_KERNEL_CFG
         def_bool y
         select SITE_KERNEL_CFG if SITE_KERNEL

@@ -79,101 +79,6 @@ rm --force --recursive "${TARGET_K_ROOT_DIR}/"*
 
 
 # *****************************************************************************
-# Find the Linux kernel source package.
-# *****************************************************************************
-
-# This function sets:
-#      K_KERNEL_SOURCE_PATH ... rooted dirname
-#      K_KERNEL_SOURCE_NAME ... like "linux-2.6.32.60"
-#      K_KERNEL_SOURCE_EXTN ... like ".tar.xz"
-#      K_KERNEL_CONFIG ........ rooted pathname
-#
-# There is no I/O redirect to a log file.  On error, print a message and
-# 'exit 1'.
-
-kernel_src_find() {
-
-local siteKernel="no"
-local siteConfig="no"
-
-# Look for the Linux kernel source package.
-#
-if [[ x"${CONFIG_SITE_KERNEL:-}" == x"y" ]]; then
-	K_KERNEL_SOURCE_PATH="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_PNAME}"
-	siteKernel="yes"
-else
-	_target_source="${CONFIG_XTOOL_TARGET_MANIFEST_DIR}"
-	while read idstr fname url; do
-		if [[ x"${idstr}" == x"linux" ]]; then
-			K_KERNEL_SOURCE_PATH="${_target_source}/${fname}"
-		fi
-	done <"${_target_source}/manifest.txt"
-fi
-
-# Bail if kernel pathname not found.
-#
-if [[ -z "${K_KERNEL_SOURCE_PATH}" ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
-	echo    "E> No kernel source package name."
-	echo    "   => looking for site kernel: ${siteKernel}"
-	exit 1 # Bust out of shell.
-fi
-
-# Set the variables: path, filename without extension, filename extension.
-#
-K_KERNEL_SOURCE_NAME="${K_KERNEL_SOURCE_PATH##*/}"
-K_KERNEL_SOURCE_PATH="${K_KERNEL_SOURCE_PATH%/*}"
-_ext=""
-if   [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tgz$      ]]; then _ext=".tgz";
-elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.gz$  ]]; then _ext=".tar.gz";
-elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tbz$      ]]; then _ext=".tbz";
-elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.bz2$ ]]; then _ext=".tar.bz2";
-elif [[ "${K_KERNEL_SOURCE_NAME}" =~ (.*)\.tar\.xz$  ]]; then _ext=".tar.xz";
-fi
-K_KERNEL_SOURCE_NAME="${BASH_REMATCH[1]}"
-K_KERNEL_SOURCE_EXTN="${_ext}"
-unset _ext
-
-# Figure the kernel configuration file pathname.
-#
-if [[ x"${CONFIG_SITE_KERNEL_CFG:-}" == x"y" ]]; then
-	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_CFG_PNAME}/"
-else
-	K_KERNEL_CONFIG="${CROSSLINUX_BOARDC_DIR}/"
-fi
-K_KERNEL_CONFIG+="${K_KERNEL_SOURCE_NAME}.cfg"
-
-# Bail if kernel configuration file name not found.
-#
-if [[ -z "${K_KERNEL_CONFIG}" ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
-	echo    "E> No kernel configuration file name."
-	exit 1 # Bust out of shell.
-fi
-
-# Bail if kernel source package not found.
-#
-_kfile="${K_KERNEL_SOURCE_PATH}/${K_KERNEL_SOURCE_NAME}${K_KERNEL_SOURCE_EXTN}"
-if [[ ! -f "${_kfile}" ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
-	echo    "E> No kernel source package."
-	echo    "   => looking for site kernel: ${siteKernel}"
-	exit 1 # Bust out of shell.
-fi
-unset _kfile
-
-# Bail if kernel configuration file name not found.
-#
-if [[ ! -f "${K_KERNEL_CONFIG}" ]]; then
-	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
-	echo    "E> No kernel configuration file."
-	exit 1 # Bust out of shell.
-fi
-
-}
-
-
-# *****************************************************************************
 # Get the kernel source tree and configuration file.
 # *****************************************************************************
 
@@ -467,6 +372,8 @@ return 0
 declare K_KERNEL_SOURCE_PATH="" # rooted dirname
 declare K_KERNEL_SOURCE_NAME="" # like "linux-2.6.32.60"
 declare K_KERNEL_SOURCE_EXTN="" # like ".tar.xz"
+declare K_KERNEL_SOURCE_URLS="" # at lest one URL
+declare K_KERNEL_PATCH_PATH=""  # rooted dirname
 declare K_KERNEL_CONFIG=""      # rooted pathname
 declare K_KERNEL_MODULES="no"
 
@@ -519,7 +426,7 @@ echo ""
 # function is required to set K_KERNEL_SOURCE_PATH, K_KERNEL_SOURCE_NAME, and
 # K_KERNEL_SOURCE_EXTN.
 #
-kernel_src_find || exit 1
+CL_kernel_find || exit 1
 
 pushd "${TARGET_BLD_DIR}" >/dev/null 2>&1
 

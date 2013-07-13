@@ -509,6 +509,8 @@ _clean:	crosslinux-config.sh $(libdir)/scripts/bld-kernel.sh $(libdir)/scripts/b
 		rm --force --recursive target/cdrom;			\
 		echo "=> Removing files from target/image.";		\
 		rm --force target/image/*;				\
+		echo "=> Removing target/source, if any.";		\
+		rm --force --recursive target/source;			\
 	fi;								\
 	if [[ x"$${CONFIG_SITE_SCRIPTS:-}" == x"y" ]]; then		\
 		if [[ -x site/bld-clean-1.sh ]]; then			\
@@ -729,6 +731,10 @@ bootimg:	ok_to_build build/run/bootfs $(libdir)/scripts/bld-bootimg.sh
 		exit 1;							\
 	fi
 	@>build/run/bootimg
+
+srcimg:	crosslinux-pkglst.txt crosslinux-loader.txt $(libdir)/scripts/bld-srcimg.sh
+	@echo "i> Make source ISO image."
+	@$(libdir)/scripts/bld-srcimg.sh
 
 
 # end of Makefile

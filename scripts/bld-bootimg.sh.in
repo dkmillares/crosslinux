@@ -25,8 +25,7 @@
 #
 # PROGRAM DESCRIPTION
 #
-#      This script makes the crosslinux target bootable file system staging
-#      dirctory.
+#      This script makes the crosslinux target bootable file system image file.
 #
 # CHANGE LOG
 #
