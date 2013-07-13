@@ -1,0 +1,42 @@
+     File: 32_How_To_Contribute.txt
+Copyright: (C) 2013 Douglas Jerome <djerome@crosslinux.org>
+  License: Creative Commons Attribution Share Alike (CC-by-sa), v2.5
+
+========================
+32_How_To_Contribute.txt
+========================
+
+This short document describes how to report bugs, make requests and suggestions,
+and otherwise how to help crosslinux.
+
+Questions, Requests, and Suggestions:
+------------------------------------
+
+If you have some question(s) about using crosslinux, or some general crosslinux
+question, then email the crosslinux mail list:  crosslinux@googlegroups.com
+
+Build Problems:
+--------------
+
+DO NOT ASK me to pull from your git repo unless we have arranged to work
+together on something.  Bug fixes should be given as one or more small patch in
+the mail list, if at all feasible.
+
+A crosslinux patch sent to the mail list must be small(ish) and specific; use
+'diff -Naur', and have a short text header describing the patch and an SoB
+"signed-off-by" line.  An SoB line is manually made in the patch header using
+a text editor; it looks like:
+
+     Signed-off-by: John DOE <john.doe@somewhere.net>
+
+If you find a problem while using crosslinux, collect this information:
+     -- crosslinux version number in the .version file, before you changed it
+     -- (NOT OPTIONAL) problem statement: describe what is the symptom
+     -- (option) proposed fix: describe what you think is the fix
+     -- (option) software patch
+
+Email this information to the crosslinux mail list:
+     crosslinux@googlegroups.com
+     http://groups.google.com/group/crosslinux/
+
+[eof]

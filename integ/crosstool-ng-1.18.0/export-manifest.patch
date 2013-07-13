@@ -1,6 +1,17 @@
-diff -Naur crosstool-ng-1.18.0/config/global/manifest.in crosstool-ng-NEW/config/global/manifest.in
---- crosstool-ng-1.18.0/config/global/manifest.in	1969-12-31 17:00:00.000000000 -0700
-+++ crosstool-ng-NEW/config/global/manifest.in	2013-06-28 19:28:51.121832505 -0700
+	This patch gives crosstool-NG the ability to export source code packages
+	of the target system C library and Linux kernel, and all patches
+	applied to them.  This helps automate getting source; very useful for
+	for GPL compliance when delivering systems that have the cross-tool
+	chain glibc.
+	Thu Jul 11 19:12:18 MST 2013
+
+	scripts: Add the ability to export target source and patches.
+
+	Signed-off-by: Douglas Jerome <djerome@crosslinux.org>
+
+diff -Naur a/config/global/manifest.in b/config/global/manifest.in
+--- a/config/global/manifest.in	1969-12-31 17:00:00.000000000 -0700
++++ b/config/global/manifest.in	2013-06-28 19:28:51.121832505 -0700
 @@ -0,0 +1,15 @@
 +# Options specific to extracting packages
 +
@@ -17,9 +28,9 @@ diff -Naur crosstool-ng-1.18.0/config/global/manifest.in crosstool-ng-NEW/config
 +
 +      This is intended to make it easy to get the toolchain target sysroot
 +      source components and their patches.
-diff -Naur crosstool-ng-1.18.0/config/global.in crosstool-ng-NEW/config/global.in
---- crosstool-ng-1.18.0/config/global.in	2013-01-31 13:07:52.000000000 -0700
-+++ crosstool-ng-NEW/config/global.in	2013-06-28 19:43:55.705523652 -0700
+diff -Naur a/config/global.in b/config/global.in
+--- a/config/global.in	2013-01-31 13:07:52.000000000 -0700
++++ b/config/global.in	2013-06-28 19:43:55.705523652 -0700
 @@ -13,5 +13,6 @@
  source "config/global/extract.in"
  source "config/global/build-behave.in"
@@ -27,9 +38,9 @@ diff -Naur crosstool-ng-1.18.0/config/global.in crosstool-ng-NEW/config/global.i
 +source "config/global/manifest.in"
  
  endmenu
-diff -Naur crosstool-ng-1.18.0/scripts/build/kernel/linux.sh crosstool-ng-NEW/scripts/build/kernel/linux.sh
---- crosstool-ng-1.18.0/scripts/build/kernel/linux.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/kernel/linux.sh	2013-06-28 15:14:04.233944903 -0700
+diff -Naur a/scripts/build/kernel/linux.sh b/scripts/build/kernel/linux.sh
+--- a/scripts/build/kernel/linux.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/kernel/linux.sh	2013-06-28 15:14:04.233944903 -0700
 @@ -49,6 +49,7 @@
              2.6.*)  rel_dir=v2.6;;
              3.*)    rel_dir=v3.x;;
@@ -46,9 +57,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/kernel/linux.sh crosstool-ng-NEW/sc
      CT_Patch "linux" "${CT_KERNEL_VERSION}"
  }
  
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/eglibc.sh crosstool-ng-NEW/scripts/build/libc/eglibc.sh
---- crosstool-ng-1.18.0/scripts/build/libc/eglibc.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/eglibc.sh	2013-06-28 15:16:07.185407798 -0700
+diff -Naur a/scripts/build/libc/eglibc.sh b/scripts/build/libc/eglibc.sh
+--- a/scripts/build/libc/eglibc.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/eglibc.sh	2013-06-28 15:16:07.185407798 -0700
 @@ -103,6 +103,7 @@
  # Extract the files required for the libc locales
  do_libc_locales_extract() {
@@ -57,9 +68,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/eglibc.sh crosstool-ng-NEW/scr
      CT_Patch "eglibc" "localedef-${CT_LIBC_VERSION}"
  }
  
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/glibc-eglibc.sh-common crosstool-ng-NEW/scripts/build/libc/glibc-eglibc.sh-common
---- crosstool-ng-1.18.0/scripts/build/libc/glibc-eglibc.sh-common	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/glibc-eglibc.sh-common	2013-06-28 15:17:40.712238552 -0700
+diff -Naur a/scripts/build/libc/glibc-eglibc.sh-common b/scripts/build/libc/glibc-eglibc.sh-common
+--- a/scripts/build/libc/glibc-eglibc.sh-common	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/glibc-eglibc.sh-common	2013-06-28 15:17:40.712238552 -0700
 @@ -7,6 +7,7 @@
      # Extract the main tarball
      CT_Extract "${CT_LIBC}-${CT_LIBC_VERSION}"
@@ -76,9 +87,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/glibc-eglibc.sh-common crossto
          CT_Patch nochdir "${CT_LIBC}" "${addon}-${CT_LIBC_VERSION}"
  
          # Remove the long name since it can confuse configure scripts to run
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/glibc.sh crosstool-ng-NEW/scripts/build/libc/glibc.sh
---- crosstool-ng-1.18.0/scripts/build/libc/glibc.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/glibc.sh	2013-06-28 15:35:39.595750652 -0700
+diff -Naur a/scripts/build/libc/glibc.sh b/scripts/build/libc/glibc.sh
+--- a/scripts/build/libc/glibc.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/glibc.sh	2013-06-28 15:35:39.595750652 -0700
 @@ -19,6 +19,7 @@
      addons_list=($(do_libc_add_ons_list " "))
  
@@ -95,9 +106,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/glibc.sh crosstool-ng-NEW/scri
          if ! CT_GetFile "glibc-${addon}-${CT_LIBC_VERSION}"     \
                          {ftp,http}://ftp.gnu.org/gnu/glibc      \
                          ftp://gcc.gnu.org/pub/glibc/releases    \
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/mingw.sh crosstool-ng-NEW/scripts/build/libc/mingw.sh
---- crosstool-ng-1.18.0/scripts/build/libc/mingw.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/mingw.sh	2013-06-28 15:36:43.848947376 -0700
+diff -Naur a/scripts/build/libc/mingw.sh b/scripts/build/libc/mingw.sh
+--- a/scripts/build/libc/mingw.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/mingw.sh	2013-06-28 15:36:43.848947376 -0700
 @@ -2,6 +2,7 @@
  # Licensed under the GPL v2. See COPYING in the root of this package
  
@@ -114,9 +125,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/mingw.sh crosstool-ng-NEW/scri
      CT_Patch nochdir mingw-w64 "${CT_WINAPI_VERSION}"
      CT_Popd
  }
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/newlib.sh crosstool-ng-NEW/scripts/build/libc/newlib.sh
---- crosstool-ng-1.18.0/scripts/build/libc/newlib.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/newlib.sh	2013-06-28 15:38:16.008795219 -0700
+diff -Naur a/scripts/build/libc/newlib.sh b/scripts/build/libc/newlib.sh
+--- a/scripts/build/libc/newlib.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/newlib.sh	2013-06-28 15:38:16.008795219 -0700
 @@ -16,10 +16,12 @@
          CT_GetCustom "newlib" "${CT_LIBC_VERSION}"      \
                       "${CT_LIBC_NEWLIB_CUSTOM_LOCATION}"
@@ -138,9 +149,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/newlib.sh crosstool-ng-NEW/scr
      CT_Patch "newlib" "${CT_LIBC_VERSION}"
  
      if [ "${CT_ATMEL_AVR32_HEADERS}" = "y" ]; then
-diff -Naur crosstool-ng-1.18.0/scripts/build/libc/uClibc.sh crosstool-ng-NEW/scripts/build/libc/uClibc.sh
---- crosstool-ng-1.18.0/scripts/build/libc/uClibc.sh	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/build/libc/uClibc.sh	2013-06-28 15:39:48.210642538 -0700
+diff -Naur a/scripts/build/libc/uClibc.sh b/scripts/build/libc/uClibc.sh
+--- a/scripts/build/libc/uClibc.sh	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/build/libc/uClibc.sh	2013-06-28 15:39:48.210642538 -0700
 @@ -15,10 +15,12 @@
          CT_GetCustom "uClibc" "${CT_LIBC_VERSION}" \
                       "${CT_LIBC_UCLIBC_CUSTOM_LOCATION}"
@@ -162,9 +173,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/build/libc/uClibc.sh crosstool-ng-NEW/scr
          CT_Patch "uClibc" "${CT_LIBC_VERSION}"
      fi
  
-diff -Naur crosstool-ng-1.18.0/scripts/crosstool-NG.sh.in crosstool-ng-NEW/scripts/crosstool-NG.sh.in
---- crosstool-ng-1.18.0/scripts/crosstool-NG.sh.in	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/crosstool-NG.sh.in	2013-06-28 18:15:35.033791168 -0700
+diff -Naur a/scripts/crosstool-NG.sh.in b/scripts/crosstool-NG.sh.in
+--- a/scripts/crosstool-NG.sh.in	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/crosstool-NG.sh.in	2013-06-28 18:15:35.033791168 -0700
 @@ -185,6 +185,12 @@
          ;;
  esac
@@ -189,9 +200,9 @@ diff -Naur crosstool-ng-1.18.0/scripts/crosstool-NG.sh.in crosstool-ng-NEW/scrip
  
  # Only create the state dir if asked for a restartable build
  [ -n "${CT_DEBUG_CT_SAVE_STEPS}" ] && CT_DoExecLog ALL mkdir -p "${CT_STATE_DIR}"
-diff -Naur crosstool-ng-1.18.0/scripts/functions crosstool-ng-NEW/scripts/functions
---- crosstool-ng-1.18.0/scripts/functions	2013-01-31 13:07:53.000000000 -0700
-+++ crosstool-ng-NEW/scripts/functions	2013-06-28 20:06:53.243302060 -0700
+diff -Naur a/scripts/functions b/scripts/functions
+--- a/scripts/functions	2013-01-31 13:07:53.000000000 -0700
++++ b/scripts/functions	2013-06-28 20:06:53.243302060 -0700
 @@ -510,6 +510,47 @@
      export LD_LIBRARY_PATH
  }
