@@ -59,6 +59,12 @@ loader_sources_get() {
 local manifest="$1"
 local destDir="${TARGET_PROJ_DIR}/target/source/loader"
 
+local pname=""
+local pad1=""
+local fname=""
+local pad2=""
+local url=""
+
 echo -n "i> Getting loader files, if any ...................... "
 
 rm --force --recursive "${destDir}"
@@ -85,7 +91,7 @@ while read pname pad1 fname pad2 url; do
 		fi
 	done; unset _f
 	#
-done <${TARGET_PROJ_DIR}/crosslinux-loader.txt
+done <"${TARGET_PROJ_DIR}/crosslinux-loader.txt"
 
 echo "DONE"
 
@@ -152,6 +158,10 @@ libc_sources_get() {
 local manifest="$1"
 local destDir="${TARGET_PROJ_DIR}/target/source/libc"
 
+local idstr=""
+local fname=""
+local url=""
+
 local libcName="" # like "glibc-2.9.tar.bz2"
 local libcFile="" # rooted pathname
 local libcURLS="" # at lest one URL
@@ -215,6 +225,12 @@ package_sources_get() {
 local manifest="$1"
 local destDir="${TARGET_PROJ_DIR}/target/source/packages"
 
+local pname=""
+local pad1=""
+local fname=""
+local pad2=""
+local url=""
+
 echo "i> Getting source packages:"
 
 rm --force --recursive "${destDir}"
@@ -243,7 +259,7 @@ while read pname pad1 fname pad2 url; do
 		fi
 	done; unset _f
 	#
-done <${TARGET_PROJ_DIR}/crosslinux-pkglst.txt
+done <"${TARGET_PROJ_DIR}/crosslinux-pkglst.txt"
 
 echo "DONE"
 
@@ -256,7 +272,44 @@ echo "DONE"
 
 srclist_html_make() {
 
-	:
+local manifest="$1"
+local htmlfile="$2"
+
+local name=""
+local pad=""
+local url=""
+
+local -i urlLen=0
+
+while read name pad url; do
+	[[ -z "${name}"         ]] && continue || true
+	[[ "${name:0:1}" == "#" ]] && continue || true
+	[[ "${name}" == "=>"    ]] && continue || true
+	if [[ ${#url} -gt ${urlLen} ]]; then
+		urlLen=${#url}
+	fi
+done <"${manifest}"
+
+urlLen=$((${urlLen} + 1))
+echo "urlLen=${urlLen}"
+
+while read name pad url; do
+	#
+	[[ -z "${name}"          ]] && continue || true
+	[[ "${name:0:1}" == "#"  ]] && continue || true
+	[[ "${url}" == "(local)" ]] && continue || true
+	[[ "${name}" == "=>"     ]] && continue || true
+	#
+	echo -n "&#187; <a style=\"color:#07F\" href=\"" >>${htmlfile}
+	echo -n "${url}"                                 >>${htmlfile}
+	echo -n "\">"                                    >>${htmlfile}
+	for ((i=(${urlLen}-${#url}) ; i > 0 ; i--)); do
+		echo -n " " >>${htmlfile}
+	done
+	echo -n "${name} "  >>${htmlfile}
+	echo    "</a><br/>" >>${htmlfile}
+	#
+done <"${manifest}"
 
 }
 
@@ -309,11 +362,11 @@ find "${TARGET_PROJ_DIR}/target/source" -type d -exec chmod 755 {} \;
 find "${TARGET_PROJ_DIR}/target/source" -type f -exec chmod 644 {} \;
 echo "DONE"
 
-loader_sources_get  ${manifest}
-kernel_sources_get  ${manifest}
-libc_sources_get    ${manifest}
-package_sources_get ${manifest}
-srclist_html_make
+loader_sources_get  "${manifest}"
+kernel_sources_get  "${manifest}"
+libc_sources_get    "${manifest}"
+package_sources_get "${manifest}"
+srclist_html_make   "${manifest}" "${htmlfile}"
 
 echo -n "i> Creating CD-ROM ISO image ......................... "
 rm --force ${TARGET_SRC_NAME}
