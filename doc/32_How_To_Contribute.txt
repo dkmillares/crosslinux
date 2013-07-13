@@ -19,13 +19,16 @@ Build Problems:
 --------------
 
 DO NOT ASK me to pull from your git repo unless we have arranged to work
-together on something.  Bug fixes should be given as one or more small patch in
-the mail list, if at all feasible.
+together on something.  Bug fixes should be given as one or more small patch,
+sent to the mail list if at all feasible.
 
 A crosslinux patch sent to the mail list must be small(ish) and specific; use
 'diff -Naur', and have a short text header describing the patch and an SoB
-"signed-off-by" line.  An SoB line is manually made in the patch header using
-a text editor; it looks like:
+"signed-off-by" line.  The SoB line refers to the Developer Certificate Of
+Origin, to which you are expressly agreeing:
+http://elinux.org/Developer_Certificate_Of_Origin
+The SoB line is manually made in the patch header using a text editor; it looks
+like:
 
      Signed-off-by: John DOE <john.doe@somewhere.net>
 
