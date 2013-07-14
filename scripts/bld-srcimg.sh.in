@@ -289,9 +289,7 @@ while read name pad url; do
 		urlLen=${#url}
 	fi
 done <"${manifest}"
-
 urlLen=$((${urlLen} + 1))
-echo "urlLen=${urlLen}"
 
 while read name pad url; do
 	#
@@ -310,6 +308,10 @@ while read name pad url; do
 	echo    "</a><br/>" >>${htmlfile}
 	#
 done <"${manifest}"
+
+mv "${htmlfile}" "${htmlfile}.in"
+sort --ignore-leading-blanks --key=5,5 "${htmlfile}.in" > "${htmlfile}"
+rm --force "${htmlfile}.in"
 
 }
 
