@@ -354,7 +354,7 @@ for p in ${K_PACKAGE[@]}; do
 	echo "]"
 
 	if [[ $(ls -1 | wc -l) -ne 0 ]]; then
-		echo "w> build/pkgs build directory is not empty:"
+		echo "w> build/bld build directory is not empty:"
 		ls -l
 	fi
 
