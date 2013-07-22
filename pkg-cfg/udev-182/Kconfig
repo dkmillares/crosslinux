@@ -1,0 +1,14 @@
+if ! BLD_CROSSLINUX_DEVFS
+
+config BLD_UDEV_182
+	bool
+	def_bool y
+	prompt "Use udev to manage /dev directory"
+	---help---
+	  Use udev to manage /dev directory.
+
+config FORCE_UDEV
+	def_bool y
+	select BLD_UDEV_182
+
+endif

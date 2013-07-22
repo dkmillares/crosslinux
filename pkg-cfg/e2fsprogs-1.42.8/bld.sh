@@ -112,6 +112,7 @@ cd ..
 
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -133,6 +134,7 @@ cd ..
 
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -149,7 +151,7 @@ PKG_STATUS="install error"
 # tarball has already been made.  But the wrongs findfs will be in sysroot; try
 # to do something about it.
 
-if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS}" == x"n" ]]; then
+if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS:-}" == x"n" ]]; then
 	mv "${TARGET_SYSROOT_DIR}/sbin/findfs" /tmp
 fi
 
@@ -164,7 +166,7 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
-if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS}" == x"n" ]]; then
+if [[ x"${CONFIG_E2FSPROGS_HAS_FINDFS:-}" == x"n" ]]; then
 	mv /tmp/findfs "${TARGET_SYSROOT_DIR}/sbin/"
 fi
 

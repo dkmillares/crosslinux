@@ -70,9 +70,9 @@ fi
 
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 
-# *****                 *****
-# ***** Build - No SUID *****
-# *****                 *****
+CL_logcom "*****                 *****"
+CL_logcom "***** Build - No SUID *****"
+CL_logcom "*****                 *****"
 
 cd "${PKG_DIR}"
 
@@ -85,7 +85,7 @@ if [[ x"${CONFIG_BUSYBOX_HAS_LOSETUP:-}" == x"" ]]; then
 fi
 cp "${cfg}" .config
 
-PKG_STATUS="make error"
+PKG_STATUS="stnd make error"
 CFLAGS="${CONFIG_CFLAGS} --sysroot=${TARGET_SYSROOT_DIR}" \
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
@@ -97,9 +97,9 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 
 cd ".."
 
-# *****                               *****
-# ***** Build and Install - With SUID *****
-# *****                               *****
+CL_logcom "*****                               *****"
+CL_logcom "***** Build and Install - With SUID *****"
+CL_logcom "*****                               *****"
 
 cd "${PKG_DIR}-suid"
 
@@ -109,7 +109,7 @@ if [[ -f "site/pkg-cfg-$1/_bbox-suid.cfg" ]]; then
 fi
 cp "${cfg}" .config
 
-PKG_STATUS="make error"
+PKG_STATUS="suid make error"
 CFLAGS="${CONFIG_CFLAGS} --sysroot=${TARGET_SYSROOT_DIR}" \
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
@@ -229,7 +229,7 @@ sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
 _sedFile="${TARGET_SYSROOT_DIR}/etc/rc.d/rc.sysinit"
 sed -i "${_sedFile}"					\
 	-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
-	-e "s/@BRAND_URL@/${CONFIG_BRAND_URL}/"		\
+	-e "s|@BRAND_URL@|${CONFIG_BRAND_URL}|"		\
 	-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"
 _sedFile="${TARGET_SYSROOT_DIR}/etc/rc.d/rc.sysdone"
 sed -i "${_sedFile}"					\

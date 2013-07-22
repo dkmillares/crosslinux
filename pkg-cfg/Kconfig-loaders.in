@@ -13,6 +13,10 @@ config LOADER_UBOOT_2012p10
 	---help---
 	  This is the available boot loader.
 
+config UBOOT_TARGET
+        string
+        default "am335x_evm"
+
 config FORCE_UBOOT
 	def_bool y
 	select LOADER_UBOOT_2012p10
@@ -64,5 +68,5 @@ endif
 config LOADERSUBDIR
         string
         default "syslinux-6.01" if LOADER_SYSLINUX_6p01
-        default "uboot-2010.10" if LOADER_UBOOT_2012p10
+        default "uboot-2012.10" if LOADER_UBOOT_2012p10
         default "yaboot"        if LOADER_YABOOT
