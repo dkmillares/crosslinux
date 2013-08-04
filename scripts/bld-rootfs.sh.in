@@ -200,12 +200,17 @@ find "${TARGET_MNT_DIR}" -type d -o -type f \
 	-exec touch --reference=TIME_STAMP {} \;
 echo "DONE"
 
-echo "File system usage [file system size=${CONFIG_ROOTFS_SIZE_MB}MB]:"
+_msg=""
+if [[ -n "${CONFIG_ROOTFS_SIZE_MB:-}" ]]; then
+	_msg=" [file system size=${CONFIG_ROOTFS_SIZE_MB}MB]"
+fi
+echo "File system usage${_msg}:"
 du -sh ${TARGET_MNT_DIR}
+unset _msg
 
-if [[ x"${CONFIG_ROOTFS_INITRD:-}"     == x"y" ]]; then rootfs_initrd;    fi
-if [[ x"${CONFIG_ROOTFS_INITRAMFS:-}"  == x"y" ]]; then rootfs_initramfs; fi
-if [[ x"${CONFIG_ROOTFS_PERSISTENT:-}" == x"y" ]]; then rootfs_tarball;   fi
+if [[ x"${CONFIG_ROOTFS_INITRD:-}"    == x"y" ]]; then rootfs_initrd;    fi
+if [[ x"${CONFIG_ROOTFS_INITRAMFS:-}" == x"y" ]]; then rootfs_initramfs; fi
+if [[ x"${CONFIG_ROOTFS_TARBALL:-}"   == x"y" ]]; then rootfs_tarball;   fi
 
 echo -n "i> Cleaning staging area ... "
 rm --force --recursive "${TARGET_MNT_DIR}/"*

@@ -104,7 +104,10 @@ CL_exitOnSigErr=0
 # non-zero.
 CL_infoOnSigErr=1
 if [[ x"${CONFIG_MEDIA_ISO9660:-}" == x"y" ]]; then
-	source ${CROSSLINUX_BOARDC_DIR}/bld-iso9660-img.sh
+	source "${CROSSLINUX_BOARDC_DIR}/bld-iso9660-img.sh"
+fi
+if [[ x"${CONFIG_ROOTFS_TARBALL:-}" == x"y" ]]; then
+	source "${CROSSLINUX_BOARDC_DIR}/bld-tarfile.sh"
 fi
 )
 set -e ; # All done with build steps; enable exit on a non-zero status.

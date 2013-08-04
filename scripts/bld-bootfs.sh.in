@@ -52,36 +52,48 @@ cl_libdir="@@CL_LIBDIR@@"
 
 
 # *****************************************************************************
-# Make and initialize an ISO9660 staging directory.
+# Make and initialize a staging directory.
 # *****************************************************************************
 
-iso9660_root() {
+staging_root() {
 
-echo -n "i> Recreating ISO staging directory structure ........ "
-rm --force --recursive "cdrom/"
-mkdir --mode=755 --parents "cdrom/"
-mkdir --mode=755 --parents "cdrom/boot/"
-mkdir --mode=755 --parents "cdrom/boot/isolinux/"
-mkdir --mode=755 --parents "cdrom/config/"
-mkdir --mode=755 --parents "cdrom/doc/"
-mkdir --mode=755 --parents "cdrom/log/"
-mkdir --mode=755 --parents "cdrom/pkgbin/"
+local lcldir=$1
+local mname=""
+
+if [[ "${lcldir}" == "cdrom" ]]; then
+	mname=CDROM
+fi
+if [[ "${lcldir}" == "sdcard" ]]; then
+	mname=FLASH
+fi
+
+echo -n "i> Recreating boot staging directory ................. "
+rm --force --recursive "${lcldir}/"
+mkdir --mode=755 --parents "${lcldir}/"
+mkdir --mode=755 --parents "${lcldir}/boot/"
+mkdir --mode=755 --parents "${lcldir}/config/"
+mkdir --mode=755 --parents "${lcldir}/doc/"
+mkdir --mode=755 --parents "${lcldir}/log/"
+mkdir --mode=755 --parents "${lcldir}/pkgbin/"
+if [[ "${lcldir}" == "cdrom" ]]; then
+	mkdir --mode=755 --parents "${lcldir}/boot/isolinux/"
+fi
 echo "DONE"
 
 echo -n "i> Gathering top-level document files ................ "
->cdrom/LABEL
-echo "SOURCE_TIMESTAMP=\"$(date)\""              >>cdrom/LABEL
-echo "SOURCE_MEDIA=\"CDROM\""                    >>cdrom/LABEL
-echo "SOURCE_BRAND=\"${CONFIG_BRAND_NAME}\""     >>cdrom/LABEL
-echo "SOURCE_NAME=\"${CONFIG_RELEASE_NAME}\""    >>cdrom/LABEL
-echo "SOURCE_VERSION=\"${CONFIG_RELEASE_VERS}\"" >>cdrom/LABEL
-echo "SOURCE_ARCH=\"${CONFIG_CPU_ARCH}\""        >>cdrom/LABEL
-chmod 644 cdrom/LABEL
+>${lcldir}/LABEL
+echo "SOURCE_TIMESTAMP=\"$(date)\""              >>${lcldir}/LABEL
+echo "SOURCE_MEDIA=\"${mname}\""                 >>${lcldir}/LABEL
+echo "SOURCE_BRAND=\"${CONFIG_BRAND_NAME}\""     >>${lcldir}/LABEL
+echo "SOURCE_NAME=\"${CONFIG_RELEASE_NAME}\""    >>${lcldir}/LABEL
+echo "SOURCE_VERSION=\"${CONFIG_RELEASE_VERS}\"" >>${lcldir}/LABEL
+echo "SOURCE_ARCH=\"${CONFIG_CPU_ARCH}\""        >>${lcldir}/LABEL
+chmod 644 ${lcldir}/LABEL
 if [[ x"${CONFIG_INCLUDE_MEDIA_ROOT_DOCS:-}" == x"y" ]]; then
 	for _f in ${TARGET_SITE_DIR}/doc-root/*; do
 		if [[ -f "${_f}" ]]; then
-			cp "${_f}" "cdrom/"
-			chmod 644 "cdrom/${_f##*/}"
+			cp "${_f}" "${lcldir}/"
+			chmod 644 "${lcldir}/${_f##*/}"
 		fi
 	done
 fi
@@ -91,15 +103,17 @@ echo "DONE"
 
 
 # *****************************************************************************
-# Add any optional extra items to the ISO9660 staging directory.
+# Add any optional extra items to the staging directory.
 # *****************************************************************************
 
-iso9660_extra_files() {
+staging_extra_files() {
+
+local lcldir=$1
 
 if [[ x"${CONFIG_INCLUDE_MEDIA_CONFIG_FILES:-}" == x"y" ]]; then
 	echo -n "i> Getting the kernel configuration file ............. "
-	cp "${TARGET_K_ROOT_DIR}/config/"*.cfg cdrom/config/
-	chmod 644 cdrom/config/*
+	cp "${TARGET_K_ROOT_DIR}/config/"*.cfg ${lcldir}/config/
+	chmod 644 ${lcldir}/config/*
 	echo "DONE"
 fi
 
@@ -108,11 +122,11 @@ if [[ x"${CONFIG_INCLUDE_MEDIA_DOCS:-}" == x"y" ]]; then
 	_needChmod=""
 	for _f in ${TARGET_SITE_DIR}/doc/*; do
 		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/doc/
+			cp "${_f}" ${lcldir}/doc/
 			_needChmod="y"
 		fi
 	done
-	if [[ -n "${_needChmod}" ]]; then chmod 644 cdrom/doc/*; fi
+	if [[ -n "${_needChmod}" ]]; then chmod 644 ${lcldir}/doc/*; fi
 	unset _needChmod
 	echo "DONE"
 fi
@@ -122,13 +136,13 @@ if [[ x"${CONFIG_INCLUDE_BUILD_LOGS:-}" == x"y" ]]; then
 	_needChmod=""
 	for _f in ${TARGET_LOG_DIR}/*; do
 		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/log/
+			cp "${_f}" ${lcldir}/log/
 			_needChmod="y"
 		fi
 	done
 	if [[ -n "${_needChmod}" ]]; then
-		bzip2 --compress cdrom/log/*
-		chmod 644 cdrom/log/*
+		bzip2 --compress ${lcldir}/log/*
+		chmod 644 ${lcldir}/log/*
 	fi
 	unset _needChmod
 	echo "DONE"
@@ -139,11 +153,11 @@ if [[ x"${CONFIG_INCLUDE_BIN_PKGS:-}" == x"y" ]]; then
 	_needChmod=""
 	for _f in ${TARGET_PKGBIN_DIR}/*; do
 		if [[ -f "${_f}" ]]; then
-			cp "${_f}" cdrom/pkgbin/
+			cp "${_f}" ${lcldir}/pkgbin/
 			_needChmod="y"
 		fi
 	done
-	if [[ -n "${_needChmod}" ]]; then chmod 644 cdrom/pkgbin/*; fi
+	if [[ -n "${_needChmod}" ]]; then chmod 644 ${lcldir}/pkgbin/*; fi
 	unset _needChmod
 	echo "DONE"
 fi
@@ -200,13 +214,15 @@ CL_infoOnSigErr=1
 if [[ x"${CONFIG_MEDIA_ISO9660:-}" == x"y" ]]; then
 	# This will make a new directory structure:
 	# ${TARGET_PROJ_DIR}/target/cdrom/
-	iso9660_root
-	source ${CROSSLINUX_BOARDC_DIR}/bld-iso9660-dir.sh
-	iso9660_extra_files
+	staging_root "cdrom"
+	source "${CROSSLINUX_BOARDC_DIR}/bld-iso9660-dir.sh"
+	staging_extra_files "cdrom"
 fi
 if [[ x"${CONFIG_ROOTFS_TARBALL:-}" == x"y" ]]; then
 	# Remake the root file system tarbal with any optional extra items.
-	fakeroot -- "${CROSSLINUX_SCRIPT_DIR}/bld-bootfs-tarball.sh"
+	staging_root "sdcard"
+	source "${CROSSLINUX_BOARDC_DIR}/bld-tardir.sh"
+	staging_extra_files "sdcard"
 fi
 )
 set -e ; # All done with build steps; enable exit on a non-zero status.

@@ -177,7 +177,7 @@ fi
 if [[ "${target}" == "uImage" ]]; then
 	# This is the BeagleBone target; add the uboot build directory that has
 	# the mkimage program, and add the device tree to the build target.
-	_xtraPath="${CROSSLINUX_LOADER_DIR}"
+	_xtraPath="${TARGET_LOADER_DIR}"
 	target="uImage dtbs"
 else
 	_xtraPath=""
@@ -298,7 +298,7 @@ if [[ "${K_KERNEL_MODULES}" == "yes" ]]; then
 		CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 		INSTALL_MOD_PATH=${_bDir}"
 	CL_logcom ""
-	CL_logcmd"${_cmd}"
+	CL_logcmd "${_cmd}"
 	CL_logcom ""
 	unset _cmd
 	source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"

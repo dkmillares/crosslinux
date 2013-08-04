@@ -453,17 +453,18 @@ unset _ext
 # Figure the kernel configuration file pathname.
 #
 if [[ x"${CONFIG_SITE_KERNEL_CFG:-}" == x"y" ]]; then
-	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_CFG_PNAME}/"
+	K_KERNEL_CONFIG="${TARGET_SITE_DIR}/${CONFIG_SITE_KERNEL_CFG_PNAME}"
 else
 	K_KERNEL_CONFIG="${CROSSLINUX_BOARDC_DIR}/"
+	K_KERNEL_CONFIG+="${K_KERNEL_SOURCE_NAME}.cfg"
 fi
-K_KERNEL_CONFIG+="${K_KERNEL_SOURCE_NAME}.cfg"
 
 # Bail if kernel configuration file name not found.
 #
 if [[ -z "${K_KERNEL_CONFIG}" ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
 	echo    "E> No kernel configuration file name."
+	echo    "=> \"${K_KERNEL_CONFIG}\""
 	exit 1 # Bust out of shell.
 fi
 
@@ -483,6 +484,7 @@ unset _kfile
 if [[ ! -f "${K_KERNEL_CONFIG}" ]]; then
 	echo -e "${TEXT_BRED}ERROR${TEXT_NORM}"
 	echo    "E> No kernel configuration file."
+	echo    "=> \"${K_KERNEL_CONFIG}\""
 	exit 1 # Bust out of shell.
 fi
 

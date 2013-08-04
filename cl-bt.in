@@ -95,7 +95,7 @@ CMD_PARAM=""
 #
 SHELL=@@CL_BASH@@
 
-BLDDIRS=build/{bld,log,run} dload mnt sysroot target/{image,kroot,loader,pkgbin}
+BLDDIRS=build/{bld,log,run} dload mnt sysroot target/{image,kpkgs,kroot,loader,pkgbin}
 
 # 'GREP_OPTIONS=--color=always' breaks the generated .in files, so clear it.
 #
@@ -470,7 +470,7 @@ stat:
 	@(echo -n "> Root File System ";				\
 	[[ ! -f build/run/rootfs ]] && echo -n "NOT ";			\
 	echo "Built")
-	@(echo -n "> Boot Staging Directory Structure";			\
+	@(echo -n "> Boot Staging Directory Structure ";		\
 	[[ ! -f build/run/bootfs ]] && echo -n "NOT ";			\
 	echo "Built")
 	@(echo -n "> Boot Image ";					\

@@ -451,6 +451,7 @@ return 0
 # path because there is no symbol yet.
 
 cd "../.."
+
 source ./crosslinux-config.sh # target build configuration
 source ${cl_libdir}/scripts/_constants.sh # build support
 source ${cl_libdir}/scripts/_functions.sh # build support
