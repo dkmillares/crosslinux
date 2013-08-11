@@ -12,6 +12,9 @@ etc/cron.monthly
 etc/cron.weekly
 home
 home/user
+if {CONFIG_CPU_ARCH:-} == x86_64
+lib64
+fi
 lib
 mnt
 mnt/a:
@@ -28,6 +31,9 @@ tmp
 usr
 usr/bin
 usr/etc
+if {CONFIG_CPU_ARCH:-} == x86_64
+usr/lib64
+fi
 usr/lib
 usr/libexec
 usr/sbin

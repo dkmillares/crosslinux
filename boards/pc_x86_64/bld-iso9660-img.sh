@@ -25,5 +25,25 @@
 # Main Program
 # *****************************************************************************
 
+echo ""
+echo "i> Creating CD-ROM ISO9660 image ..."
+find cdrom -type d -exec chmod 755 {} \;
+find cdrom -type f -exec chmod 755 {} \;
+genisoimage                                                     \
+	-joliet                                                 \
+	-rational-rock                                          \
+	-output ${TARGET_ISO_NAME}                              \
+	-volid "${CONFIG_RELEASE_VERS} ${CONFIG_CPU_ARCH}"      \
+	-eltorito-boot boot/isolinux/isolinux.bin               \
+	-eltorito-catalog boot/isolinux/boot.cat                \
+	-boot-info-table                                        \
+	-boot-load-size 4                                       \
+	-no-emul-boot                                           \
+	cdrom
+echo "... DONE"
+echo ""
+ls --color -hl ${TARGET_ISO_NAME} | sed --expression="s|${TARGET_PROJ_DIR}/||"
+echo "i> ISO image file $(basename ${TARGET_ISO_NAME}) is ready."
+
 
 # end of file

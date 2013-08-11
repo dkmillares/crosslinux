@@ -78,6 +78,11 @@ if [[ -d "rootfs/" ]]; then
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 
+if [[ x"${CONFIG_CPU_ARCH}" == x"x86_64" ]]; then
+	ln --force --symbolic lib "${TARGET_SYSROOT_DIR}/lib64"
+	ln --force --symbolic lib "${TARGET_SYSROOT_DIR}/usr/lib64"
+fi
+
 mkdir --mode=755 --parents "${shareDir}"
 chown 0:0 "${shareDir}"
 
