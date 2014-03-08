@@ -1,0 +1,11 @@
+config BLD_UTIL_LINUX_2p24
+	bool
+	default n
+	prompt "Build util-linux-2.24"
+	---help---
+	  Select this option to cross-build util-linux.
+
+config HAVE_UTIL_LINUX
+	bool
+	default y if BLD_UTIL_LINUX_2p24 = y
+	default n if ! BLD_UTIL_LINUX_2p24

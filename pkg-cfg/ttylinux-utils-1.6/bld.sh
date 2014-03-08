@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2013-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -72,13 +72,7 @@ pkg_install() {
 PKG_STATUS="install error"
 
 if [[ -d "rootfs/" ]]; then
-	if [[ -e "${TARGET_SYSROOT_DIR}/dev/console" ]]; then
-		rm --force rootfs/dev/console
-	fi
-	if [[ -e "${TARGET_SYSROOT_DIR}/dev/null" ]]; then
-		rm --force rootfs/dev/null
-	fi
-	find "rootfs/" ! -type d ! -type l -exec touch {} \;
+	find "rootfs/" ! -type d -exec touch {} \;
 	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
 fi
 

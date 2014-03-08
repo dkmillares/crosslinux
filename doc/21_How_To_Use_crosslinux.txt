@@ -34,13 +34,13 @@ crosslinux from that build directory into ~/projects/crosslinux, and now you
 want to use the installed crosslinux build tool.
 
 From "12_How_To_Setup_crosstool-NG.txt", the cross-tool chain builder,
-crosstool-NG, is installed in the directory ~/projects/crosstool-ng-1.18.0/
+crosstool-NG, is installed in the directory ~/projects/crosstool-ng-1.19.0/
 
 So for the examples in this file, you have these directories:
 
 ~/projects/cl-dev/ ................ original crosslinux source/build directory
 ~/projects/crosslinux/ ............ crosslinux installed in here
-~/projects/crosstool-ng-1.18.0/ ... crosstool-NG installed in here
+~/projects/crosstool-ng-1.19.0/ ... crosstool-NG installed in here
 
 ------------------
 2. Start a Project
@@ -91,7 +91,7 @@ delete this configuration file in the next step.
 3. Make Site-specific Customization
 -----------------------------------
 
-Notive the ~/projects/cl-dev/integ directory has a ttylinux-i486-<version>
+Notice the ~/projects/cl-dev/integ directory has a ttylinux-i486-<version>
 directory.  This directory has the crosslinux configuration for making the
 latest version of ttylinux-i486.
 
@@ -155,8 +155,9 @@ crosstool-NG configuration file used to make the i486 cross-tool chain.  Copy
 this file to the crosstool-NG directory and give the command to make the
 cross-tool chain.
 
-$ cd ~/projects/crosstool-ng-1.18.0/
+$ cd ~/projects/crosstool-ng-1.19.0/
 $ cp ~/projects/cl-dev/integ/ttylinux-i486-<version>/crosstool-ng.config .config
+*** ERROR *** : setup some paths in the .config file.
 $ ./ct-ng build
 
 Have a coffee; the cross-tool chain build will take a few minutes.  Maybe go

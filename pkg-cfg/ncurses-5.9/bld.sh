@@ -94,7 +94,8 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--without-ada \
 	--without-debug \
 	--without-gpm \
-	--without-normal || return 0
+	--without-normal \
+	--without-progs || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
