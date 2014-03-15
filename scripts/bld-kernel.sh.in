@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2013-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -29,6 +29,7 @@
 #
 # CHANGE LOG
 #
+#      2014-03-09  drj  Added LOADADDR=0x80008000 for BeagleBone uImage builds.
 #      2013-06-22  drj  Adapted to crosslinux from the ttylinux build system.
 #
 # *****************************************************************************
@@ -178,7 +179,7 @@ if [[ "${target}" == "uImage" ]]; then
 	# This is the BeagleBone target; add the uboot build directory that has
 	# the mkimage program, and add the device tree to the build target.
 	_xtraPath="${TARGET_LOADER_DIR}"
-	target="uImage dtbs"
+	target="uImage dtbs LOADADDR=0x80008000"
 else
 	_xtraPath=""
 fi

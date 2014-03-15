@@ -161,17 +161,7 @@ cd ..
 # sysroot/lib/libpanel[w].so.5 -> libpanel.so.5.9*       #
 # sysroot/lib/libpanel[w].so.5.9*                        #
 #                                                        #
-# sysroot/usr/bin/captoinfo -> tic*                      #
-# sysroot/usr/bin/clear*                                 #
-# sysroot/usr/bin/infocmp*                               #
-# sysroot/usr/bin/infotocap -> tic*                      #
 # sysroot/usr/bin/ncurses5-config*                       #
-# sysroot/usr/bin/reset -> tset*                         #
-# sysroot/usr/bin/tabs*                                  #
-# sysroot/usr/bin/tic*                                   #
-# sysroot/usr/bin/toe*                                   #
-# sysroot/usr/bin/tput*                                  #
-# sysroot/usr/bin/tset*                                  #
 #                                                        #
 # sysroot/usr/lib/terminfo -> ../share/terminfo/         #
 #                                                        #
