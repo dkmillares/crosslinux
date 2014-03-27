@@ -153,10 +153,12 @@ _stageDir="${TARGET_PROJ_DIR}/build/$1"
 mkdir "${_stageDir}"
 
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	DESTDIR=${_stageDir} \
 	install || return 1
 
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	DESTDIR=${_stageDir} \
 	install-libs || return 1
 

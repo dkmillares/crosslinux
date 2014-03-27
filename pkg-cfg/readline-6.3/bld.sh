@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2014-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="http://www.nico.schottelius.org/software/gpm/archives/"
-PKG_ZIP="gpm-1.20.7.tar.bz2"
+PKG_URL="http://ftp.gnu.org/gnu/readline/"
+PKG_ZIP="readline-6.3.tar.gz"
 PKG_SUM=""
 
-PKG_TAR="gpm-1.20.7.tar"
-PKG_DIR="gpm-1.20.7"
+PKG_TAR="readline-6.3.tar"
+PKG_DIR="readline-6.3"
 
 
 # ******************************************************************************
@@ -38,8 +38,17 @@ PKG_DIR="gpm-1.20.7"
 # ******************************************************************************
 
 pkg_patch() {
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}"
+sed -e '/MV.*old/d'  -i Makefile.in
+sed -e '/OLDSUFF/c:' -i support/shlib-install
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -54,7 +63,6 @@ PKG_STATUS="./configure error"
 cd "${PKG_DIR}"
 
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-./autogen.sh
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
 AR="${CONFIG_XTOOL_NAME}-ar" \
 AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
@@ -67,10 +75,12 @@ RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
 SIZE="${CONFIG_XTOOL_NAME}-size" \
 STRIP="${CONFIG_XTOOL_NAME}-strip" \
 CFLAGS="${CONFIG_CFLAGS}" \
+bash_cv_wcwidth_broken='no' \
 ./configure \
 	--build=${MACHTYPE} \
 	--host=${CONFIG_XTOOL_NAME} \
-	--prefix=/usr || return 0
+	--prefix=/usr \
+	--libdir=/lib || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
 cd ..
@@ -93,7 +103,8 @@ cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
+	SHLIB_LIBS=-lncurses || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
@@ -112,15 +123,30 @@ pkg_install() {
 PKG_STATUS="install error"
 
 cd "${PKG_DIR}"
+
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	DESTDIR=${TARGET_SYSROOT_DIR} \
-	install || return 1
+	install || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
-cd ..
 
-chmod 755 ${TARGET_SYSROOT_DIR}/usr/lib/libgpm.so*
+# Put static libraries into /usr/lib and give them the correct permissions.
+#
+mv ${TARGET_SYSROOT_DIR}/lib/libhistory.a  ${TARGET_SYSROOT_DIR}/usr/lib/
+mv ${TARGET_SYSROOT_DIR}/lib/libreadline.a ${TARGET_SYSROOT_DIR}/usr/lib/
+
+# Give the shared libraries the correct permissions and make links to them
+# in /usr/lib.
+#
+chmod 755 ${TARGET_SYSROOT_DIR}/lib/libhistory.so.6.3
+chmod 755 ${TARGET_SYSROOT_DIR}/lib/libreadline.so.6.3
+rm -f ${TARGET_SYSROOT_DIR}/usr/lib/libhistory.so
+rm -f ${TARGET_SYSROOT_DIR}/usr/lib/libreadline.so
+ln -fs ../../lib/libhistory.so.6  ${TARGET_SYSROOT_DIR}/usr/lib/libhistory.so
+ln -fs ../../lib/libreadline.so.6 ${TARGET_SYSROOT_DIR}/usr/lib/libreadline.so
+
+cd ..
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

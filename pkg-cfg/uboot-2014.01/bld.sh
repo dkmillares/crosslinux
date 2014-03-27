@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="http://www.nico.schottelius.org/software/gpm/archives/"
-PKG_ZIP="gpm-1.20.7.tar.bz2"
+PKG_URL="ftp://ftp.denx.de/pub/u-boot/"
+PKG_ZIP="u-boot-2014.01.tar.bz2"
 PKG_SUM=""
 
-PKG_TAR="gpm-1.20.7.tar"
-PKG_DIR="gpm-1.20.7"
+PKG_TAR="u-boot-2014.01.tar"
+PKG_DIR="u-boot-2014.01"
 
 
 # ******************************************************************************
@@ -38,8 +38,21 @@ PKG_DIR="gpm-1.20.7"
 # ******************************************************************************
 
 pkg_patch() {
+
+local patchDir="${CROSSLINUX_LOADER_DIR}/$1/patch"
+local patchFile=""
+
+PKG_STATUS="patch error"
+
+cd "${PKG_DIR}"
+for patchFile in "${patchDir}"/*; do
+        [[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
+done
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -48,36 +61,8 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
-
-PKG_STATUS="./configure error"
-
-cd "${PKG_DIR}"
-
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-./autogen.sh
-PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
-AR="${CONFIG_XTOOL_NAME}-ar" \
-AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
-CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
-CXX="${CONFIG_XTOOL_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
-LD="${CONFIG_XTOOL_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
-NM="${CONFIG_XTOOL_NAME}-nm" \
-OBJCOPY="${CONFIG_XTOOL_NAME}-objcopy" \
-RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
-SIZE="${CONFIG_XTOOL_NAME}-size" \
-STRIP="${CONFIG_XTOOL_NAME}-strip" \
-CFLAGS="${CONFIG_CFLAGS}" \
-./configure \
-	--build=${MACHTYPE} \
-	--host=${CONFIG_XTOOL_NAME} \
-	--prefix=/usr || return 0
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
-
-cd ..
-
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -90,11 +75,17 @@ pkg_make() {
 PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
-	--jobs=${NJOBS} \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+rm -f ../${CONFIG_UBOOT_TARGET}.MAKELOG
+
+_oldPath=${PATH}
+export PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}"
+CROSS_COMPILE=${CONFIG_XTOOL_NAME}- ./MAKEALL ${CONFIG_UBOOT_TARGET}
+export PATH=${_oldPath}
+unset _oldPath
+
+cp LOG/${CONFIG_UBOOT_TARGET}.MAKELOG ..
+
 cd ..
 
 PKG_STATUS=""
@@ -111,21 +102,13 @@ pkg_install() {
 
 PKG_STATUS="install error"
 
+rm -rf MLO mlo u-boot.img mkimage
+
 cd "${PKG_DIR}"
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
-	DESTDIR=${TARGET_SYSROOT_DIR} \
-	install || return 1
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+[[ -f MLO           ]] && cp MLO ..
+[[ -f u-boot.img    ]] && cp u-boot.img ..
+[[ -f tools/mkimage ]] && cp tools/mkimage ..
 cd ..
-
-chmod 755 ${TARGET_SYSROOT_DIR}/usr/lib/libgpm.so*
-
-if [[ -d "rootfs/" ]]; then
-	find "rootfs/" ! -type d -exec touch {} \;
-	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
-fi
 
 PKG_STATUS=""
 return 0
@@ -133,9 +116,9 @@ return 0
 }
 
 
-# ******************************************************************************
-# pkg_clean
-# ******************************************************************************
+# *****************************************************************************
+# Cleanup
+# *****************************************************************************
 
 pkg_clean() {
 PKG_STATUS=""

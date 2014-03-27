@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2014-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="http://www.nico.schottelius.org/software/gpm/archives/"
-PKG_ZIP="gpm-1.20.7.tar.bz2"
+PKG_URL="http://sourceforge.net/projects/calc/files/calc/2.12.4.13/"
+PKG_ZIP="calc-2.12.4.13.tar.bz2"
 PKG_SUM=""
 
-PKG_TAR="gpm-1.20.7.tar"
-PKG_DIR="gpm-1.20.7"
+PKG_TAR="calc-2.12.4.13.tar"
+PKG_DIR="calc-2.12.4.13"
 
 
 # ******************************************************************************
@@ -48,36 +48,8 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
-
-PKG_STATUS="./configure error"
-
-cd "${PKG_DIR}"
-
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-./autogen.sh
-PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
-AR="${CONFIG_XTOOL_NAME}-ar" \
-AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
-CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
-CXX="${CONFIG_XTOOL_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
-LD="${CONFIG_XTOOL_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
-NM="${CONFIG_XTOOL_NAME}-nm" \
-OBJCOPY="${CONFIG_XTOOL_NAME}-objcopy" \
-RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
-SIZE="${CONFIG_XTOOL_NAME}-size" \
-STRIP="${CONFIG_XTOOL_NAME}-strip" \
-CFLAGS="${CONFIG_CFLAGS}" \
-./configure \
-	--build=${MACHTYPE} \
-	--host=${CONFIG_XTOOL_NAME} \
-	--prefix=/usr || return 0
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
-
-cd ..
-
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -87,13 +59,32 @@ return 0
 
 pkg_make() {
 
+local BS_BITS="32"
+
 PKG_STATUS="make error"
+
+if [[ "${CONFIG_CPU_ARCH}" == "x86_64" ]]; then BS_BITS=64; fi
 
 cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+NJOBS=1 # Seems like this version of calc can't parallel make.
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make clobber
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
+	AR="${CONFIG_XTOOL_NAME}-ar" \
+	AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+	CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+	CXX="${CONFIG_XTOOL_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+	LD="${CONFIG_XTOOL_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+	NM="${CONFIG_XTOOL_NAME}-nm" \
+	OBJCOPY="${CONFIG_XTOOL_NAME}-objcopy" \
+	RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
+	SIZE="${CONFIG_XTOOL_NAME}-size" \
+	STRIP="${CONFIG_XTOOL_NAME}-strip" \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
+	calc-static-only \
+		BLD_TYPE=calc-static-only \
+		LONG_BITS=${BS_BITS} || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
@@ -112,15 +103,12 @@ pkg_install() {
 PKG_STATUS="install error"
 
 cd "${PKG_DIR}"
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
-	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
-	DESTDIR=${TARGET_SYSROOT_DIR} \
-	install || return 1
-source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+instCmd="install --owner=root --group=root"
+${instCmd} --mode=755 calc-static  "${TARGET_SYSROOT_DIR}/usr/bin/calc"
+${instCmd} --mode=755 --directory  "${TARGET_SYSROOT_DIR}/usr/share/calc/"
+${instCmd} --mode=755 cal/bindings "${TARGET_SYSROOT_DIR}/usr/share/calc/"
+unset instCmd
 cd ..
-
-chmod 755 ${TARGET_SYSROOT_DIR}/usr/lib/libgpm.so*
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

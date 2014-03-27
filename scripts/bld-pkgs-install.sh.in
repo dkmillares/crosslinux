@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2013-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -29,6 +29,7 @@
 #
 # CHANGE LOG
 #
+#      2014-03-24  drj  Small fix to comment.
 #      2013-06-25  drj  New file generation.
 #
 # *****************************************************************************
@@ -446,8 +447,8 @@ return 0
 # Set up the shell functions and environment variables.
 # *****************************************************************************
 
-# This script is expected to be invoked in the build/package/ directory.  Go up
-# to the project directory and setup the environment; do this with a hard-coded
+# This script is expected to be invoked in the build/bld/ directory.  Go up to
+# the project directory and setup the environment; do this with a hard-coded
 # path because there is no symbol yet.
 
 cd "../.."

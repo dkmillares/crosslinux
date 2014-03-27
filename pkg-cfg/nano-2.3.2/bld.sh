@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2014-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="http://www.nico.schottelius.org/software/gpm/archives/"
-PKG_ZIP="gpm-1.20.7.tar.bz2"
+PKG_URL="http://www.nano-editor.org/dist/v2.3/"
+PKG_ZIP="nano-2.3.2.tar.gz"
 PKG_SUM=""
 
-PKG_TAR="gpm-1.20.7.tar"
-PKG_DIR="gpm-1.20.7"
+PKG_TAR="nano-2.3.2.tar"
+PKG_DIR="nano-2.3.2"
 
 
 # ******************************************************************************
@@ -52,9 +52,7 @@ pkg_configure() {
 PKG_STATUS="./configure error"
 
 cd "${PKG_DIR}"
-
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
-./autogen.sh
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
 AR="${CONFIG_XTOOL_NAME}-ar" \
 AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
@@ -72,7 +70,6 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--host=${CONFIG_XTOOL_NAME} \
 	--prefix=/usr || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
-
 cd ..
 
 PKG_STATUS=""
@@ -116,11 +113,10 @@ source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	DESTDIR=${TARGET_SYSROOT_DIR} \
-	install || return 1
+	INSTALL=install \
+	install || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
-
-chmod 755 ${TARGET_SYSROOT_DIR}/usr/lib/libgpm.so*
 
 if [[ -d "rootfs/" ]]; then
 	find "rootfs/" ! -type d -exec touch {} \;

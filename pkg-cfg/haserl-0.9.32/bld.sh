@@ -4,7 +4,7 @@
 # This file is part of the crosslinux software.
 # The license which this software falls under is GPLv2 as follows:
 #
-# Copyright (C) 2013-2013 Douglas Jerome <djerome@crosslinux.org>
+# Copyright (C) 2014-2014 Douglas Jerome <djerome@crosslinux.org>
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -25,12 +25,12 @@
 # Definitions
 # ******************************************************************************
 
-PKG_URL="ftp://ftp.denx.de/pub/u-boot/"
-PKG_ZIP="u-boot-2012.10.tar.bz2"
+PKG_URL="http://sourceforge.net/projects/haserl/files/haserl-devel/"
+PKG_ZIP="haserl-0.9.32.tar.gz"
 PKG_SUM=""
 
-PKG_TAR="u-boot-2012.10.tar"
-PKG_DIR="u-boot-2012.10"
+PKG_TAR="haserl-0.9.32.tar"
+PKG_DIR="haserl-0.9.32"
 
 
 # ******************************************************************************
@@ -38,21 +38,8 @@ PKG_DIR="u-boot-2012.10"
 # ******************************************************************************
 
 pkg_patch() {
-
-local patchDir="${CROSSLINUX_LOADER_DIR}/$1/patch"
-local patchFile=""
-
-PKG_STATUS="patch error"
-
-cd "${PKG_DIR}"
-for patchFile in "${patchDir}"/*; do
-        [[ -r "${patchFile}" ]] && patch -p1 <"${patchFile}"
-done
-cd ..
-
 PKG_STATUS=""
 return 0
-
 }
 
 
@@ -61,8 +48,34 @@ return 0
 # ******************************************************************************
 
 pkg_configure() {
+
+PKG_STATUS="./configure error"
+
+cd "${PKG_DIR}"
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" \
+AR="${CONFIG_XTOOL_NAME}-ar" \
+AS="${CONFIG_XTOOL_NAME}-as --sysroot=${TARGET_SYSROOT_DIR}" \
+CC="${CONFIG_XTOOL_NAME}-cc --sysroot=${TARGET_SYSROOT_DIR}" \
+CXX="${CONFIG_XTOOL_NAME}-c++ --sysroot=${TARGET_SYSROOT_DIR}" \
+LD="${CONFIG_XTOOL_NAME}-ld --sysroot=${TARGET_SYSROOT_DIR}" \
+NM="${CONFIG_XTOOL_NAME}-nm" \
+OBJCOPY="${CONFIG_XTOOL_NAME}-objcopy" \
+RANLIB="${CONFIG_XTOOL_NAME}-ranlib" \
+SIZE="${CONFIG_XTOOL_NAME}-size" \
+STRIP="${CONFIG_XTOOL_NAME}-strip" \
+CFLAGS="${CONFIG_CFLAGS}" \
+./configure \
+	--build=${MACHTYPE} \
+	--host=${CONFIG_XTOOL_NAME} \
+	--prefix=/usr || return 0
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
+
+cd ..
+
 PKG_STATUS=""
 return 0
+
 }
 
 
@@ -75,17 +88,11 @@ pkg_make() {
 PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
-
-rm -f ../${CONFIG_UBOOT_TARGET}.MAKELOG
-
-_oldPath=${PATH}
-export PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}"
-CROSS_COMPILE=${CONFIG_XTOOL_NAME}- ./MAKEALL ${CONFIG_UBOOT_TARGET}
-export PATH=${_oldPath}
-unset _oldPath
-
-cp LOG/${CONFIG_UBOOT_TARGET}.MAKELOG ..
-
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
+	--jobs=${NJOBS} \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- || return 0
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 
 PKG_STATUS=""
@@ -102,13 +109,19 @@ pkg_install() {
 
 PKG_STATUS="install error"
 
-rm -rf MLO mlo u-boot.img mkimage
-
 cd "${PKG_DIR}"
-[[ -f MLO           ]] && cp MLO ..
-[[ -f u-boot.img    ]] && cp u-boot.img ..
-[[ -f tools/mkimage ]] && cp tools/mkimage ..
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
+	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
+	DESTDIR=${TARGET_SYSROOT_DIR} \
+	install || return 0
+source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
+
+if [[ -d "rootfs/" ]]; then
+	find "rootfs/" ! -type d -exec touch {} \;
+	cp --archive --force rootfs/* "${TARGET_SYSROOT_DIR}"
+fi
 
 PKG_STATUS=""
 return 0
@@ -116,9 +129,9 @@ return 0
 }
 
 
-# *****************************************************************************
-# Cleanup
-# *****************************************************************************
+# ******************************************************************************
+# pkg_clean
+# ******************************************************************************
 
 pkg_clean() {
 PKG_STATUS=""

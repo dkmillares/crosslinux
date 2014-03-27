@@ -10,7 +10,7 @@ endmenu
 # ------------------------------------------------------------------- libraries
 menu "Libraries"
 source @@CL_LIBDIR@@/pkg-cfg/ncurses-5.9/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/readline-6.2/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/readline-6.3/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/alsa-lib-1.0.27/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/gmp-5.0.5/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/mpfr-3.1.1/Kconfig
@@ -44,18 +44,18 @@ source @@CL_LIBDIR@@/pkg-cfg/dropbear-2014.63/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/gpm-1.20.7/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/iptables-1.4.18/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/ppp-2.4.5/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/thttpd-2.25b/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/thttpd-2.25b/Kconfig
 endmenu
 
 # ---------------------------------------------------------------- applications
 menu "Applications"
 # source @@CL_LIBDIR@@/pkg-cfg/alsa-utils-1.0.27/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/calc-2.12.4.4/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/dtach-0.8/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/dvtm-0.9/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/haserl-0.9.29/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/lua-5.2.2/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/lynx-2.8.7/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/nano-2.2.6/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/calc-2.12.4.13/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/dtach-0.8/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/dvtm-0.11/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/haserl-0.9.32/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/lua-5.2.3/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/lynx-2.8.8/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/nano-2.3.2/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/retawq-0.2.6c/Kconfig
 endmenu
