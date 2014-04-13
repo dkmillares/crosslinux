@@ -101,6 +101,7 @@ PKG_STATUS="make error"
 
 cd "${PKG_DIR}"
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_set"
+NJOBS=1 # I think a multi-job build is not stable.
 PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	--jobs=${NJOBS} \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
