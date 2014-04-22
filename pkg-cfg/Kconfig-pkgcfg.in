@@ -12,9 +12,11 @@ menu "Libraries"
 source @@CL_LIBDIR@@/pkg-cfg/ncurses-5.9/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/readline-6.3/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/alsa-lib-1.0.27/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/gmp-5.0.5/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/mpfr-3.1.1/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/mpc-1.0.1/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/gmp-5.0.5/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/mpfr-3.1.1/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/ppl-0.11/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/cloog-0.16.1/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/mpc-1.0.1/Kconfig
 endmenu
 
 # ------------------------------------------------------------- system programs
@@ -33,9 +35,10 @@ endmenu
 
 # ----------------------------------------------------------- development tools
 menu "Development Tools"
-# source @@CL_LIBDIR@@/pkg-cfg/binutils-2.23/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/gcc-4.6.3/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/make-3.82/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/binutils-2.23/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/gcc-4.7.3/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/make-4.0/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/crosslinux-libc-devel/Kconfig
 endmenu
 
 # ------------------------------------------------------------ service programs

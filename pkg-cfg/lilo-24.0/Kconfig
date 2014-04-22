@@ -3,4 +3,4 @@ config BLD_LILO_24p0
 	default y
 	prompt "Build lilo-24.0"
 	---help---
-	  Select this option to cross-build lilo.
+	  Select this option to cross-build lilo, the LInux LOader.

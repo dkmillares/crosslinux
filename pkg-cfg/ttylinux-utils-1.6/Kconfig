@@ -3,4 +3,5 @@ config BLD_TTYLINUX_UTILS_1p6
 	default n
 	prompt "Build ttylinux-utils-1.6"
 	---help---
-	  Select this option to include the ttylinux utils.
+	  Select this option to include the ttylinux utils.  This includes the
+	  ttylinux package manager 'pacman'.

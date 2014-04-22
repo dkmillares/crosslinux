@@ -3,7 +3,9 @@ config BLD_E2FSPROGS_1p42p9
 	default y
 	prompt "Build e2fsprogs-1.42.9"
 	---help---
-	  Select this option to cross-build e2fsprogs.
+	  Select this option to cross-build e2fsprogs.  This has utilities for
+	  handling the ext2 file system.  It also supports the ext3 and ext4
+	  journaling file systems.
 
 config E2FSPROGS_HAS_BLKID
 	bool
