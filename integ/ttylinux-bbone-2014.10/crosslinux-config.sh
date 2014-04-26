@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# crosslinux-0.0.1 -- Configure a Cross Linux Build
+# crosslinux-0.0.3 -- Configure a Cross Linux Build
 #
 
 #
@@ -73,6 +73,11 @@ CONFIG_BLD_NCURSES_5p9=y
 CONFIG_NCURSES_HAS_LIBS=y
 CONFIG_NCURSES_HAS_WIDEC=y
 CONFIG_BLD_READLINE_6p3=y
+CONFIG_BLD_GMP_5p0p5=y
+CONFIG_BLD_MPFR_3p1p1=y
+CONFIG_BLD_PPL_0p11=y
+CONFIG_BLD_CLOOG_0p16p1=y
+CONFIG_BLD_MPC_1p0p1=y
 
 #
 # System Programs
@@ -95,6 +100,11 @@ CONFIG_FORCE_UDEV=y
 #
 # Development Tools
 #
+CONFIG_BLD_BINUTILS_2p23=y
+CONFIG_BLD_GCC_4p7p3=y
+CONFIG_BLD_MAKE_4p0=y
+CONFIG_BLD_CROSSLINUX_LIBC_DEVEL=y
+CONFIG_FORCE_LIBC_DEVEL=y
 
 #
 # Service Programs
