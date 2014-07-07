@@ -11,7 +11,7 @@ endmenu
 menu "Libraries"
 source @@CL_LIBDIR@@/pkg-cfg/ncurses-5.9/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/readline-6.3/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/alsa-lib-1.0.27/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/alsa-lib-1.0.28/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/gmp-5.0.5/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/mpfr-3.1.1/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/ppl-0.11/Kconfig
@@ -27,7 +27,7 @@ source @@CL_LIBDIR@@/pkg-cfg/busybox-1.22.1/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/e2fsprogs-1.42.9/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/kmod-16/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/lilo-24.0/Kconfig
-# source @@CL_LIBDIR@@/pkg-cfg/ntfs-3g_ntfsprogs-2013.1.13/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/ntfs-3g-ntfsprogs-2014.2.15/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/ttylinux-utils-1.6/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/udev-182/Kconfig
 # source @@CL_LIBDIR@@/pkg-cfg/yaboot-1.3.13/Kconfig
@@ -52,7 +52,7 @@ endmenu
 
 # ---------------------------------------------------------------- applications
 menu "Applications"
-# source @@CL_LIBDIR@@/pkg-cfg/alsa-utils-1.0.27/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/alsa-utils-1.0.28/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/calc-2.12.4.13/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/dtach-0.8/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/dvtm-0.11/Kconfig
