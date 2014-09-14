@@ -90,6 +90,18 @@ return 0
 # ******************************************************************************
 
 pkg_install() {
+
+local dir="${TARGET_SITE_DIR}/pkg-cfg-$1"
+local fileList="${dir}/files-${CONFIG_CPU_ARCH}"
+
+PKG_STATUS="instal error"
+
+while read fname pad; do
+	fname="${TARGET_SYSROOT_DIR}/${fname}"
+	[[ "${fname:0:1}" == "#" ]] && continue || true
+	[[ -e "${fname}"         ]] && touch "${fname}"
+done <${fileList}
+
 PKG_STATUS=""
 return 0
 }

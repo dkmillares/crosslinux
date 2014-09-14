@@ -112,8 +112,8 @@ export SHELL=@BASH@
 export GREP_OPTIONS=
 
 FAKEROOT_URL := http://ftp.debian.org/debian/pool/main/f/fakeroot
-FAKEROOT_ZIP := fakeroot_1.20.orig.tar.bz2
-FAKEROOT_DIR := fakeroot-1.20
+FAKEROOT_ZIP := fakeroot_1.20.1.orig.tar.bz2
+FAKEROOT_DIR := fakeroot-1.20.1
 
 GENEXT2FS_URL := http://sourceforge.net/projects/genext2fs/files/genext2fs/1.4.1
 GENEXT2FS_ZIP := genext2fs-1.4.1.tar.gz
