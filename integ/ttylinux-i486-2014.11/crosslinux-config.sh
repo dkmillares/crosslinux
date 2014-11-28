@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# crosslinux-0.0.1 -- Configure a Cross Linux Build
+# crosslinux-0.0.4 -- Configure a Cross Linux Build
 #
 
 #
@@ -8,8 +8,8 @@
 #
 CONFIG_BRAND_NAME="ttylinux"
 CONFIG_BRAND_URL="http://www.ttylinux.net/"
-CONFIG_RELEASE_NAME="bloevill"
-CONFIG_RELEASE_VERS="16.3"
+CONFIG_RELEASE_NAME="tasmania"
+CONFIG_RELEASE_VERS="2014.11"
 
 #
 # System Architecture and Boot Configuration
@@ -50,7 +50,7 @@ CONFIG_LOADERSUBDIR="syslinux-6.01"
 CONFIG_XTOOL_NAME="i486-generic-linux-gnu"
 CONFIG_XTOOL_BIN_DIR="${HOME}/x-tools/i486-generic-linux-gnu/bin"
 CONFIG_XTOOL_TARGET_MANIFEST_DIR="${HOME}/x-tools/i486-generic-linux-gnu/_target-source"
-CONFIG_DOWNLOAD_DIR="${HOME}/Download/"
+CONFIG_DOWNLOAD_DIR="${HOME}/Downloads/"
 CONFIG_PARALLEL_JOBS=y
 CONFIG_STRIP_BINS=y
 CONFIG_SITE_SCRIPTS=y
@@ -73,6 +73,13 @@ CONFIG_FORCE_LIBC=y
 #
 CONFIG_BLD_NCURSES_5p9=y
 # CONFIG_NCURSES_HAS_LIBS is not set
+# CONFIG_BLD_READLINE_6p3 is not set
+# CONFIG_BLD_ALSA_LIB_1p0p28 is not set
+# CONFIG_BLD_GMP_5p0p5 is not set
+# CONFIG_BLD_MPFR_3p1p1 is not set
+# CONFIG_BLD_PPL_0p11 is not set
+# CONFIG_BLD_CLOOG_0p16p1 is not set
+# CONFIG_BLD_MPC_1p0p1 is not set
 
 #
 # System Programs
@@ -88,11 +95,15 @@ CONFIG_E2FSPROGS_HAS_BLKID=y
 CONFIG_E2FSPROGS_HAS_FINDFS=y
 # CONFIG_BLD_KMOD_16 is not set
 CONFIG_BLD_LILO_24p0=y
+# CONFIG_BLD_NTFS_3G_NTFSPROGS_2014p2p15 is not set
 CONFIG_BLD_TTYLINUX_UTILS_1p6=y
 
 #
 # Development Tools
 #
+# CONFIG_BLD_BINUTILS_2p23 is not set
+# CONFIG_BLD_GCC_4p7p3 is not set
+# CONFIG_BLD_MAKE_4p0 is not set
 
 #
 # Service Programs
@@ -101,9 +112,18 @@ CONFIG_BLD_DROPBEAR_2014p63=y
 CONFIG_BLD_GPM_1p20p7=y
 CONFIG_BLD_IPTABLES_1p4p18=y
 CONFIG_BLD_PPP_2p4p5=y
+# CONFIG_BLD_THTTPD_2p25B is not set
 
 #
 # Applications
 #
+# CONFIG_BLD_ALSA_UTILS_1p0p28 is not set
+# CONFIG_BLD_CALC_2p12p4p13 is not set
+# CONFIG_BLD_DTACH_0p8 is not set
+# CONFIG_BLD_DVTM_0p11 is not set
+# CONFIG_BLD_HASERL_0p9p32 is not set
+# CONFIG_BLD_LUA_5p2p3 is not set
+# CONFIG_BLD_LYNX_2p8p8 is not set
+# CONFIG_BLD_NANO_2p3p2 is not set
 CONFIG_BLD_RETAWQ_0p2p6C=y
 # CONFIG_RETAWQ_HAS_THREADING is not set

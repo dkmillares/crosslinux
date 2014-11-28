@@ -59,6 +59,7 @@ return 0
 
 pkg_make() {
 
+local ctsysroot="" # cross-tool chain sysroot
 local dir="${TARGET_SITE_DIR}/pkg-cfg-$1"
 local fileList="${dir}/files-${CONFIG_CPU_ARCH}"
 
@@ -67,10 +68,12 @@ PKG_STATUS="make error"
 mkdir --parents "${dir}"
 rm --force "${fileList}"
 
-find "${TARGET_SYSROOT_DIR}/usr/include" -type f | sort >"${fileList}"
-sed --expression="s#${TARGET_SYSROOT_DIR}/##" --in-place "${fileList}"
-sed --expression="/\.install/d"               --in-place "${fileList}"
-sed --expression="/\.\.install\.cmd/d"        --in-place "${fileList}"
+ctsysroot=$("${CONFIG_XTOOL_BIN_DIR}/${CONFIG_XTOOL_NAME}-cc" -print-sysroot)
+
+find "${ctsysroot}/usr/include" -type f | sort >"${fileList}"
+sed --expression="s#${ctsysroot}/##"   --in-place "${fileList}"
+sed --expression="/\.install/d"        --in-place "${fileList}"
+sed --expression="/\.\.install\.cmd/d" --in-place "${fileList}"
 echo "usr/lib/Scrt1.o"                >>"${fileList}"
 echo "usr/lib/crt1.o"                 >>"${fileList}"
 echo "usr/lib/crti.o"                 >>"${fileList}"
