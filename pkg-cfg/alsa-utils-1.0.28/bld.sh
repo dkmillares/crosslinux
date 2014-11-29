@@ -72,6 +72,7 @@ CFLAGS="${CONFIG_CFLAGS}" \
 	--target=${CONFIG_XTOOL_NAME} \
 	--with-curses=ncurses \
 	--disable-alsatest \
+	--disable-nls \
 	--disable-xmlto || return 0
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 
