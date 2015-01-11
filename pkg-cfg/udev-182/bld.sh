@@ -140,6 +140,7 @@ for ruleFile in "${TARGET_SYSROOT_DIR}/lib/udev/rules.d"/*; do
 		--expression="s/GROUP=\"dialout\"/GROUP=\"uucp\"/" \
 		--expression="s/GROUP=\"tape\"/GROUP=\"disk\"/" \
 		${ruleFile}
+                chmod 644 "${ruleFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 done; unset ruleFile
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..

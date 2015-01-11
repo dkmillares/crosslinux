@@ -123,6 +123,7 @@ fi
 #
 _sedFile="${TARGET_SYSROOT_DIR}/etc/lilo.conf"
 sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 unset _sedFile
 
 PKG_STATUS=""

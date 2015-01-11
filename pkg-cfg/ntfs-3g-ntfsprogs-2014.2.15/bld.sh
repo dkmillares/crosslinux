@@ -118,16 +118,6 @@ PATH="${CONFIG_XTOOL_BIN_DIR}:${PATH}" make \
 	CROSS_COMPILE=${CONFIG_XTOOL_NAME}- \
 	DESTDIR=${TARGET_SYSROOT_DIR} \
 	install || return 0
-rm --force ${TARGET_SYSROOT_DIR}/sbin/mkfs.ntfs
-rm --force ${TARGET_SYSROOT_DIR}/sbin/mount.ntfs-3g
-rm --force ${TARGET_SYSROOT_DIR}/sbin/mount.lowntfs-3g
-rm --force ${TARGET_SYSROOT_DIR}/usr/lib/libntfs-3g.so
-_lnk="ln --symbolic"
-${_lnk} ../usr/sbin/mkntfs ${TARGET_SYSROOT_DIR}/sbin/mkfs.ntfs
-${_lnk} ../bin/ntfs-3g     ${TARGET_SYSROOT_DIR}/sbin/mount.ntfs-3g
-${_lnk} ../bin/lowntfs-3g  ${TARGET_SYSROOT_DIR}/sbin/mount.lowntfs-3g
-${_lnk} ../../lib/libntfs-3g.so.85 ${TARGET_SYSROOT_DIR}/usr/lib/libntfs-3g.so
-unset _lnk
 source "${CROSSLINUX_SCRIPT_DIR}/_xbt_env_clr"
 cd ..
 

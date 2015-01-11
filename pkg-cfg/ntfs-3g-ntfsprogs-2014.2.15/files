@@ -1,9 +1,6 @@
 # vim: syntax=sh
 bin/lowntfs-3g
 bin/ntfs-3g
-lib/libntfs-3g.so
-lib/libntfs-3g.so.85
-lib/libntfs-3g.so.85.0.0
 sbin/mkfs.ntfs
 sbin/mount.lowntfs-3g
 sbin/mount.ntfs-3g
@@ -17,6 +14,8 @@ usr/bin/ntfsfix
 usr/bin/ntfsinfo
 usr/bin/ntfsls
 usr/lib/libntfs-3g.so
+usr/lib/libntfs-3g.so.85
+usr/lib/libntfs-3g.so.85.0.0
 usr/sbin/mkntfs
 usr/sbin/ntfsclone
 usr/sbin/ntfscp

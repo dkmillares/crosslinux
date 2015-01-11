@@ -80,10 +80,14 @@ cfg="${cfgDir}/_bbox-stnd.cfg"
 if [[ -f "site/pkg-cfg-$1/_bbox-stnd.cfg" ]]; then
 	cfg="site/pkg-cfg-$1/_bbox-stnd.cfg"
 fi
-if [[ x"${CONFIG_BUSYBOX_HAS_LOSETUP:-}" == x"" ]]; then
-	sed -i ${cfg} -e 's/CONFIG_LOSETUP=y/# CONFIG_LOSETUP is not set/'
-fi
 cp "${cfg}" .config
+if [[ x"${CONFIG_BUSYBOX_HAS_LOSETUP:-}" == x"" ]]; then
+	sed -i ".config" -e 's/CONFIG_LOSETUP=y/# CONFIG_LOSETUP is not set/'
+	chmod 644 ".config" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
+else
+	sed -i ".config" -e 's/# CONFIG_LOSETUP is not set/CONFIG_LOSETUP=y/'
+	chmod 644 ".config" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
+fi
 
 PKG_STATUS="stnd make error"
 CFLAGS="${CONFIG_CFLAGS} --sysroot=${TARGET_SYSROOT_DIR}" \
@@ -189,6 +193,7 @@ declare _sedFile=""
 #
 _sedFile="${TARGET_SYSROOT_DIR}/etc/HOSTNAME"
 sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 
 # ***** /etc/issue
 #
@@ -199,6 +204,7 @@ for _sedFile in "${TARGET_SYSROOT_DIR}/etc/issue"*; do
 			-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"	\
 			-e "s/@RELEASE_NAME@/${CONFIG_RELEASE_NAME}/"	\
 			-e "s/^.m/${CONFIG_CPU_ARCH}/"
+		chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 	fi
 done
 
@@ -209,12 +215,15 @@ case "${CONFIG_BOARD}" in
 	'mac_g4')
 		_sedFile="${TARGET_SYSROOT_DIR}/etc/modprobe.d/modprobe.conf"
 		sed -i "${_sedFile}" -e "s/#nomac /# /"
+		chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 		_sedFile="${TARGET_SYSROOT_DIR}/etc/modtab"
 		sed -i "${_sedFile}" -e "s/# snd-powermac/snd-powermac/"
+		chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 		;;
 	*)
 		_sedFile="${TARGET_SYSROOT_DIR}/etc/modprobe.d/modprobe.conf"
 		sed -i "${_sedFile}" -e "s/#nomac //"
+		chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 		;;
 esac
 
@@ -222,6 +231,7 @@ esac
 #
 _sedFile="${TARGET_SYSROOT_DIR}/etc/passwd"
 sed -i "${_sedFile}" -e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"
+chmod 644 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 
 # ***** /etc/rc.d/rc.sysinit
 # ***** /etc/rc.d/rc.sysdone
@@ -231,10 +241,12 @@ sed -i "${_sedFile}"					\
 	-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
 	-e "s|@BRAND_URL@|${CONFIG_BRAND_URL}|"		\
 	-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"
+chmod 775 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 _sedFile="${TARGET_SYSROOT_DIR}/etc/rc.d/rc.sysdone"
 sed -i "${_sedFile}"					\
 	-e "s/@BRAND_NAME@/${CONFIG_BRAND_NAME}/"	\
 	-e "s/@RELEASE_VERS@/${CONFIG_RELEASE_VERS}/"
+chmod 775 "${_sedFile}" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 
 unset _sedFile
 

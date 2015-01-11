@@ -9,7 +9,7 @@
 CONFIG_BRAND_NAME="ttylinux"
 CONFIG_BRAND_URL="http://www.ttylinux.net/"
 CONFIG_RELEASE_NAME="tasmania"
-CONFIG_RELEASE_VERS="2014.11"
+CONFIG_RELEASE_VERS="2015.01"
 
 #
 # System Architecture and Boot Configuration
@@ -17,12 +17,12 @@ CONFIG_RELEASE_VERS="2014.11"
 # CONFIG_BOARD_BEAGLEBONE is not set
 # CONFIG_BOARD_MAC_G4 is not set
 # CONFIG_BOARD_PC_486 is not set
-# CONFIG_BOARD_PC_686 is not set
-CONFIG_BOARD_PC_X86_64=y
-CONFIG_BOARD="pc_x86_64"
-CONFIG_CPU_ARCH="x86_64"
-CONFIG_LINUX_ARCH="x86_64"
-CONFIG_CFLAGS="-m64 -Os"
+CONFIG_BOARD_PC_686=y
+# CONFIG_BOARD_PC_X86_64 is not set
+CONFIG_BOARD="pc_i686"
+CONFIG_CPU_ARCH="i686"
+CONFIG_LINUX_ARCH="i386"
+CONFIG_CFLAGS="-march=i686 -mtune=generic -Os"
 CONFIG_BOOTLOADER="isolinux"
 CONFIG_ROOTFS_INITRD=y
 # CONFIG_ROOTFS_INITRAMFS is not set
@@ -47,9 +47,9 @@ CONFIG_LOADERSUBDIR="syslinux-6.01"
 #
 # Cross-tool Chain and Build Configuration
 #
-CONFIG_XTOOL_NAME="x86_64-generic-linux-gnu"
-CONFIG_XTOOL_BIN_DIR="${HOME}/x-tools/x86_64-generic-linux-gnu/bin"
-CONFIG_XTOOL_TARGET_MANIFEST_DIR="${HOME}/x-tools/x86_64-generic-linux-gnu/_target-source"
+CONFIG_XTOOL_NAME="i686-generic-linux-gnu"
+CONFIG_XTOOL_BIN_DIR="${HOME}/x-tools/i686-generic-linux-gnu/bin"
+CONFIG_XTOOL_TARGET_MANIFEST_DIR="${HOME}/x-tools/i686-generic-linux-gnu/_target-source"
 CONFIG_DOWNLOAD_DIR="${HOME}/Downloads/"
 CONFIG_PARALLEL_JOBS=y
 CONFIG_STRIP_BINS=y

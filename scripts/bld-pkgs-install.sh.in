@@ -281,7 +281,9 @@ echo -n "f." >&${CONSOLE_FD}
 #
 find ${TARGET_SYSROOT_DIR} -newer INSTALL_STAMP | sort >> FILES
 sed -i "FILES" --expression="\#^${TARGET_SYSROOT_DIR}\$#d" >/dev/null 2>&1
+chmod 644 "FILES" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 sed -i "FILES" --expression="s|^${TARGET_SYSROOT_DIR}/||"  >/dev/null 2>&1
+chmod 644 "FILES" # Code Issue [02] -- See "A2_Known_Issues_And_Problems.txt".
 rm --force INSTALL_STAMP # All done with the INSTALL_STAMP file.
 
 # Strip when possible.
