@@ -61,4 +61,5 @@ source @@CL_LIBDIR@@/pkg-cfg/lua-5.2.3/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/lynx-2.8.8/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/nano-2.3.2/Kconfig
 source @@CL_LIBDIR@@/pkg-cfg/retawq-0.2.6c/Kconfig
+source @@CL_LIBDIR@@/pkg-cfg/tree-1.7.0/Kconfig
 endmenu
