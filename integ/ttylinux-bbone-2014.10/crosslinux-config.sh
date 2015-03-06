@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# crosslinux-0.0.3 -- Configure a Cross Linux Build
+# crosslinux-0.0.4 -- Configure a Cross Linux Build
 #
 
 #
@@ -8,8 +8,8 @@
 #
 CONFIG_BRAND_NAME="ttylinux"
 CONFIG_BRAND_URL="http://www.ttylinux.net/"
-CONFIG_RELEASE_NAME="athling"
-CONFIG_RELEASE_VERS="2014.10"
+CONFIG_RELEASE_NAME="tasmania"
+CONFIG_RELEASE_VERS="2015.01"
 
 #
 # System Architecture and Boot Configuration
@@ -46,15 +46,15 @@ CONFIG_LOADERSUBDIR="uboot-2014.01"
 CONFIG_XTOOL_NAME="armv7-generic-linux-gnueabi"
 CONFIG_XTOOL_BIN_DIR="${HOME}/x-tools/armv7-generic-linux-gnueabi/bin"
 CONFIG_XTOOL_TARGET_MANIFEST_DIR="${HOME}/x-tools/armv7-generic-linux-gnueabi/_target-source"
-CONFIG_DOWNLOAD_DIR="${HOME}/Download/"
+CONFIG_DOWNLOAD_DIR="${HOME}/Downloads/"
 CONFIG_PARALLEL_JOBS=y
 CONFIG_STRIP_BINS=y
 CONFIG_SITE_SCRIPTS=y
 CONFIG_SITE_KERNEL_CFG=y
 CONFIG_SITE_KERNEL_CFG_PNAME="kernel/linux-3.8.cfg"
 CONFIG_SITE_KERNEL=y
-CONFIG_SITE_KERNEL_PNAME="kernel/linux-3.8.tar.bz2"
-CONFIG_SITE_KERNEL_URL="https://github.com/beagleboard/kernel/tree/3.8"
+CONFIG_SITE_KERNEL_PNAME="kernel/linux-3.8.13.tar.bz2"
+CONFIG_SITE_KERNEL_URL="https://github.com/beagleboard/linux"
 CONFIG_FORCE_SITE_KERNEL_CFG=y
 
 #
@@ -73,6 +73,7 @@ CONFIG_BLD_NCURSES_5p9=y
 CONFIG_NCURSES_HAS_LIBS=y
 CONFIG_NCURSES_HAS_WIDEC=y
 CONFIG_BLD_READLINE_6p3=y
+# CONFIG_BLD_ALSA_LIB_1p0p28 is not set
 CONFIG_BLD_GMP_5p0p5=y
 CONFIG_BLD_MPFR_3p1p1=y
 CONFIG_BLD_PPL_0p11=y
@@ -93,6 +94,7 @@ CONFIG_BLD_E2FSPROGS_1p42p9=y
 # CONFIG_E2FSPROGS_HAS_FINDFS is not set
 CONFIG_BLD_KMOD_16=y
 # CONFIG_BLD_LILO_24p0 is not set
+# CONFIG_BLD_NTFS_3G_NTFSPROGS_2014p2p15 is not set
 CONFIG_BLD_TTYLINUX_UTILS_1p6=y
 CONFIG_BLD_UDEV_182=y
 CONFIG_FORCE_UDEV=y
@@ -118,6 +120,7 @@ CONFIG_BLD_THTTPD_2p25B=y
 #
 # Applications
 #
+# CONFIG_BLD_ALSA_UTILS_1p0p28 is not set
 CONFIG_BLD_CALC_2p12p4p13=y
 CONFIG_BLD_DTACH_0p8=y
 CONFIG_BLD_DVTM_0p11=y
@@ -127,3 +130,4 @@ CONFIG_BLD_LYNX_2p8p8=y
 CONFIG_BLD_NANO_2p3p2=y
 CONFIG_BLD_RETAWQ_0p2p6C=y
 CONFIG_RETAWQ_HAS_THREADING=y
+CONFIG_BLD_TREE_1p7p0=y

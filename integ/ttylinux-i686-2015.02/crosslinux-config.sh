@@ -8,8 +8,8 @@
 #
 CONFIG_BRAND_NAME="ttylinux"
 CONFIG_BRAND_URL="http://www.ttylinux.net/"
-CONFIG_RELEASE_NAME="tasmania"
-CONFIG_RELEASE_VERS="2015.01"
+CONFIG_RELEASE_NAME="halftime"
+CONFIG_RELEASE_VERS="2015.02"
 
 #
 # System Architecture and Boot Configuration
