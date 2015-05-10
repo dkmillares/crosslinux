@@ -196,6 +196,10 @@ unset _p
 unset _pkglst
 unset _shareDir
 
+echo -n "i> mklost+found ... "
+(cd "${TARGET_MNT_DIR}"; mklost+found; ls -l)
+echo "DONE"
+
 echo -n "i> Updating birthdays ... "
 find "${TARGET_MNT_DIR}" -type d -o -type f \
 	-exec touch --reference=TIME_STAMP {} \;
