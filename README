@@ -6,12 +6,20 @@ small Linux systems for several CPU architectures.  crosslinux is the build
 system for ttylinux.  See the files in the doc/ directory.
 
 --
+NO LONGER TRUE:
 crosslinux group:
 http://groups.google.com/group/crosslinux/
 
 --
+NO LONGER TRUE:
 For official ISO distribution releases of ttylinux, see the ttylinux web page:
 http://ttylinux.org/
 
+NO LONGER TRUE:
 Official ttylinux releases are supported through the mailing list:
 http://groups.google.com/group/ttylinux/
+
+However, you can find a backup of the ttylinux web site at http://ttylinux.info
+I am interested in starting some kind of communication channel for ttylinux and/or crosslinux.
+mkienenb at gmail d-o-t com.
+
