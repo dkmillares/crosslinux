@@ -64,9 +64,13 @@ you can "source" to add the installed crosslinux path to PATH; this script is
 smart enough to add to PATH only if needed, so you can use it multiple times
 without growing PATH more than needed.
 
+# the lib64 versions of these files were missing -- trying to use the 32-bit versions as a workaround.
+$ cd ~/projects/crosslinux/lib64/cl-bt.0.0.4/kconfig-exec
+$ ln -s ../../../lib/cl-bt.0.0.4/kconfig-exec/* .
+
 $ mkdir ~/projects/ttylinux-i486
 $ cd ~/projects/ttylinux-i486
-$ source ~/crosslinux/bin/setenv.sh
+$ source ~/projects/crosslinux/bin/setenv.sh
 
 Now you are ready to give crosslinux build tool commands.  There is one basic
 command: cl-bt.  You can give the command with no arguments and it will give
@@ -178,7 +182,7 @@ After making the i486 cross-tool chain go to the crosslinux project directory,
 ~/projects/ttylinux-i486, and make the bootable target Linux system ISO image.
 
 $ cd  ~/projects/ttylinux-i486
-$ source ~/crosslinux/bin/setenv.sh # if you haven't done this in this terminal
+$ source ~/projects/crosslinux/bin/setenv.sh # if you haven't done this in this terminal
 $ cl-bt dist
 
 Or, make the bootable target Linux system ISO image in several steps.
